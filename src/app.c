@@ -283,7 +283,10 @@ void app_sysex_event(u8 port, u8 * data, u16 count)
 
 void app_aftertouch_event(u8 index, u8 value)
 {
-	
+    if (state == NOTES_MODE && !flag_is_set(flags, IS_CONFIG))
+    {
+        layout_aftertouch(&layout, index, value, midi_channel);
+    }
 }
 	
 
@@ -303,6 +306,12 @@ void app_cable_event(u8 type, u8 value)
 void app_timer_event()
 {
     sequencer_tick(&sequencer);
+
+    if (state == SEQUENCER_MODE && flag_is_set(sequencer.flags, DIRTY))
+    {
+        sequencer.flags = clear_flag(sequencer.flags, DIRTY);
+        sequencer_mode_draw();
+    }
 }
 
 

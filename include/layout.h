@@ -57,4 +57,7 @@ void layout_set_row_offset(Layout* l, u8 o);
 /// Plays a note on the grid.
 void layout_play(Layout* l, u8 index, u8 value, u8 midi_channel);
 
+/// Sends aftertouch for a note on the grid.
+void layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel);
+
 #endif

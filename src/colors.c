@@ -2,7 +2,7 @@
 #include "app.h"
 #include "colors.h"
 
-const u8 root_note_color[3] = {0x7F, 0x04, 0x04};
+const u8 root_note_color[3] = {0x0F, 0x04, 0x04};
 const u8 no_note_color[3] = {0x0F, 0x00, 0x00};
 const u8 white_key_color[3] = {0x7F, 0x7F, 0x7F};
 const u8 black_key_color[3] = {0x3F, 0x00, 0x17};

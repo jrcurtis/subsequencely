@@ -49,6 +49,7 @@ void sequencer_init(Sequencer* sr, Sequences* ss, Layout* l)
     sr->active_sequence = 0;
     sr->x = 0;
     sr->y = 0;
+    sr->flags = 0x00;
 
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
@@ -61,12 +62,17 @@ void sequencer_set_octave(Sequencer* sr, u8 octave)
     sr->y = octave * sr->layout->scale->num_notes;
 }
 
+/*******************************************************************************
+ * Drawing
+ ******************************************************************************/
+
 void sequencer_grid_draw(Sequencer* sr)
 {
     u8 scale_deg = sr->y % sr->layout->scale->num_notes;
     u8 octave = sr->y / sr->layout->scale->num_notes;
     Sequence* s = &(*sr->sequences)[sr->active_sequence];
     u8 index = FIRST_PAD;
+    u8 zoom = zoom_to_sequencer_x(sr);
 
     for (u8 y = 0; y < GRID_SIZE; y++)
     {
@@ -84,6 +90,14 @@ void sequencer_grid_draw(Sequencer* sr)
                 const u8* color = number_colors[seq_x & 3];
                 u8 dimness = 5 - n->velocity / (127 / 5);
                 plot_pad_dim(index, color, dimness);
+            }
+            else if (s->playhead / zoom == x + sr->x)
+            {
+                plot_pad(index, on_color);
+            }
+            else if (layout_is_root_note(sr->layout, note_number))
+            {
+                plot_pad(index, root_note_color);
             }
             else
             {
@@ -119,6 +133,11 @@ void sequencer_grid_draw(Sequencer* sr)
         play_index -= PLAY_GAP;
     }
 }
+
+
+/*******************************************************************************
+ * Button handling
+ ******************************************************************************/
 
 void sequencer_handle_translate(Sequencer* sr, u8 index)
 {
@@ -243,6 +262,10 @@ void sequencer_grid_handle_press(Sequencer* sr, u8 index, u8 value)
     }
 }
 
+/*******************************************************************************
+ * Time handling
+ ******************************************************************************/
+
 void sequencer_tick(Sequencer* sr)
 {
     sr->timer++;
@@ -250,6 +273,7 @@ void sequencer_tick(Sequencer* sr)
     if (sr->timer >= sr->tempo)
     {
         sr->timer = 0;
+        sr->flags = set_flag(sr->flags, DIRTY);
 
         for (u8 i = 0; i < GRID_SIZE; i++)
         {

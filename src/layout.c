@@ -134,6 +134,25 @@ void layout_play(Layout* l, u8 index, u8 value, u8 midi_channel)
     }
 }
 
+void layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel)
+{
+    u8 x, y;
+
+    if (index_to_pad(index, &x, &y))
+    {
+        u8 note_number = (*l->pad_notes)[y][x];
+
+        if (note_number > MAX_NOTE)
+        {
+            return;
+        }
+
+        hal_send_midi(
+            USBSTANDALONE, POLYAFTERTOUCH | midi_channel,
+            note_number, value);
+    }
+}
+
 void layout_draw(Layout* l)
 {
     for (u8 y = 0; y < GRID_SIZE; y++)

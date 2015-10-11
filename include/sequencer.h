@@ -10,8 +10,9 @@
 
 typedef enum
 {
-    PLAYING = 0x01
-} SequenceFlags;
+    PLAYING = 0x01,
+    DIRTY = 0x02
+} SequencerFlags;
 
 typedef struct
 {
@@ -38,6 +39,7 @@ typedef struct
     u8 active_sequence;
     u8 x;
     u8 y;
+    u8 flags;
 } Sequencer;
 
 void sequencer_init(Sequencer* sr, Sequences* ss, Layout* l);
