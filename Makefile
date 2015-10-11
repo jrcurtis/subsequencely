@@ -2,7 +2,7 @@ BUILDDIR = build
 
 TOOLS = tools
 
-SOURCES += src/app.c
+SOURCES += src/app.c src/scale.c src/layout.c src/keyboard.c src/colors.c src/util.c src/slider.c src/sequencer.c
 
 INCLUDES += -Iinclude -I
 
@@ -11,9 +11,9 @@ LIB = lib/launchpad_pro.a
 OBJECTS = $(addprefix $(BUILDDIR)/, $(addsuffix .o, $(basename $(SOURCES))))
 
 # output files
-SYX = $(BUILDDIR)/launchpad_pro.syx
-ELF = $(BUILDDIR)/launchpad_pro.elf
-HEX = $(BUILDDIR)/launchpad_pro.hex
+SYX = $(BUILDDIR)/launchpad_pro_seq.syx
+ELF = $(BUILDDIR)/launchpad_pro_seq.elf
+HEX = $(BUILDDIR)/launchpad_pro_seq.hex
 HEXTOSYX = $(BUILDDIR)/hextosyx
 SIMULATOR = $(BUILDDIR)/simulator
 
