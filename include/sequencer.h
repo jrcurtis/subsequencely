@@ -35,6 +35,7 @@ typedef struct
 typedef struct
 {
     Note notes[SEQUENCE_LENGTH];
+    u8 channel;
     u8 playhead;
     u8 flags;
 } Sequence;
@@ -57,9 +58,14 @@ typedef struct
 
 void sequencer_init(Sequencer* sr, Sequences* ss, Layout* l);
 void sequencer_set_octave(Sequencer* sr, u8 octave);
+
 void sequencer_play_draw(Sequencer* sr);
 void sequencer_grid_draw(Sequencer* sr);
-void sequencer_grid_handle_press(Sequencer* sr, u8 index, u8 value);
+
+u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value);
+u8 sequencer_handle_modifiers(Sequencer* sr, u8 index, u8 value);
+u8 sequencer_grid_handle_press(Sequencer* sr, u8 index, u8 value);
+
 void sequencer_tick(Sequencer* sr);
 
 #endif

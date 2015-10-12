@@ -3,6 +3,7 @@
 #define LAYOUT_H
 
 #include "app.h"
+#include "buttons.h"
 #include "util.h"
 #include "colors.h"
 #include "scale.h"
@@ -54,10 +55,13 @@ void layout_transpose_octave(Layout* l, s8 direction);
 /// Sets the offset between rows and updates the layout.
 void layout_set_row_offset(Layout* l, u8 o);
 
+/// Transposes the notes of the layout by half steps or octaves.
+u8 layout_handle_transpose(Layout* l, u8 index, u8 value);
+
 /// Plays a note on the grid.
-void layout_play(Layout* l, u8 index, u8 value, u8 midi_channel);
+u8 layout_play(Layout* l, u8 index, u8 value, u8 midi_channel);
 
 /// Sends aftertouch for a note on the grid.
-void layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel);
+u8 layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel);
 
 #endif

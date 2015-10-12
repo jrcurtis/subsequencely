@@ -56,17 +56,19 @@ u8 keyboard_index_is_key(Keyboard* k, u8 index)
     return k->index_to_note[index - FIRST_KEYBOARD_PAD] != -1;
 }
 
-void keyboard_handle_press(Keyboard* k, u8 index)
+u8 keyboard_handle_press(Keyboard* k, u8 index, u8 value)
 {
-    if (!keyboard_index_is_key(k, index))
+    if (value == 0 || !keyboard_index_is_key(k, index))
     {
-        return;
+        return 0;
     }
 
     u8 deg = (k->index_to_note[index - FIRST_KEYBOARD_PAD]
               - k->layout->root_note
               + NUM_NOTES) % NUM_NOTES;
     layout_toggle_note(k->layout, deg);
+
+    return 1;
 }
 
 void keyboard_draw(Keyboard* k)

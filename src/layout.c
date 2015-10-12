@@ -112,29 +112,39 @@ void layout_light_note(Layout* l, u8 note_number, u8 velocity, u8 on)
     }
 }
 
-void layout_play(Layout* l, u8 index, u8 value, u8 midi_channel)
+
+u8 layout_handle_transpose(Layout* l, u8 index, u8 value)
 {
-    u8 x, y;
-
-    if (index_to_pad(index, &x, &y))
+    if (value == 0)
     {
-        u8 note_number = (*l->pad_notes)[y][x];
-
-        if (note_number > MAX_NOTE)
-        {
-            return;
-        }
-
-        u8 midi_message = value > 0 ? NOTEON : NOTEOFF;
-        hal_send_midi(
-            USBSTANDALONE, midi_message | midi_channel,
-            note_number, value);
-
-        layout_light_note(l, note_number, value, value > 0);
+        return 0;
     }
+
+    if (index == TRANSPOSE_UP)
+    {
+        layout_transpose(l, 1);
+    }
+    else if (index == TRANSPOSE_DOWN)
+    {
+        layout_transpose(l, -1);
+    }
+    else if (index == OCTAVE_UP)
+    {
+        layout_transpose_octave(l, 1);
+    }
+    else if (index == OCTAVE_DOWN)
+    {
+        layout_transpose_octave(l, -1);
+    }
+    else
+    {
+        return 0;
+    }
+
+    return 1;
 }
 
-void layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel)
+u8 layout_play(Layout* l, u8 index, u8 value, u8 midi_channel)
 {
     u8 x, y;
 
@@ -142,15 +152,46 @@ void layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel)
     {
         u8 note_number = (*l->pad_notes)[y][x];
 
-        if (note_number > MAX_NOTE)
+        if (note_number <= MAX_NOTE)
         {
-            return;
-        }
+            u8 midi_message = value > 0 ? NOTEON : NOTEOFF;
+            hal_send_midi(
+                USBSTANDALONE, midi_message | midi_channel,
+                note_number, value);
 
-        hal_send_midi(
-            USBSTANDALONE, POLYAFTERTOUCH | midi_channel,
-            note_number, value);
+            layout_light_note(l, note_number, value, value > 0);
+        }
     }
+    else
+    {
+        return 0;
+    }
+
+
+    return 1;
+}
+
+u8 layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel)
+{
+    u8 x, y;
+
+    if (index_to_pad(index, &x, &y))
+    {
+        u8 note_number = (*l->pad_notes)[y][x];
+
+        if (note_number <= MAX_NOTE)
+        {
+            hal_send_midi(
+                USBSTANDALONE, POLYAFTERTOUCH | midi_channel,
+                note_number, value);
+        }
+    }
+    else
+    {
+        return 0;
+    }
+
+    return 1;
 }
 
 void layout_draw(Layout* l)

@@ -39,8 +39,9 @@
 
 typedef enum
 {
-    SEQUENCER_MODE,
+    SESSION_MODE,
     NOTES_MODE,
+    SEQUENCER_MODE,
     NUM_MODES
 } State;
 
@@ -79,6 +80,26 @@ Sequencer sequencer;
  * App functionality
  ******************************************************************************/
 
+void session_mode_draw()
+{
+    
+}
+
+void session_config_draw()
+{
+    
+}
+
+u8 session_mode_handle_press(u8 index, u8 value)
+{
+    return 0;
+}
+
+u8 session_config_handle_press(u8 index, u8 value)
+{
+    return 0;
+}
+
 void sequencer_mode_draw()
 {
     sequencer_grid_draw(&sequencer);
@@ -90,41 +111,35 @@ void sequencer_config_draw()
     sequencer_play_draw(&sequencer);
 }
 
-void sequencer_mode_handle_press(u8 index, u8 value)
+u8 sequencer_mode_handle_press(u8 index, u8 value)
 {
-    sequencer_grid_handle_press(&sequencer, index, value);
+    if (sequencer_handle_modifiers(&sequencer, index, value)) { }
+    else if (sequencer_handle_play(&sequencer, index, value)) { }
+    else if (sequencer_grid_handle_press(&sequencer, index, value)) { }
+    else
+    {
+        return 0;
+    }
+
     sequencer_mode_draw();
+
+    return 1;
 }
 
-void sequencer_config_handle_press(u8 index, u8 value)
+u8 sequencer_config_handle_press(u8 index, u8 value)
 {
-    sequencer_play_draw(&sequencer);
+    if (sequencer_handle_modifiers(&sequencer, index, value)) { }
+    else if (sequencer_handle_play(&sequencer, index, value)) { }
+    else
+    {
+        return 0;
+    }
+
+    sequencer_mode_draw();
+
+    return 1;
 }
 
-
-void handle_transpose(u8 index)
-{
-    if (index == TRANSPOSE_UP)
-    {
-        layout_transpose(&layout, 1);
-        keyboard_update_indices(&keyboard);
-    }
-    else if (index == TRANSPOSE_DOWN)
-    {
-        layout_transpose(&layout, -1);
-        keyboard_update_indices(&keyboard);
-    }
-    else if (index == OCTAVE_UP)
-    {
-        layout_transpose_octave(&layout, 1);
-        keyboard_update_indices(&keyboard);
-    }
-    else if (index == OCTAVE_DOWN)
-    {
-        layout_transpose_octave(&layout, -1);
-        keyboard_update_indices(&keyboard);
-    }
-}
 
 void notes_mode_draw()
 {
@@ -139,34 +154,46 @@ void notes_config_draw()
     sequencer_play_draw(&sequencer);
 }
 
-void notes_mode_handle_press(u8 index, u8 value)
+u8 notes_mode_handle_press(u8 index, u8 value)
 {
-    layout_play(&layout, index, value, midi_channel);
-
-    if (value == 0)
+    if (sequencer_handle_modifiers(&sequencer, index, value)) { }
+    else if (sequencer_handle_play(&sequencer, index, value)) { }
+    else if (layout_handle_transpose(&layout, index, value))
     {
-        return;
+        keyboard_update_indices(&keyboard);
+    }
+    else if (layout_play(&layout, index, value, midi_channel)) { }
+    else
+    {
+        return 0;
     }
 
-    handle_transpose(index);
+    notes_mode_draw();
+
+    return 1;
 }
 
-void notes_config_handle_press(u8 index, u8 value)
+u8 notes_config_handle_press(u8 index, u8 value)
 {
-    if (value == 0)
-    {
-        return;
-    }
-
-    if (slider_handle_press(&row_offset_slider, index))
+    if (sequencer_handle_modifiers(&sequencer, index, value)) { }
+    else if (sequencer_handle_play(&sequencer, index, value)) { }
+    else if (slider_handle_press(&row_offset_slider, index, value))
     {
         layout_set_row_offset(&layout, row_offset_slider.value + 1);
     }
-    keyboard_handle_press(&keyboard, index);
-    handle_transpose(index);
+    else if (layout_handle_transpose(&layout, index, value))
+    {
+        keyboard_update_indices(&keyboard);
+    }
+    else if (keyboard_handle_press(&keyboard, index, value)) { }
+    else
+    {
+        return 0;
+    }
 
-    keyboard_draw(&keyboard);
-    slider_draw(&row_offset_slider);
+    notes_config_draw();
+
+    return 1;
 }
 
 
@@ -183,19 +210,19 @@ void set_state(State st, u8 cfg)
 
     clear_leds();
 
-    if (st == SEQUENCER_MODE)
+    if (st == SESSION_MODE)
     {
-        plot_pad(SESSION, number_colors[SEQUENCER_MODE]);
+        plot_pad(SESSION, number_colors[SESSION_MODE]);
 
         if (cfg)
         {
             plot_setup(on_color);
-            sequencer_config_draw();
+            session_config_draw();
         }
         else
         {
-            plot_setup(number_colors[SEQUENCER_MODE]);
-            sequencer_mode_draw();
+            plot_setup(number_colors[SESSION_MODE]);
+            session_mode_draw();
         }
     }
     else if (st == NOTES_MODE)
@@ -211,6 +238,21 @@ void set_state(State st, u8 cfg)
         {
             plot_setup(number_colors[NOTES_MODE]);
             notes_mode_draw();
+        }
+    }
+    else if (st == SEQUENCER_MODE)
+    {
+        plot_pad(DEVICE, number_colors[SEQUENCER_MODE]);
+
+        if (cfg)
+        {
+            plot_setup(on_color);
+            sequencer_config_draw();
+        }
+        else
+        {
+            plot_setup(number_colors[SEQUENCER_MODE]);
+            sequencer_mode_draw();
         }
     }
 
@@ -230,11 +272,15 @@ void app_surface_event(u8 type, u8 index, u8 value)
     }
     else if (index == SESSION && value > 0)
     {
-        set_state(SEQUENCER_MODE, 0);
+        set_state(SESSION_MODE, 0);
     }
     else if (index == NOTE && value > 0)
     {
         set_state(NOTES_MODE, 0);
+    }
+    else if (index == DEVICE && value > 0)
+    {
+        set_state(SEQUENCER_MODE, 0);
     }
     else if (type == TYPESETUP && value > 0)
     {
@@ -242,24 +288,32 @@ void app_surface_event(u8 type, u8 index, u8 value)
     }
     else if (!flag_is_set(flags, IS_CONFIG))
     {
-        if (state == SEQUENCER_MODE)
+        if (state == SESSION_MODE)
         {
-            sequencer_mode_handle_press(index, value);
+            session_mode_handle_press(index, value);
         }
         else if (state == NOTES_MODE)
         {
             notes_mode_handle_press(index, value);
         }
+        else if (state == SEQUENCER_MODE)
+        {
+            sequencer_mode_handle_press(index, value);
+        }
     }
     else
     {
-        if (state == SEQUENCER_MODE)
+        if (state == SESSION_MODE)
         {
-            sequencer_config_handle_press(index, value);
+            session_config_handle_press(index, value);
         }
         else if (state == NOTES_MODE)
         {
             notes_config_handle_press(index, value);
+        }
+        else if (state == SEQUENCER_MODE)
+        {
+            sequencer_config_handle_press(index, value);
         }
     }
 }
@@ -331,6 +385,4 @@ void app_init()
     sequencer_init(&sequencer, &sequences, &layout);
 
     set_state(NOTES_MODE, 0);
-
-    layout_draw(&layout);
 }

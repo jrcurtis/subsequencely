@@ -9,10 +9,10 @@ void slider_init(Slider* s, Orientation o, u8 p, const u8* c, u8 v)
     s->value = v;
 }
 
-u8 slider_handle_press(Slider* s, u8 index)
+u8 slider_handle_press(Slider* s, u8 index, u8 value)
 {
     u8 x, y;
-    if (!index_to_pad(index, &x, &y))
+    if (value == 0 || !index_to_pad(index, &x, &y))
     {
         return 0;
     }
@@ -20,15 +20,17 @@ u8 slider_handle_press(Slider* s, u8 index)
     if (s->orientation == VERTICAL && s->position == x)
     {
         s->value = y;
-        return 1;
     }
     else if (s->orientation == HORIZONTAL && s->position == y)
     {
         s->value = x;
-        return 1;
+    }
+    else
+    {
+        return 0;
     }
 
-    return 0;
+    return 1;
 }
 
 void slider_draw(Slider* s)

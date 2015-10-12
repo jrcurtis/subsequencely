@@ -36,7 +36,7 @@ void slider_init(Slider* s, Orientation o, u8 p, const u8* c, u8 v);
 
 /// Checks whether index is a valid pad for this slider, and updates the value
 /// if so.
-u8 slider_handle_press(Slider* s, u8 index);
+u8 slider_handle_press(Slider* s, u8 index, u8 value);
 
 /// Draws the slider using the position and color.
 void slider_draw(Slider* s);

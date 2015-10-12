@@ -16,8 +16,9 @@
                                            / sr->layout->scale->num_notes      \
                                        ))
 
-void sequence_init(Sequence* s)
+void sequence_init(Sequence* s, u8 channel)
 {
+    s->channel = channel;
     s->playhead = 0;
     s->flags = 0x00;
 
@@ -28,13 +29,13 @@ void sequence_init(Sequence* s)
     }
 }
 
-void sequence_kill_note(Sequence* s, u8 channel)
+void sequence_kill_note(Sequence* s)
 {
     Note* n = &s->notes[s->playhead];
     if (n->note_number != -1)
     {
         hal_send_midi(
-            USBSTANDALONE, NOTEOFF | channel,
+            USBSTANDALONE, NOTEOFF | s->channel,
             n->note_number, n->velocity);
     }
 }
@@ -54,7 +55,7 @@ void sequencer_init(Sequencer* sr, Sequences* ss, Layout* l)
 
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
-        sequence_init(&(*sr->sequences)[i]);
+        sequence_init(&(*sr->sequences)[i], i);
     }
 }
 
@@ -103,7 +104,8 @@ void sequencer_play_draw(Sequencer* sr)
         }
         else
         {
-            color = flag_is_set(s->flags, PLAYING)
+            color = (flag_is_set(s->flags, PLAYING)
+                     || flag_is_set(s->flags, QUEUED))
                 ? sequence_colors[i]
                 : off_color;
         }
@@ -171,11 +173,11 @@ void sequencer_grid_draw(Sequencer* sr)
  * Button handling
  ******************************************************************************/
 
-void sequencer_handle_translate(Sequencer* sr, u8 index)
+u8 sequencer_handle_translate(Sequencer* sr, u8 index, u8 value)
 {
-    if (shift_held)
+    if (shift_held || value == 0)
     {
-        return;
+        return 0;
     }
 
     if (index == OCTAVE_UP)
@@ -206,13 +208,19 @@ void sequencer_handle_translate(Sequencer* sr, u8 index)
             sr->x--;
         }
     }
+    else
+    {
+        return 0;
+    }
+
+    return 1;
 }
 
-void sequencer_handle_zoom(Sequencer* sr, u8 index)
+u8 sequencer_handle_zoom(Sequencer* sr, u8 index, u8 value)
 {
-    if (!shift_held)
+    if (!shift_held || value == 0)
     {
-        return;
+        return 0;
     }
 
     if (index == OCTAVE_UP)
@@ -231,14 +239,21 @@ void sequencer_handle_zoom(Sequencer* sr, u8 index)
             sr->x /= 2;
         }
     }
+    else
+    {
+        return 0;
+    }
+
+    return 1;
 }
 
-void sequencer_handle_play(Sequencer* sr, u8 index)
+u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
 {
-    if (index < FIRST_PLAY || index > LAST_PLAY
+    if (value == 0
+        || index < FIRST_PLAY || index > LAST_PLAY
         || (index - FIRST_PLAY) % PLAY_GAP != 0)
     {
-        return;
+        return 0;
     }
 
     u8 si = GRID_SIZE - 1 - (index - FIRST_PLAY) / PLAY_GAP;
@@ -255,32 +270,67 @@ void sequencer_handle_play(Sequencer* sr, u8 index)
     else if (flag_is_set(sr->flags, MUTE_HELD))
     {
         s->flags = toggle_flag(s->flags, MUTED);
+
+        // If the sequence has switched to muted, kill the current note.
+        if (flag_is_set(s->flags, MUTED))
+        {
+            sequence_kill_note(s);
+        }
     }
     else if (flag_is_set(sr->flags, SOLO_HELD))
     {
         s->flags = toggle_flag(s->flags, SOLOED);
         sr->soloed_tracks += flag_is_set(s->flags, SOLOED) ? 1 : -1;
+
+        // If this sequence has become soloed, and it is the only soloed
+        // sequence, any other playing sequence must be killed.
+        if (flag_is_set(s->flags, SOLOED))
+        {
+            if (sr->soloed_tracks == 1)
+            {
+                for (u8 i = 0; i < GRID_SIZE; i++)
+                {
+                    Sequence* sk = &(*sr->sequences)[i];
+                    if (i != si
+                        && flag_is_set(sk->flags, PLAYING)
+                        && !flag_is_set(sk->flags, MUTED))
+                    {
+                        sequence_kill_note(sk);
+                    }
+                }
+            }
+        }
+        // If this sequence is unsoloed, but other tracks are still soloed,
+        // then this sequence essentially becomes muted, so kill it.
+        else if (sr->soloed_tracks > 0)
+        {
+            sequence_kill_note(s);
+        }
     }
+    // If the sequence has been queued, but hasn't started playing, just
+    // unqueue it.
+    else if (flag_is_set(s->flags, QUEUED))
+    {
+        s->flags = clear_flag(s->flags, QUEUED);
+    }
+    // If the sequence is playing, stop it and reset the playhead.
+    else if (flag_is_set(s->flags, PLAYING))
+    {
+        s->flags = clear_flag(s->flags, PLAYING);
+        sequence_kill_note(s);
+        s->playhead = 0;
+    }
+    // Otherwise, queue it to start playing on the next step.
     else
     {
-        if (flag_is_set(s->flags, PLAYING))
-        {
-            s->flags = clear_flag(s->flags, PLAYING);
-            sequence_kill_note(s, si);
-            s->playhead = 0;
-        }
-        else
-        {
-            s->flags = set_flag(s->flags, QUEUED);
-        }
+        s->flags = set_flag(s->flags, QUEUED);
     }
+
+    return 1;
 }
 
-void sequencer_grid_handle_press(Sequencer* sr, u8 index, u8 value)
+u8 sequencer_handle_modifiers(Sequencer* sr, u8 index, u8 value)
 {
-    u8 x = 0;
-    u8 y = 0;
-
     if (index == RECORD_ARM)
     {
         sr->flags = assign_flag(sr->flags, ARM_HELD, value > 0);
@@ -297,6 +347,21 @@ void sequencer_grid_handle_press(Sequencer* sr, u8 index, u8 value)
     {
         sr->flags = assign_flag(sr->flags, SOLO_HELD, value > 0);
     }
+    else
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+u8 sequencer_grid_handle_press(Sequencer* sr, u8 index, u8 value)
+{
+    u8 x = 0;
+    u8 y = 0;
+
+    if (sequencer_handle_zoom(sr, index, value)) { }
+    else if (sequencer_handle_translate(sr, index, value)) { }
     else if (index_to_pad(index, &x, &y))
     {
         u8 seq_x = grid_to_sequencer_x(sr, x);
@@ -307,7 +372,7 @@ void sequencer_grid_handle_press(Sequencer* sr, u8 index, u8 value)
 
         if (s->playhead == seq_x)
         {
-            sequence_kill_note(s, sr->active_sequence);
+            sequence_kill_note(s);
         }
 
         if (value == 0)
@@ -325,12 +390,12 @@ void sequencer_grid_handle_press(Sequencer* sr, u8 index, u8 value)
             n->velocity = value;
         }
     }
-    else if (value > 0)
+    else
     {
-        sequencer_handle_play(sr, index);
-        sequencer_handle_zoom(sr, index);
-        sequencer_handle_translate(sr, index);
+        return 0;
     }
+
+    return 1;
 }
 
 /*******************************************************************************
@@ -374,7 +439,7 @@ void sequencer_tick(Sequencer* sr)
                 if (enabled && n->note_number >= 0)
                 {
                     hal_send_midi(
-                        USBSTANDALONE, NOTEOFF | i,
+                        USBSTANDALONE, NOTEOFF | s->channel,
                         n->note_number, n->velocity);
                 }
 
@@ -387,7 +452,7 @@ void sequencer_tick(Sequencer* sr)
             if (enabled && n->note_number >= 0)
             {
                 hal_send_midi(
-                    USBSTANDALONE, NOTEON | i,
+                    USBSTANDALONE, NOTEON | s->channel,
                     n->note_number, n->velocity);
             }
         }

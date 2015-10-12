@@ -28,7 +28,7 @@ typedef struct
 void keyboard_init(Keyboard* k, Layout* l);
 
 /// Toggles a note on or off and updates the layout and scale to match.
-void keyboard_handle_press(Keyboard* k, u8 index);
+u8 keyboard_handle_press(Keyboard* k, u8 index, u8 value);
 
 /// Draws the keyboard to the grid.
 void keyboard_draw(Keyboard* k);
