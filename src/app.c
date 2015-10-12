@@ -62,6 +62,9 @@ u8 midi_channel = 0;
 State state = NUM_MODES;
 u8 flags = 0;
 u8 shift_held = 0;
+u16 tap_tempo_timer = 1000;
+u16 tap_tempo_sum = 0;
+u8 tap_tempo_counter = 0;
 
 // Notes
 Scale scale;
@@ -80,6 +83,48 @@ Slider tempo_slider;
 /*******************************************************************************
  * App functionality
  ******************************************************************************/
+
+u8 tap_tempo_handle_press(u8 index, u8 value)
+{
+    if (index != CLICK)
+    {
+        return 0;
+    }
+
+    if (value != 0)
+    {
+        if (tap_tempo_timer < 1000)
+        {
+            tap_tempo_sum += tap_tempo_timer;
+            tap_tempo_counter++;
+        }
+        else
+        {
+            tap_tempo_sum = 0;
+            tap_tempo_counter = 0;
+        }
+
+        tap_tempo_timer = 0;
+    }
+    else
+    {
+        if (tap_tempo_timer < 1000)
+        {
+            if (tap_tempo_counter >= 3)
+            {
+                sequencer.tempo = tap_tempo_sum / tap_tempo_counter
+                    / STEPS_PER_PAD;
+            }
+        }
+        else
+        {
+            tap_tempo_sum = 0;
+            tap_tempo_counter = 0;
+        }
+    }
+
+    return 0;
+}
 
 void session_mode_draw()
 {
@@ -117,9 +162,7 @@ void sequencer_setup_draw()
 
 u8 sequencer_mode_handle_press(u8 index, u8 value)
 {
-    if (sequencer_handle_modifiers(&sequencer, index, value)) { }
-    else if (sequencer_handle_play(&sequencer, index, value)) { }
-    else if (sequencer_grid_handle_press(&sequencer, index, value)) { }
+    if (sequencer_grid_handle_press(&sequencer, index, value)) { }
     else
     {
         return 0;
@@ -132,9 +175,7 @@ u8 sequencer_mode_handle_press(u8 index, u8 value)
 
 u8 sequencer_setup_handle_press(u8 index, u8 value)
 {
-    if (sequencer_handle_modifiers(&sequencer, index, value)) { }
-    else if (sequencer_handle_play(&sequencer, index, value)) { }
-    else if (slider_handle_press(&tempo_slider, index, value))
+    if (slider_handle_press(&tempo_slider, index, value))
     {
         sequencer.tempo = bpm_to_khz(slider_get_value(&tempo_slider));
     }
@@ -152,21 +193,17 @@ u8 sequencer_setup_handle_press(u8 index, u8 value)
 void notes_mode_draw()
 {
     layout_draw(&layout);
-    sequencer_play_draw(&sequencer);
 }
 
 void notes_setup_draw()
 {
     keyboard_draw(&keyboard);
     slider_draw(&row_offset_slider);
-    sequencer_play_draw(&sequencer);
 }
 
 u8 notes_mode_handle_press(u8 index, u8 value)
 {
-    if (sequencer_handle_modifiers(&sequencer, index, value)) { }
-    else if (sequencer_handle_play(&sequencer, index, value)) { }
-    else if (layout_handle_transpose(&layout, index, value))
+    if (layout_handle_transpose(&layout, index, value))
     {
         keyboard_update_indices(&keyboard);
     }
@@ -183,9 +220,7 @@ u8 notes_mode_handle_press(u8 index, u8 value)
 
 u8 notes_setup_handle_press(u8 index, u8 value)
 {
-    if (sequencer_handle_modifiers(&sequencer, index, value)) { }
-    else if (sequencer_handle_play(&sequencer, index, value)) { }
-    else if (slider_handle_press(&row_offset_slider, index, value))
+    if (slider_handle_press(&row_offset_slider, index, value))
     {
         layout_set_row_offset(&layout, row_offset_slider.value);
     }
@@ -294,6 +329,9 @@ void app_surface_event(u8 type, u8 index, u8 value)
     {
         set_state(state, !flag_is_set(flags, IS_SETUP));
     }
+    else if (sequencer_handle_modifiers(&sequencer, index, value)) { }
+    else if (sequencer_handle_play(&sequencer, index, value)) { }
+    else if (tap_tempo_handle_press(index, value)) { }
     else if (!flag_is_set(flags, IS_SETUP))
     {
         if (state == SESSION_MODE)
@@ -324,6 +362,8 @@ void app_surface_event(u8 type, u8 index, u8 value)
             sequencer_setup_handle_press(index, value);
         }
     }
+
+    sequencer_play_draw(&sequencer);
 }
 
 void app_midi_event(u8 port, u8 status, u8 d1, u8 d2)
@@ -371,6 +411,7 @@ void app_cable_event(u8 type, u8 value)
 void app_timer_event()
 {
     sequencer_tick(&sequencer);
+    tap_tempo_timer++;
 
     if (state == SEQUENCER_MODE
         && !flag_is_set(flags, IS_SETUP)
