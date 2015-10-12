@@ -168,8 +168,6 @@ u8 sequencer_mode_handle_press(u8 index, u8 value)
         return 0;
     }
 
-    sequencer_mode_draw();
-
     return 1;
 }
 
@@ -183,8 +181,6 @@ u8 sequencer_setup_handle_press(u8 index, u8 value)
     {
         return 0;
     }
-
-    sequencer_setup_draw();
 
     return 1;
 }
@@ -213,8 +209,6 @@ u8 notes_mode_handle_press(u8 index, u8 value)
         return 0;
     }
 
-    notes_mode_draw();
-
     return 1;
 }
 
@@ -233,8 +227,6 @@ u8 notes_setup_handle_press(u8 index, u8 value)
     {
         return 0;
     }
-
-    notes_setup_draw();
 
     return 1;
 }
@@ -337,14 +329,17 @@ void app_surface_event(u8 type, u8 index, u8 value)
         if (state == SESSION_MODE)
         {
             session_mode_handle_press(index, value);
+            session_mode_draw();
         }
         else if (state == NOTES_MODE)
         {
             notes_mode_handle_press(index, value);
+            notes_mode_draw();
         }
         else if (state == SEQUENCER_MODE)
         {
             sequencer_mode_handle_press(index, value);
+            sequencer_mode_draw();
         }
     }
     else
@@ -352,14 +347,17 @@ void app_surface_event(u8 type, u8 index, u8 value)
         if (state == SESSION_MODE)
         {
             session_setup_handle_press(index, value);
+            session_setup_draw();
         }
         else if (state == NOTES_MODE)
         {
             notes_setup_handle_press(index, value);
+            notes_setup_draw();
         }
         else if (state == SEQUENCER_MODE)
         {
             sequencer_setup_handle_press(index, value);
+            sequencer_setup_draw();
         }
     }
 

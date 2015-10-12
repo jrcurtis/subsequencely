@@ -405,55 +405,72 @@ void sequencer_tick(Sequencer* sr)
 {
     sr->timer++;
 
-    if (sr->timer >= sr->tempo)
+    if (sr->timer < sr->tempo)
     {
-        sr->timer = 0;
+        return;
+    }
+
+    sr->timer = 0;
+
+    // If the current sequence is playing when the sequence ticks, then a
+    // display refresh is needed.
+    if (flag_is_set(sr->sequences[sr->active_sequence].flags, PLAYING))
+    {
         sr->flags = set_flag(sr->flags, DIRTY);
+    }
 
-        for (u8 i = 0; i < GRID_SIZE; i++)
+    for (u8 i = 0; i < GRID_SIZE; i++)
+    {
+        Sequence* s = &sr->sequences[i];
+        Note* n = &s->notes[s->playhead];
+        u8 enabled = !flag_is_set(s->flags, MUTED)
+            && (sr->soloed_tracks == 0
+                || flag_is_set(s->flags, SOLOED));
+
+        // If this sequence is not playing and not about to start playing
+        // skip it.
+        if (!flag_is_set(s->flags, QUEUED)
+            && !flag_is_set(s->flags, PLAYING))
         {
-            Sequence* s = &sr->sequences[i];
-            Note* n = &s->notes[s->playhead];
-            u8 enabled = !flag_is_set(s->flags, MUTED)
-                && (sr->soloed_tracks == 0
-                    || flag_is_set(s->flags, SOLOED));
-
-            // If this sequence is not playing and not about to start playing
-            // skip it.
-            if (!flag_is_set(s->flags, QUEUED)
-                && !flag_is_set(s->flags, PLAYING))
-            {
-                continue;
-            }
-            // If it's about to start playing, switch it to playing.
-            else if (flag_is_set(s->flags, QUEUED))
-            {
-                s->flags = clear_flag(s->flags, QUEUED);
-                s->flags = set_flag(s->flags, PLAYING);
-            }
-            // If it's already playing, kill the current note and advance the
-            // playhead.
-            else
-            {
-                if (enabled && n->note_number >= 0)
-                {
-                    hal_send_midi(
-                        USBSTANDALONE, NOTEOFF | s->channel,
-                        n->note_number, n->velocity);
-                }
-
-                s->playhead = (s->playhead + 1) % SEQUENCE_LENGTH;
-            }
-
-            // Grab the current note and play it if it's enabled.
-            n = &s->notes[s->playhead];
-            
+            continue;
+        }
+        // If it's about to start playing, switch it to playing.
+        else if (flag_is_set(s->flags, QUEUED))
+        {
+            s->flags = clear_flag(s->flags, QUEUED);
+            s->flags = set_flag(s->flags, PLAYING);
+        }
+        // If it's already playing, kill the current note and advance the
+        // playhead.
+        else
+        {
             if (enabled && n->note_number >= 0)
             {
                 hal_send_midi(
-                    USBSTANDALONE, NOTEON | s->channel,
+                    USBSTANDALONE, NOTEOFF | s->channel,
                     n->note_number, n->velocity);
             }
+
+            s->playhead = (s->playhead + 1) % SEQUENCE_LENGTH;
+        }
+
+        n = &s->notes[s->playhead];
+
+        // If the sequence is playing and armed for recording, store the note
+        // being played.
+        if (flag_is_set(s->flags, ARMED)
+            && sr->layout->held_note != -1)
+        {
+            n->note_number = sr->layout->held_note;
+            n->velocity = sr->layout->held_velocity;
+        }
+
+        // Play the note.
+        if (enabled && n->note_number >= 0)
+        {
+            hal_send_midi(
+                USBSTANDALONE, NOTEON | s->channel,
+                n->note_number, n->velocity);
         }
     }
 }

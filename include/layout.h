@@ -29,6 +29,9 @@ typedef struct
     /// rows. To tune in 4ths for a chromatic scale, this would be set to 5.
     u8 row_offset;
 
+    s8 held_note;
+    s8 held_velocity;
+
     /// Cache of which midi note numbers correspond to which pad. Used to avoid
     /// calculating every time a pad is pressed.
     PadNotes pad_notes;

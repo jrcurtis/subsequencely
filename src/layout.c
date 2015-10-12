@@ -153,7 +153,21 @@ u8 layout_play(Layout* l, u8 index, u8 value, u8 midi_channel)
 
         if (note_number <= MAX_NOTE)
         {
-            u8 midi_message = value > 0 ? NOTEON : NOTEOFF;
+            u8 midi_message;
+
+            if (value > 0)
+            {
+                midi_message = NOTEON;
+                l->held_note = note_number;
+                l->held_velocity = value;
+            }
+            else
+            {
+                midi_message = NOTEOFF;
+                l->held_note = -1;
+                l->held_velocity = -1;
+            }
+
             hal_send_midi(
                 USBSTANDALONE, midi_message | midi_channel,
                 note_number, value);
