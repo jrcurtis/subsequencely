@@ -71,7 +71,7 @@ void sequencer_play_draw(Sequencer* sr)
 {
     u8 play_index = LAST_PLAY;
     const u8* color = off_color;
-    u8 recording_active = 0;
+    u8 active_flags = 0;
 
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
@@ -92,7 +92,7 @@ void sequencer_play_draw(Sequencer* sr)
         else if (flag_is_set(sr->flags, MUTE_HELD))
         {
             color = flag_is_set(s->flags, MUTED)
-                ? number_colors[0]
+                ? number_colors[1]
                 : off_color;
         }
         else if (flag_is_set(sr->flags, SOLO_HELD))
@@ -109,15 +109,30 @@ void sequencer_play_draw(Sequencer* sr)
                 : off_color;
         }
 
-        recording_active |= flag_is_set(s->flags, ARMED)
+        // If any track is armed AND playing, turn the record indicator on.
+        if (flag_is_set(s->flags, ARMED)
             && (flag_is_set(s->flags, PLAYING)
-                || flag_is_set(s->flags, QUEUED));
-        plot_pad(play_index, color);
+                || flag_is_set(s->flags, QUEUED)))
+        {
+            active_flags = set_flag(active_flags, ARMED);
+        }
 
+        // If any tracks are muted/soloed, turn those indicators on.
+        active_flags |= flag_is_set(s->flags, MUTED);
+        active_flags |= flag_is_set(s->flags, SOLOED);
+
+        plot_pad(play_index, color);
         play_index -= PLAY_GAP;
     }
-
-    plot_pad(RECORD_ARM, recording_active ? number_colors[0] : off_color);
+    
+    
+    plot_pad(RECORD_ARM, flag_is_set(active_flags, ARMED)
+             ? number_colors[0] : off_color);
+    plot_pad(TRACK_SELECT, sequence_colors[sr->active_sequence]);
+    plot_pad(MUTE, flag_is_set(active_flags, MUTED)
+        ? number_colors[1] : off_color);
+    plot_pad(SOLO, flag_is_set(active_flags, SOLOED)
+             ? number_colors[3] : off_color);
 }
 
 void sequencer_grid_draw(Sequencer* sr)

@@ -291,6 +291,8 @@ void set_state(State st, u8 setup)
         }
     }
 
+    sequencer_play_draw(&sequencer);
+
     state = st;
     flags = assign_flag(flags, IS_SETUP, setup);
 }
