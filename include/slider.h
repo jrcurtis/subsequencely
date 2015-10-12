@@ -24,15 +24,31 @@ typedef struct
     /// this slider in.
     u8 position;
 
+    /// The number of divisions per pad. If this is 1, the slider ranges from
+    /// 1 to 8. If it's 3, the range is 1 to 24. The different subdivisions
+    /// are set by the velocity of the slider press.
+    u8 resolution;
+
+    /// An offset that is added to the slider value when accessed through the
+    /// accessors.
+    s16 offset;
+
     /// The three byte color code to use when drawing.
     const u8* color;
 
     /// The currently held value.
-    u8 value;
+    s16 value;
 } Slider;
 
 /// Initalizes the slider's state.
-void slider_init(Slider* s, Orientation o, u8 p, const u8* c, u8 v);
+void slider_init(Slider* s, Orientation orientation, u8 position,
+                 const u8* color, u8 resolution, s16 offset, s16 value);
+
+/// Sets the value, subtracting the slider offset to keep the value normalized.
+void slider_set_value(Slider* s, s16 value);
+
+/// Gets the value of the slider + offset.
+s16 slider_get_value(Slider* s);
 
 /// Checks whether index is a valid pad for this slider, and updates the value
 /// if so.

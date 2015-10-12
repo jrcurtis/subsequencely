@@ -21,6 +21,7 @@
 #define STEPS_PER_PAD    (4)
 #define SEQUENCE_LENGTH  (STEPS_PER_PAD * GRID_SIZE)
 #define MAX_ZOOM         (2)
+#define DEFAULT_TEMPO    (90)
 
 #define min(a, b)       ((a) <= (b) ? (a) : (b))
 #define max(a, b)       ((a) >= (b) ? (a) : (b))
@@ -28,6 +29,7 @@
 #define abs(a)          ((a) < 0 ? -(a) : (a))
 
 #define bpm_to_khz(b)   (60000 / (b) / STEPS_PER_PAD)
+#define khz_to_bpm(k)   (60000 / (k * STEPS_PER_PAD))
 
 #define flag_is_set(v, f)    ((v) & (f))
 #define set_flag(v, f)       ((v) | (f))

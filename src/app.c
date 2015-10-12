@@ -47,7 +47,7 @@ typedef enum
 
 typedef enum
 {
-    IS_CONFIG = 0x01
+    IS_SETUP = 0x01
 } Flags;
 
 
@@ -67,12 +67,15 @@ u8 shift_held = 0;
 Scale scale;
 Layout layout;
 
-// Notes config
+// Notes setup
 Keyboard keyboard;
 Slider row_offset_slider;
 
 // Sequencer
 Sequencer sequencer;
+
+// Sequencer setup
+Slider tempo_slider;
 
 /*******************************************************************************
  * App functionality
@@ -83,7 +86,7 @@ void session_mode_draw()
     
 }
 
-void session_config_draw()
+void session_setup_draw()
 {
     
 }
@@ -93,7 +96,7 @@ u8 session_mode_handle_press(u8 index, u8 value)
     return 0;
 }
 
-u8 session_config_handle_press(u8 index, u8 value)
+u8 session_setup_handle_press(u8 index, u8 value)
 {
     return 0;
 }
@@ -104,9 +107,12 @@ void sequencer_mode_draw()
     sequencer_play_draw(&sequencer);
 }
 
-void sequencer_config_draw()
+void sequencer_setup_draw()
 {
     sequencer_play_draw(&sequencer);
+
+    slider_set_value(&tempo_slider, khz_to_bpm(sequencer.tempo));
+    slider_draw(&tempo_slider);
 }
 
 u8 sequencer_mode_handle_press(u8 index, u8 value)
@@ -124,16 +130,20 @@ u8 sequencer_mode_handle_press(u8 index, u8 value)
     return 1;
 }
 
-u8 sequencer_config_handle_press(u8 index, u8 value)
+u8 sequencer_setup_handle_press(u8 index, u8 value)
 {
     if (sequencer_handle_modifiers(&sequencer, index, value)) { }
     else if (sequencer_handle_play(&sequencer, index, value)) { }
+    else if (slider_handle_press(&tempo_slider, index, value))
+    {
+        sequencer.tempo = bpm_to_khz(slider_get_value(&tempo_slider));
+    }
     else
     {
         return 0;
     }
 
-    sequencer_mode_draw();
+    sequencer_setup_draw();
 
     return 1;
 }
@@ -145,7 +155,7 @@ void notes_mode_draw()
     sequencer_play_draw(&sequencer);
 }
 
-void notes_config_draw()
+void notes_setup_draw()
 {
     keyboard_draw(&keyboard);
     slider_draw(&row_offset_slider);
@@ -171,13 +181,13 @@ u8 notes_mode_handle_press(u8 index, u8 value)
     return 1;
 }
 
-u8 notes_config_handle_press(u8 index, u8 value)
+u8 notes_setup_handle_press(u8 index, u8 value)
 {
     if (sequencer_handle_modifiers(&sequencer, index, value)) { }
     else if (sequencer_handle_play(&sequencer, index, value)) { }
     else if (slider_handle_press(&row_offset_slider, index, value))
     {
-        layout_set_row_offset(&layout, row_offset_slider.value + 1);
+        layout_set_row_offset(&layout, row_offset_slider.value);
     }
     else if (layout_handle_transpose(&layout, index, value))
     {
@@ -189,7 +199,7 @@ u8 notes_config_handle_press(u8 index, u8 value)
         return 0;
     }
 
-    notes_config_draw();
+    notes_setup_draw();
 
     return 1;
 }
@@ -199,9 +209,9 @@ u8 notes_config_handle_press(u8 index, u8 value)
  * State management
  ******************************************************************************/
 
-void set_state(State st, u8 cfg)
+void set_state(State st, u8 setup)
 {
-    if (state == st && flag_is_set(flags, IS_CONFIG) == cfg)
+    if (state == st && flag_is_set(flags, IS_SETUP) == setup)
     {
         return;
     }
@@ -212,10 +222,10 @@ void set_state(State st, u8 cfg)
     {
         plot_pad(SESSION, number_colors[SESSION_MODE]);
 
-        if (cfg)
+        if (setup)
         {
             plot_setup(on_color);
-            session_config_draw();
+            session_setup_draw();
         }
         else
         {
@@ -227,10 +237,10 @@ void set_state(State st, u8 cfg)
     {
         plot_pad(NOTE, number_colors[NOTES_MODE]);
 
-        if (cfg)
+        if (setup)
         {
             plot_setup(on_color);
-            notes_config_draw();
+            notes_setup_draw();
         }
         else
         {
@@ -242,10 +252,10 @@ void set_state(State st, u8 cfg)
     {
         plot_pad(DEVICE, number_colors[SEQUENCER_MODE]);
 
-        if (cfg)
+        if (setup)
         {
             plot_setup(on_color);
-            sequencer_config_draw();
+            sequencer_setup_draw();
         }
         else
         {
@@ -255,7 +265,7 @@ void set_state(State st, u8 cfg)
     }
 
     state = st;
-    flags = assign_flag(flags, IS_CONFIG, cfg);
+    flags = assign_flag(flags, IS_SETUP, setup);
 }
 
 /*******************************************************************************
@@ -282,9 +292,9 @@ void app_surface_event(u8 type, u8 index, u8 value)
     }
     else if (type == TYPESETUP && value > 0)
     {
-        set_state(state, !flag_is_set(flags, IS_CONFIG));
+        set_state(state, !flag_is_set(flags, IS_SETUP));
     }
-    else if (!flag_is_set(flags, IS_CONFIG))
+    else if (!flag_is_set(flags, IS_SETUP))
     {
         if (state == SESSION_MODE)
         {
@@ -303,15 +313,15 @@ void app_surface_event(u8 type, u8 index, u8 value)
     {
         if (state == SESSION_MODE)
         {
-            session_config_handle_press(index, value);
+            session_setup_handle_press(index, value);
         }
         else if (state == NOTES_MODE)
         {
-            notes_config_handle_press(index, value);
+            notes_setup_handle_press(index, value);
         }
         else if (state == SEQUENCER_MODE)
         {
-            sequencer_config_handle_press(index, value);
+            sequencer_setup_handle_press(index, value);
         }
     }
 }
@@ -338,7 +348,7 @@ void app_sysex_event(u8 port, u8 * data, u16 count)
 
 void app_aftertouch_event(u8 index, u8 value)
 {
-    if (state == NOTES_MODE && !flag_is_set(flags, IS_CONFIG))
+    if (state == NOTES_MODE && !flag_is_set(flags, IS_SETUP))
     {
         layout_aftertouch(&layout, index, value, midi_channel);
     }
@@ -362,7 +372,9 @@ void app_timer_event()
 {
     sequencer_tick(&sequencer);
 
-    if (state == SEQUENCER_MODE && flag_is_set(sequencer.flags, DIRTY))
+    if (state == SEQUENCER_MODE
+        && !flag_is_set(flags, IS_SETUP)
+        && flag_is_set(sequencer.flags, DIRTY))
     {
         sequencer.flags = clear_flag(sequencer.flags, DIRTY);
         sequencer_mode_draw();
@@ -378,9 +390,15 @@ void app_init()
     slider_init(
         &row_offset_slider,
         HORIZONTAL, 2, slider_color,
-        layout.row_offset - 1);
+        1, 0,
+        layout.row_offset);
 
     sequencer_init(&sequencer, &layout);
+    slider_init(
+        &tempo_slider,
+        HORIZONTAL, 7, slider_color,
+        15, 60,
+        DEFAULT_TEMPO);
 
     set_state(NOTES_MODE, 0);
 }

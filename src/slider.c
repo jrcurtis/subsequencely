@@ -1,12 +1,25 @@
 
 #include "slider.h"
 
-void slider_init(Slider* s, Orientation o, u8 p, const u8* c, u8 v)
+void slider_init(Slider* s, Orientation orientation, u8 position,
+                 const u8* color, u8 resolution, s16 offset, s16 value)
 {
-    s->orientation = o;
-    s->position = p;
-    s->color = c;
-    s->value = v;
+    s->orientation = orientation;
+    s->position = position;
+    s->color = color;
+    s->resolution = resolution;
+    s->offset = offset;
+    s->value = value - offset;
+}
+
+void slider_set_value(Slider* s, s16 value)
+{
+    s->value = value - s->offset;
+}
+
+s16 slider_get_value(Slider* s)
+{
+    return s->value + s->offset;
 }
 
 u8 slider_handle_press(Slider* s, u8 index, u8 value)
@@ -17,18 +30,25 @@ u8 slider_handle_press(Slider* s, u8 index, u8 value)
         return 0;
     }
 
+    u8 pad;
+
     if (s->orientation == VERTICAL && s->position == x)
     {
-        s->value = y;
+        pad = y;
     }
     else if (s->orientation == HORIZONTAL && s->position == y)
     {
-        s->value = x;
+        pad = x;
     }
     else
     {
         return 0;
     }
+
+    s->value = pad * s->resolution;
+
+    u8 bucket_size = 128 / s->resolution;
+    s->value += (value + bucket_size) / bucket_size;
 
     return 1;
 }
@@ -37,27 +57,39 @@ void slider_draw(Slider* s)
 {
     u8 x = 0;
     u8 y = 0;
+    u8* coord;
 
     if (s->orientation == VERTICAL)
     {
         x = s->position;
+        coord = &y;
     }
-    else if (s->orientation == HORIZONTAL)
+    else
     {
         y = s->position;
+        coord = &x;
     }
 
-    for (int i = 0; i < GRID_SIZE; i++)
-    {
-        const u8* color = i <= s->value ? s->color : off_color;
+    u8 prev_value = 0;
 
-        if (s->orientation == VERTICAL)
+    for (*coord = 0; *coord < GRID_SIZE; (*coord)++)
+    {
+        const u8* color = off_color;
+        u8 dimness = 0;
+
+        if (prev_value < s->value)
         {
-            plot_pad(coord_to_index(x, i), color);
+            color = s->color;
         }
-        else if (s->orientation == HORIZONTAL)
+
+        u8 diff = s->value - prev_value;
+        if (diff < s->resolution)
         {
-            plot_pad(coord_to_index(i, y), color);
+            dimness = s->resolution - diff;
         }
+
+        plot_pad_dim(coord_to_index(x, y), color, dimness);
+
+        prev_value += s->resolution;
     }
 }

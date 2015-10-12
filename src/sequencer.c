@@ -43,7 +43,7 @@ void sequence_kill_note(Sequence* s)
 void sequencer_init(Sequencer* sr, Layout* l)
 {
     sr->layout = l;
-    sr->tempo = bpm_to_khz(90);
+    sr->tempo = bpm_to_khz(DEFAULT_TEMPO);
     sr->timer = 0;
     sr->zoom = 0;
     sr->active_sequence = 0;
