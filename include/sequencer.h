@@ -44,7 +44,6 @@ typedef Sequence Sequences[GRID_SIZE];
 
 typedef struct
 {
-    Sequences* sequences;
     Layout* layout;
     u16 tempo;
     u16 timer;
@@ -54,9 +53,10 @@ typedef struct
     u8 x;
     u8 y;
     u8 flags;
+    Sequences sequences;
 } Sequencer;
 
-void sequencer_init(Sequencer* sr, Sequences* ss, Layout* l);
+void sequencer_init(Sequencer* sr, Layout* l);
 void sequencer_set_octave(Sequencer* sr, u8 octave);
 
 void sequencer_play_draw(Sequencer* sr);

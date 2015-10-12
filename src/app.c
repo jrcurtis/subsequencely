@@ -66,14 +66,12 @@ u8 shift_held = 0;
 // Notes
 Scale scale;
 Layout layout;
-PadNotes pad_notes;
 
 // Notes config
 Keyboard keyboard;
 Slider row_offset_slider;
 
 // Sequencer
-Sequences sequences;
 Sequencer sequencer;
 
 /*******************************************************************************
@@ -374,7 +372,7 @@ void app_timer_event()
 
 void app_init()
 {
-    layout_init(&layout, &scale, &pad_notes);
+    layout_init(&layout, &scale);
 
     keyboard_init(&keyboard, &layout);
     slider_init(
@@ -382,7 +380,7 @@ void app_init()
         HORIZONTAL, 2, slider_color,
         layout.row_offset - 1);
 
-    sequencer_init(&sequencer, &sequences, &layout);
+    sequencer_init(&sequencer, &layout);
 
     set_state(NOTES_MODE, 0);
 }

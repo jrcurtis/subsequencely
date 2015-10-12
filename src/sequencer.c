@@ -40,9 +40,8 @@ void sequence_kill_note(Sequence* s)
     }
 }
 
-void sequencer_init(Sequencer* sr, Sequences* ss, Layout* l)
+void sequencer_init(Sequencer* sr, Layout* l)
 {
-    sr->sequences = ss;
     sr->layout = l;
     sr->tempo = bpm_to_khz(90);
     sr->timer = 0;
@@ -55,7 +54,7 @@ void sequencer_init(Sequencer* sr, Sequences* ss, Layout* l)
 
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
-        sequence_init(&(*sr->sequences)[i], i);
+        sequence_init(&sr->sequences[i], i);
     }
 }
 
@@ -76,7 +75,7 @@ void sequencer_play_draw(Sequencer* sr)
 
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
-        Sequence* s = &(*sr->sequences)[i];
+        Sequence* s = &sr->sequences[i];
 
         if (flag_is_set(sr->flags, ARM_HELD))
         {
@@ -120,7 +119,7 @@ void sequencer_grid_draw(Sequencer* sr)
 {
     u8 scale_deg = sr->y % sr->layout->scale->num_notes;
     u8 octave = sr->y / sr->layout->scale->num_notes;
-    Sequence* s = &(*sr->sequences)[sr->active_sequence];
+    Sequence* s = &sr->sequences[sr->active_sequence];
     u8 index = FIRST_PAD;
     u8 zoom = zoom_to_sequencer_x(sr);
 
@@ -257,7 +256,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
     }
 
     u8 si = GRID_SIZE - 1 - (index - FIRST_PLAY) / PLAY_GAP;
-    Sequence* s = &(*sr->sequences)[si];
+    Sequence* s = &sr->sequences[si];
 
     if (flag_is_set(sr->flags, ARM_HELD))
     {
@@ -290,7 +289,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
             {
                 for (u8 i = 0; i < GRID_SIZE; i++)
                 {
-                    Sequence* sk = &(*sr->sequences)[i];
+                    Sequence* sk = &sr->sequences[i];
                     if (i != si
                         && flag_is_set(sk->flags, PLAYING)
                         && !flag_is_set(sk->flags, MUTED))
@@ -365,7 +364,7 @@ u8 sequencer_grid_handle_press(Sequencer* sr, u8 index, u8 value)
     else if (index_to_pad(index, &x, &y))
     {
         u8 seq_x = grid_to_sequencer_x(sr, x);
-        Sequence* s = &(*sr->sequences)[sr->active_sequence];
+        Sequence* s = &sr->sequences[sr->active_sequence];
         Note* n = &s->notes[seq_x];
 
         u8 note_number = grid_to_sequencer_y(sr, y);
@@ -413,7 +412,7 @@ void sequencer_tick(Sequencer* sr)
 
         for (u8 i = 0; i < GRID_SIZE; i++)
         {
-            Sequence* s = &(*sr->sequences)[i];
+            Sequence* s = &sr->sequences[i];
             Note* n = &s->notes[s->playhead];
             u8 enabled = !flag_is_set(s->flags, MUTED)
                 && (sr->soloed_tracks == 0

@@ -31,11 +31,11 @@ typedef struct
 
     /// Cache of which midi note numbers correspond to which pad. Used to avoid
     /// calculating every time a pad is pressed.
-    PadNotes* pad_notes;
+    PadNotes pad_notes;
 } Layout;
 
 /// Initialize the layout data.
-void layout_init(Layout* l, Scale* s, PadNotes* pad_notes);
+void layout_init(Layout* l, Scale* s);
 
 /// True if the midi note number is the same or an octave of the root note.
 u8 layout_is_root_note(Layout* l, u8 note_number);

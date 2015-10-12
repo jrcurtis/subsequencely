@@ -26,21 +26,20 @@ void layout_assign_pads(Layout* l)
             u8 note_number = l->root_note + octave * NUM_NOTES;
             note_number += l->scale->offsets[scale_deg];
 
-            (*l->pad_notes)[y][x] = note_number;
+            l->pad_notes[y][x] = note_number;
         }
 
         start_scale_deg += l->row_offset;
     }
 }
 
-void layout_init(Layout* l, Scale* s, PadNotes* pad_notes)
+void layout_init(Layout* l, Scale* s)
 {
     l->scale = s;
     scale_init(l->scale);
     l->root_note = 0;
     l->octave = 2;
     l->row_offset = 5;
-    l->pad_notes = pad_notes;
     layout_assign_pads(l);
 }
 
@@ -74,19 +73,19 @@ void layout_light_note(Layout* l, u8 note_number, u8 velocity, u8 on)
 
     for (u8 y = 0; y < GRID_SIZE; y++)
     {
-        if ((*l->pad_notes)[y][GRID_SIZE - 1] < note_number)
+        if (l->pad_notes[y][GRID_SIZE - 1] < note_number)
         {
             index += GRID_SIZE + ROW_GAP;
             continue;
         }
-        else if ((*l->pad_notes)[y][0] > note_number)
+        else if (l->pad_notes[y][0] > note_number)
         {
             break;
         }
 
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
-            if ((*l->pad_notes)[y][x] != note_number)
+            if (l->pad_notes[y][x] != note_number)
             {
                 index++;
                 continue;
@@ -150,7 +149,7 @@ u8 layout_play(Layout* l, u8 index, u8 value, u8 midi_channel)
 
     if (index_to_pad(index, &x, &y))
     {
-        u8 note_number = (*l->pad_notes)[y][x];
+        u8 note_number = l->pad_notes[y][x];
 
         if (note_number <= MAX_NOTE)
         {
@@ -177,7 +176,7 @@ u8 layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel)
 
     if (index_to_pad(index, &x, &y))
     {
-        u8 note_number = (*l->pad_notes)[y][x];
+        u8 note_number = l->pad_notes[y][x];
 
         if (note_number <= MAX_NOTE)
         {
@@ -200,7 +199,7 @@ void layout_draw(Layout* l)
     {
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
-            if (layout_is_root_note(l, (*l->pad_notes)[y][x]))
+            if (layout_is_root_note(l, l->pad_notes[y][x]))
             {
                 plot_pad(coord_to_index(x, y), root_note_color);
             }
