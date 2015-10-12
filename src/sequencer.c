@@ -71,7 +71,7 @@ void sequencer_play_draw(Sequencer* sr)
 {
     u8 play_index = LAST_PLAY;
     const u8* color = off_color;
-
+    u8 recording_active = 0;
 
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
@@ -109,10 +109,15 @@ void sequencer_play_draw(Sequencer* sr)
                 : off_color;
         }
 
+        recording_active |= flag_is_set(s->flags, ARMED)
+            && (flag_is_set(s->flags, PLAYING)
+                || flag_is_set(s->flags, QUEUED));
         plot_pad(play_index, color);
 
         play_index -= PLAY_GAP;
     }
+
+    plot_pad(RECORD_ARM, recording_active ? number_colors[0] : off_color);
 }
 
 void sequencer_grid_draw(Sequencer* sr)
