@@ -57,6 +57,4 @@ u8 index_to_pad(u8 i, u8* x, u8* y);
 void clear_leds();
 void clear_pad_leds();
 
-extern u8 shift_held;
-
 #endif

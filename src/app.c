@@ -82,11 +82,12 @@ Sequencer sequencer;
 void sequencer_mode_draw()
 {
     sequencer_grid_draw(&sequencer);
+    sequencer_play_draw(&sequencer);
 }
 
 void sequencer_config_draw()
 {
-    
+    sequencer_play_draw(&sequencer);
 }
 
 void sequencer_mode_handle_press(u8 index, u8 value)
@@ -97,7 +98,7 @@ void sequencer_mode_handle_press(u8 index, u8 value)
 
 void sequencer_config_handle_press(u8 index, u8 value)
 {
-    
+    sequencer_play_draw(&sequencer);
 }
 
 
@@ -128,12 +129,14 @@ void handle_transpose(u8 index)
 void notes_mode_draw()
 {
     layout_draw(&layout);
+    sequencer_play_draw(&sequencer);
 }
 
 void notes_config_draw()
 {
     keyboard_draw(&keyboard);
     slider_draw(&row_offset_slider);
+    sequencer_play_draw(&sequencer);
 }
 
 void notes_mode_handle_press(u8 index, u8 value)

@@ -39,4 +39,6 @@
 #define SENDS          (7)
 #define STOP_CLIP      (8)
 
+extern u8 shift_held;
+
 #endif
