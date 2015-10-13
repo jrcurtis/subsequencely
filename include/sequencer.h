@@ -10,20 +10,22 @@
 
 typedef enum
 {
-    PLAYING = 0x01,
-    MUTED = 0x02,
-    SOLOED = 0x04,
-    ARMED = 0x08,
-    QUEUED = 0x10
+    SEQ_PLAYING = 0x01,
+    SEQ_MUTED = 0x02,
+    SEQ_SOLOED = 0x04,
+    SEQ_ARMED = 0x08,
+    SEQ_QUEUED = 0x10,
+    SEQ_BEAT_QUEUED = 0x20,
+    SEQ_ACTIVE = 0x40
 } SequenceFlags;
 
 typedef enum
 {
-    ARM_HELD = 0x01,
-    SELECT_HELD = 0x02,
-    MUTE_HELD = 0x04,
-    SOLO_HELD = 0x08,
-    DIRTY = 0x10
+    SQR_ARM_HELD = 0x01,
+    SQR_SELECT_HELD = 0x02,
+    SQR_MUTE_HELD = 0x04,
+    SQR_SOLO_HELD = 0x08,
+    SQR_DIRTY = 0x10
 } SequencerFlags;
 
 typedef struct

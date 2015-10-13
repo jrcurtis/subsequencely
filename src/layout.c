@@ -13,6 +13,8 @@ void layout_assign_pads(Layout* l)
 
     for (u8 y = 0; y < GRID_SIZE; y++)
     {
+        l->lit_pads[y] = 0x00;
+
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
             u8 scale_deg = start_scale_deg + x;
@@ -40,6 +42,8 @@ void layout_init(Layout* l, Scale* s)
     l->root_note = 0;
     l->octave = 2;
     l->row_offset = 5;
+    l->held_note = -1;
+    l->held_velocity = -1;
     layout_assign_pads(l);
 }
 
@@ -93,17 +97,14 @@ void layout_light_note(Layout* l, u8 note_number, u8 velocity, u8 on)
 
             if (on)
             {
-                hal_plot_led(TYPEPAD, index, velocity, velocity, velocity);
-            }
-            else if (layout_is_root_note(l, note_number))
-            {
-                plot_pad(index, root_note_color);
+                l->lit_pads[y] |= 1 << x;
             }
             else
             {
-                hal_plot_led(TYPEPAD, index, 0x00, 0x00, 0x00);
+                l->lit_pads[y] &= ~(1 << x);
             }
 
+            l->flags = set_flag(l->flags, LYT_DIRTY);
             index++;
         }
 
@@ -209,14 +210,27 @@ u8 layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel)
 
 void layout_draw(Layout* l)
 {
+    u8 index = FIRST_PAD;
+
     for (u8 y = 0; y < GRID_SIZE; y++)
     {
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
-            if (layout_is_root_note(l, l->pad_notes[y][x]))
+            const u8* color = off_color;
+
+            if (l->lit_pads[y] & (1 << x))
             {
-                plot_pad(coord_to_index(x, y), root_note_color);
+                color = on_color;
             }
+            else if (layout_is_root_note(l, l->pad_notes[y][x]))
+            {
+                color = root_note_color;
+            }
+
+            plot_pad(index, color);
+            index++;
         }
+
+        index += ROW_GAP;
     }
 }

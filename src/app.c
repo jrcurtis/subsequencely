@@ -418,10 +418,17 @@ void app_timer_event()
 
     if (state == SEQUENCER_MODE
         && !flag_is_set(flags, IS_SETUP)
-        && flag_is_set(sequencer.flags, DIRTY))
+        && flag_is_set(sequencer.flags, SQR_DIRTY))
     {
-        sequencer.flags = clear_flag(sequencer.flags, DIRTY);
+        sequencer.flags = clear_flag(sequencer.flags, SQR_DIRTY);
         sequencer_mode_draw();
+    }
+    else if (state == NOTES_MODE
+        && !flag_is_set(flags, IS_SETUP)
+        && flag_is_set(layout.flags, LYT_DIRTY))
+    {
+        layout.flags = clear_flag(layout.flags, LYT_DIRTY);
+        notes_mode_draw();
     }
 }
 

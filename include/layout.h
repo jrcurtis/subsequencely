@@ -8,6 +8,11 @@
 #include "colors.h"
 #include "scale.h"
 
+typedef enum
+{
+    LYT_DIRTY = 0x01
+} LayoutFlags;
+
 typedef u8 PadNotes[GRID_SIZE][GRID_SIZE];
 
 /// Represents a layout of a scale on a grid. Determines which note and octave
@@ -31,6 +36,12 @@ typedef struct
 
     s8 held_note;
     s8 held_velocity;
+
+    /// Buffer of bit fields to indicate which pads to light up. Used while
+    /// playing notes, and during sequence playback.
+    u8 lit_pads[GRID_SIZE];
+
+    u8 flags;
 
     /// Cache of which midi note numbers correspond to which pad. Used to avoid
     /// calculating every time a pad is pressed.

@@ -16,6 +16,10 @@
                                            / sr->layout->scale->num_notes      \
                                        ))
 
+/*******************************************************************************
+ * Sequence functions
+ ******************************************************************************/
+
 void sequence_init(Sequence* s, u8 channel)
 {
     s->channel = channel;
@@ -29,16 +33,109 @@ void sequence_init(Sequence* s, u8 channel)
     }
 }
 
-void sequence_kill_note(Sequence* s)
+void sequence_become_active(Sequence* s)
+{
+    s->flags = set_flag(s->flags, SEQ_ACTIVE);
+}
+
+void sequence_become_inactive(Sequence* s)
+{
+    s->flags = clear_flag(s->flags, SEQ_ACTIVE);
+
+}
+
+void sequence_kill_note(Sequence* s, Sequencer* sr)
 {
     Note* n = &s->notes[s->playhead];
     if (n->note_number != -1)
     {
+        if (flag_is_set(s->flags, SEQ_ACTIVE))
+        {
+            layout_light_note(sr->layout, n->note_number, n->velocity, 0);
+
+            if (n->note_number == sr->layout->held_note)
+            {
+                return;
+            }
+        }
+
         hal_send_midi(
             USBSTANDALONE, NOTEOFF | s->channel,
             n->note_number, n->velocity);
+
     }
 }
+
+void sequence_play_note(Sequence* s, Sequencer* sr)
+{
+    Note* n = &s->notes[s->playhead];
+    if (n->note_number != -1)
+    {
+        if (flag_is_set(s->flags, SEQ_ACTIVE))
+        {
+            layout_light_note(sr->layout, n->note_number, n->velocity, 1);
+        }
+
+        hal_send_midi(
+            USBSTANDALONE, NOTEON | s->channel,
+            n->note_number, n->velocity);
+    }
+}
+
+void sequence_queue(Sequence* s)
+{
+    s->flags = set_flag(s->flags, SEQ_QUEUED);
+}
+
+void sequence_stop(Sequence* s, Sequencer* sr)
+{
+    s->flags = clear_flag(s->flags, SEQ_QUEUED);
+    s->flags = clear_flag(s->flags, SEQ_PLAYING);
+    sequence_kill_note(s, sr);
+    s->playhead = 0;
+}
+
+void sequence_step(Sequence* s, Sequencer* sr)
+{
+    u8 enabled = !flag_is_set(s->flags, SEQ_MUTED)
+        && (sr->soloed_tracks == 0
+            || flag_is_set(s->flags, SEQ_SOLOED));
+
+    // If this sequence is not playing and not about to start playing
+    // skip it.
+    if (!flag_is_set(s->flags, SEQ_QUEUED)
+        && !flag_is_set(s->flags, SEQ_PLAYING))
+    {
+        return;
+    }
+    // If it's about to start playing, switch it to playing.
+    else if (flag_is_set(s->flags, SEQ_QUEUED))
+    {
+        s->flags = clear_flag(s->flags, SEQ_QUEUED);
+        s->flags = set_flag(s->flags, SEQ_PLAYING);
+    }
+    // If it's already playing, kill the current note and advance the
+    // playhead.
+    else
+    {
+        if (enabled)
+        {
+            sequence_kill_note(s, sr);
+        }
+
+        s->playhead = (s->playhead + 1) % SEQUENCE_LENGTH;
+    }
+
+    // Play the note.
+    if (enabled)
+    {
+        sequence_play_note(s, sr);
+    }
+}
+
+/*******************************************************************************
+ * Sequencer functions
+ ******************************************************************************/
 
 void sequencer_init(Sequencer* sr, Layout* l)
 {
@@ -56,11 +153,20 @@ void sequencer_init(Sequencer* sr, Layout* l)
     {
         sequence_init(&sr->sequences[i], i);
     }
+
+    sequence_become_active(&sr->sequences[sr->active_sequence]);
 }
 
 void sequencer_set_octave(Sequencer* sr, u8 octave)
 {
     sr->y = octave * sr->layout->scale->num_notes;
+}
+
+void sequencer_set_active(Sequencer* sr, u8 i)
+{
+    sequence_become_inactive(&sr->sequences[sr->active_sequence]);
+    sr->active_sequence = i;
+    sequence_become_active(&sr->sequences[i]);
 }
 
 /*******************************************************************************
@@ -77,61 +183,61 @@ void sequencer_play_draw(Sequencer* sr)
     {
         Sequence* s = &sr->sequences[i];
 
-        if (flag_is_set(sr->flags, ARM_HELD))
+        if (flag_is_set(sr->flags, SQR_ARM_HELD))
         {
-            color = flag_is_set(s->flags, ARMED)
+            color = flag_is_set(s->flags, SEQ_ARMED)
                 ? number_colors[0]
                 : off_color;
         }
-        else if (flag_is_set(sr->flags, SELECT_HELD))
+        else if (flag_is_set(sr->flags, SQR_SELECT_HELD))
         {
             color = sr->active_sequence == i
                 ? number_colors[2]
                 : off_color;
         }
-        else if (flag_is_set(sr->flags, MUTE_HELD))
+        else if (flag_is_set(sr->flags, SQR_MUTE_HELD))
         {
-            color = flag_is_set(s->flags, MUTED)
+            color = flag_is_set(s->flags, SEQ_MUTED)
                 ? number_colors[1]
                 : off_color;
         }
-        else if (flag_is_set(sr->flags, SOLO_HELD))
+        else if (flag_is_set(sr->flags, SQR_SOLO_HELD))
         {
-            color = flag_is_set(s->flags, SOLOED)
+            color = flag_is_set(s->flags, SEQ_SOLOED)
                 ? number_colors[3]
                 : off_color;
         }
         else
         {
-            color = (flag_is_set(s->flags, PLAYING)
-                     || flag_is_set(s->flags, QUEUED))
+            color = (flag_is_set(s->flags, SEQ_PLAYING)
+                     || flag_is_set(s->flags, SEQ_QUEUED))
                 ? sequence_colors[i]
                 : off_color;
         }
 
         // If any track is armed AND playing, turn the record indicator on.
-        if (flag_is_set(s->flags, ARMED)
-            && (flag_is_set(s->flags, PLAYING)
-                || flag_is_set(s->flags, QUEUED)))
+        if (flag_is_set(s->flags, SEQ_ARMED)
+            && (flag_is_set(s->flags, SEQ_PLAYING)
+                || flag_is_set(s->flags, SEQ_QUEUED)))
         {
-            active_flags = set_flag(active_flags, ARMED);
+            active_flags = set_flag(active_flags, SEQ_ARMED);
         }
 
         // If any tracks are muted/soloed, turn those indicators on.
-        active_flags |= flag_is_set(s->flags, MUTED);
-        active_flags |= flag_is_set(s->flags, SOLOED);
+        active_flags |= flag_is_set(s->flags, SEQ_MUTED);
+        active_flags |= flag_is_set(s->flags, SEQ_SOLOED);
 
         plot_pad(play_index, color);
         play_index -= PLAY_GAP;
     }
     
     
-    plot_pad(RECORD_ARM, flag_is_set(active_flags, ARMED)
+    plot_pad(RECORD_ARM, flag_is_set(active_flags, SEQ_ARMED)
              ? number_colors[0] : off_color);
     plot_pad(TRACK_SELECT, sequence_colors[sr->active_sequence]);
-    plot_pad(MUTE, flag_is_set(active_flags, MUTED)
+    plot_pad(MUTE, flag_is_set(active_flags, SEQ_MUTED)
         ? number_colors[1] : off_color);
-    plot_pad(SOLO, flag_is_set(active_flags, SOLOED)
+    plot_pad(SOLO, flag_is_set(active_flags, SEQ_SOLOED)
              ? number_colors[3] : off_color);
 }
 
@@ -278,32 +384,32 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
     u8 si = GRID_SIZE - 1 - (index - FIRST_PLAY) / PLAY_GAP;
     Sequence* s = &sr->sequences[si];
 
-    if (flag_is_set(sr->flags, ARM_HELD))
+    if (flag_is_set(sr->flags, SQR_ARM_HELD))
     {
-        s->flags = toggle_flag(s->flags, ARMED);
+        s->flags = toggle_flag(s->flags, SEQ_ARMED);
     }
-    else if (flag_is_set(sr->flags, SELECT_HELD))
+    else if (flag_is_set(sr->flags, SQR_SELECT_HELD))
     {
-        sr->active_sequence = si;
+        sequencer_set_active(sr, si);
     }
-    else if (flag_is_set(sr->flags, MUTE_HELD))
+    else if (flag_is_set(sr->flags, SQR_MUTE_HELD))
     {
-        s->flags = toggle_flag(s->flags, MUTED);
+        s->flags = toggle_flag(s->flags, SEQ_MUTED);
 
         // If the sequence has switched to muted, kill the current note.
-        if (flag_is_set(s->flags, MUTED))
+        if (flag_is_set(s->flags, SEQ_MUTED))
         {
-            sequence_kill_note(s);
+            sequence_kill_note(s, sr);
         }
     }
-    else if (flag_is_set(sr->flags, SOLO_HELD))
+    else if (flag_is_set(sr->flags, SQR_SOLO_HELD))
     {
-        s->flags = toggle_flag(s->flags, SOLOED);
-        sr->soloed_tracks += flag_is_set(s->flags, SOLOED) ? 1 : -1;
+        s->flags = toggle_flag(s->flags, SEQ_SOLOED);
+        sr->soloed_tracks += flag_is_set(s->flags, SEQ_SOLOED) ? 1 : -1;
 
         // If this sequence has become soloed, and it is the only soloed
         // sequence, any other playing sequence must be killed.
-        if (flag_is_set(s->flags, SOLOED))
+        if (flag_is_set(s->flags, SEQ_SOLOED))
         {
             if (sr->soloed_tracks == 1)
             {
@@ -311,10 +417,10 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
                 {
                     Sequence* sk = &sr->sequences[i];
                     if (i != si
-                        && flag_is_set(sk->flags, PLAYING)
-                        && !flag_is_set(sk->flags, MUTED))
+                        && flag_is_set(sk->flags, SEQ_PLAYING)
+                        && !flag_is_set(sk->flags, SEQ_MUTED))
                     {
-                        sequence_kill_note(sk);
+                        sequence_kill_note(sk, sr);
                     }
                 }
             }
@@ -323,26 +429,24 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
         // then this sequence essentially becomes muted, so kill it.
         else if (sr->soloed_tracks > 0)
         {
-            sequence_kill_note(s);
+            sequence_kill_note(s, sr);
         }
     }
     // If the sequence has been queued, but hasn't started playing, just
     // unqueue it.
-    else if (flag_is_set(s->flags, QUEUED))
+    else if (flag_is_set(s->flags, SEQ_QUEUED))
     {
-        s->flags = clear_flag(s->flags, QUEUED);
+        sequence_stop(s, sr);
     }
     // If the sequence is playing, stop it and reset the playhead.
-    else if (flag_is_set(s->flags, PLAYING))
+    else if (flag_is_set(s->flags, SEQ_PLAYING))
     {
-        s->flags = clear_flag(s->flags, PLAYING);
-        sequence_kill_note(s);
-        s->playhead = 0;
+        sequence_stop(s, sr);
     }
     // Otherwise, queue it to start playing on the next step.
     else
     {
-        s->flags = set_flag(s->flags, QUEUED);
+        sequence_queue(s);
     }
 
     return 1;
@@ -352,19 +456,19 @@ u8 sequencer_handle_modifiers(Sequencer* sr, u8 index, u8 value)
 {
     if (index == RECORD_ARM)
     {
-        sr->flags = assign_flag(sr->flags, ARM_HELD, value > 0);
+        sr->flags = assign_flag(sr->flags, SQR_ARM_HELD, value > 0);
     }
     else if (index == TRACK_SELECT)
     {
-        sr->flags = assign_flag(sr->flags, SELECT_HELD, value > 0);
+        sr->flags = assign_flag(sr->flags, SQR_SELECT_HELD, value > 0);
     }
     else if (index == MUTE)
     {
-        sr->flags = assign_flag(sr->flags, MUTE_HELD, value > 0);
+        sr->flags = assign_flag(sr->flags, SQR_MUTE_HELD, value > 0);
     }
     else if (index == SOLO)
     {
-        sr->flags = assign_flag(sr->flags, SOLO_HELD, value > 0);
+        sr->flags = assign_flag(sr->flags, SQR_SOLO_HELD, value > 0);
     }
     else
     {
@@ -391,7 +495,7 @@ u8 sequencer_grid_handle_press(Sequencer* sr, u8 index, u8 value)
 
         if (s->playhead == seq_x)
         {
-            sequence_kill_note(s);
+            sequence_kill_note(s, sr);
         }
 
         if (value == 0)
@@ -426,11 +530,11 @@ u8 sequencer_handle_record(Sequencer* sr)
         Sequence* s = &sr->sequences[i];
         Note* n = &s->notes[s->playhead];
 
-        if (flag_is_set(s->flags, ARMED)
-            && flag_is_set(s->flags, PLAYING)
+        if (flag_is_set(s->flags, SEQ_ARMED)
+            && flag_is_set(s->flags, SEQ_PLAYING)
             && sr->layout->held_note != -1)
         {
-            sequence_kill_note(s);
+            sequence_kill_note(s, sr);
             n->note_number = sr->layout->held_note;
             n->velocity = sr->layout->held_velocity;
             note_recorded = 1;
@@ -457,60 +561,13 @@ void sequencer_tick(Sequencer* sr)
 
     // If the current sequence is playing when the sequence ticks, then a
     // display refresh is needed.
-    if (flag_is_set(sr->sequences[sr->active_sequence].flags, PLAYING))
+    if (flag_is_set(sr->sequences[sr->active_sequence].flags, SEQ_PLAYING))
     {
-        sr->flags = set_flag(sr->flags, DIRTY);
+        sr->flags = set_flag(sr->flags, SQR_DIRTY);
     }
 
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
-        Sequence* s = &sr->sequences[i];
-        Note* n = &s->notes[s->playhead];
-        u8 enabled = !flag_is_set(s->flags, MUTED)
-            && (sr->soloed_tracks == 0
-                || flag_is_set(s->flags, SOLOED));
-
-        // If this sequence is not playing and not about to start playing
-        // skip it.
-        if (!flag_is_set(s->flags, QUEUED)
-            && !flag_is_set(s->flags, PLAYING))
-        {
-            continue;
-        }
-        // If it's about to start playing, switch it to playing.
-        else if (flag_is_set(s->flags, QUEUED))
-        {
-            s->flags = clear_flag(s->flags, QUEUED);
-            s->flags = set_flag(s->flags, PLAYING);
-        }
-        // If it's already playing, kill the current note and advance the
-        // playhead.
-        else
-        {
-            if (enabled
-                && n->note_number >= 0
-                && n->note_number != sr->layout->held_note)
-            {
-                hal_send_midi(
-                    USBSTANDALONE, NOTEOFF | s->channel,
-                    n->note_number, n->velocity);
-                layout_light_note(sr->layout, n->note_number, n->velocity, 0);
-            }
-
-            s->playhead = (s->playhead + 1) % SEQUENCE_LENGTH;
-        }
-
-        n = &s->notes[s->playhead];
-
-        // Play the note.
-        if (enabled
-            && n->note_number >= 0
-            && n->note_number != sr->layout->held_note)
-        {
-            hal_send_midi(
-                USBSTANDALONE, NOTEON | s->channel,
-                n->note_number, n->velocity);
-            layout_light_note(sr->layout, n->note_number, n->velocity, 1);
-        }
+        sequence_step(&sr->sequences[i], sr);
     }
 }
