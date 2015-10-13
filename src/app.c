@@ -203,7 +203,10 @@ u8 notes_mode_handle_press(u8 index, u8 value)
     {
         keyboard_update_indices(&keyboard);
     }
-    else if (layout_play(&layout, index, value, midi_channel)) { }
+    else if (layout_play(&layout, index, value, midi_channel))
+    {
+        sequencer_handle_record(&sequencer);
+    }
     else
     {
         return 0;

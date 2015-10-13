@@ -65,6 +65,7 @@ void sequencer_grid_draw(Sequencer* sr);
 u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value);
 u8 sequencer_handle_modifiers(Sequencer* sr, u8 index, u8 value);
 u8 sequencer_grid_handle_press(Sequencer* sr, u8 index, u8 value);
+u8 sequencer_handle_record(Sequencer* sr);
 
 void sequencer_tick(Sequencer* sr);
 

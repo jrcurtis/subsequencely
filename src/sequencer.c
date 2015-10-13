@@ -417,6 +417,29 @@ u8 sequencer_grid_handle_press(Sequencer* sr, u8 index, u8 value)
     return 1;
 }
 
+u8 sequencer_handle_record(Sequencer* sr)
+{
+    u8 note_recorded = 0;
+
+    for (u8 i = 0; i < GRID_SIZE; i++)
+    {
+        Sequence* s = &sr->sequences[i];
+        Note* n = &s->notes[s->playhead];
+
+        if (flag_is_set(s->flags, ARMED)
+            && flag_is_set(s->flags, PLAYING)
+            && sr->layout->held_note != -1)
+        {
+            sequence_kill_note(s);
+            n->note_number = sr->layout->held_note;
+            n->velocity = sr->layout->held_velocity;
+            note_recorded = 1;
+        }
+    }
+
+    return note_recorded;
+}
+
 /*******************************************************************************
  * Time handling
  ******************************************************************************/
@@ -464,11 +487,14 @@ void sequencer_tick(Sequencer* sr)
         // playhead.
         else
         {
-            if (enabled && n->note_number >= 0)
+            if (enabled
+                && n->note_number >= 0
+                && n->note_number != sr->layout->held_note)
             {
                 hal_send_midi(
                     USBSTANDALONE, NOTEOFF | s->channel,
                     n->note_number, n->velocity);
+                layout_light_note(sr->layout, n->note_number, n->velocity, 0);
             }
 
             s->playhead = (s->playhead + 1) % SEQUENCE_LENGTH;
@@ -476,21 +502,15 @@ void sequencer_tick(Sequencer* sr)
 
         n = &s->notes[s->playhead];
 
-        // If the sequence is playing and armed for recording, store the note
-        // being played.
-        if (flag_is_set(s->flags, ARMED)
-            && sr->layout->held_note != -1)
-        {
-            n->note_number = sr->layout->held_note;
-            n->velocity = sr->layout->held_velocity;
-        }
-
         // Play the note.
-        if (enabled && n->note_number >= 0)
+        if (enabled
+            && n->note_number >= 0
+            && n->note_number != sr->layout->held_note)
         {
             hal_send_midi(
                 USBSTANDALONE, NOTEON | s->channel,
                 n->note_number, n->velocity);
+            layout_light_note(sr->layout, n->note_number, n->velocity, 1);
         }
     }
 }
