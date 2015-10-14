@@ -86,7 +86,7 @@ Slider tempo_slider;
 
 u8 tap_tempo_handle_press(u8 index, u8 value)
 {
-    if (index != CLICK)
+    if (index != LP_CLICK)
     {
         return 0;
     }
@@ -250,7 +250,7 @@ void set_state(State st, u8 setup)
 
     if (st == SESSION_MODE)
     {
-        plot_pad(SESSION, number_colors[SESSION_MODE]);
+        plot_pad(LP_SESSION, number_colors[SESSION_MODE]);
 
         if (setup)
         {
@@ -265,7 +265,7 @@ void set_state(State st, u8 setup)
     }
     else if (st == NOTES_MODE)
     {
-        plot_pad(NOTE, number_colors[NOTES_MODE]);
+        plot_pad(LP_NOTE, number_colors[NOTES_MODE]);
 
         if (setup)
         {
@@ -280,7 +280,7 @@ void set_state(State st, u8 setup)
     }
     else if (st == SEQUENCER_MODE)
     {
-        plot_pad(DEVICE, number_colors[SEQUENCER_MODE]);
+        plot_pad(LP_DEVICE, number_colors[SEQUENCER_MODE]);
 
         if (setup)
         {
@@ -306,19 +306,19 @@ void set_state(State st, u8 setup)
 
 void app_surface_event(u8 type, u8 index, u8 value)
 {
-    if (index == SHIFT)
+    if (index == LP_SHIFT)
     {
         shift_held = value > 0;
     }
-    else if (index == SESSION && value > 0)
+    else if (index == LP_SESSION && value > 0)
     {
         set_state(SESSION_MODE, 0);
     }
-    else if (index == NOTE && value > 0)
+    else if (index == LP_NOTE && value > 0)
     {
         set_state(NOTES_MODE, 0);
     }
-    else if (index == DEVICE && value > 0)
+    else if (index == LP_DEVICE && value > 0)
     {
         set_state(SEQUENCER_MODE, 0);
     }

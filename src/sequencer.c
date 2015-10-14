@@ -175,7 +175,7 @@ void sequencer_set_active(Sequencer* sr, u8 i)
 
 void sequencer_play_draw(Sequencer* sr)
 {
-    u8 play_index = LAST_PLAY;
+    u8 play_index = LP_LAST_PLAY;
     const u8* color = off_color;
     u8 active_flags = 0;
 
@@ -228,16 +228,16 @@ void sequencer_play_draw(Sequencer* sr)
         active_flags |= flag_is_set(s->flags, SEQ_SOLOED);
 
         plot_pad(play_index, color);
-        play_index -= PLAY_GAP;
+        play_index -= LP_PLAY_GAP;
     }
     
     
-    plot_pad(RECORD_ARM, flag_is_set(active_flags, SEQ_ARMED)
+    plot_pad(LP_RECORD_ARM, flag_is_set(active_flags, SEQ_ARMED)
              ? number_colors[0] : off_color);
-    plot_pad(TRACK_SELECT, sequence_colors[sr->active_sequence]);
-    plot_pad(MUTE, flag_is_set(active_flags, SEQ_MUTED)
+    plot_pad(LP_TRACK_SELECT, sequence_colors[sr->active_sequence]);
+    plot_pad(LP_MUTE, flag_is_set(active_flags, SEQ_MUTED)
         ? number_colors[1] : off_color);
-    plot_pad(SOLO, flag_is_set(active_flags, SEQ_SOLOED)
+    plot_pad(LP_SOLO, flag_is_set(active_flags, SEQ_SOLOED)
              ? number_colors[3] : off_color);
 }
 
@@ -305,28 +305,28 @@ u8 sequencer_handle_translate(Sequencer* sr, u8 index, u8 value)
         return 0;
     }
 
-    if (index == OCTAVE_UP)
+    if (index == LP_OCTAVE_UP)
     {
         if (grid_to_sequencer_y(sr, GRID_SIZE - 1) < MAX_NOTE)
         {
             sr->y++;
         }
     }
-    else if (index == OCTAVE_DOWN)
+    else if (index == LP_OCTAVE_DOWN)
     {
         if (sr->y > 0)
         {
             sr->y--;
         }
     }
-    else if (index == TRANSPOSE_UP)
+    else if (index == LP_TRANSPOSE_UP)
     {
         if ((sr->x + GRID_SIZE) * zoom_to_sequencer_x(sr) < SEQUENCE_LENGTH)
         {
             sr->x++;
         }
     }
-    else if (index == TRANSPOSE_DOWN)
+    else if (index == LP_TRANSPOSE_DOWN)
     {
         if (sr->x > 0)
         {
@@ -348,7 +348,7 @@ u8 sequencer_handle_zoom(Sequencer* sr, u8 index, u8 value)
         return 0;
     }
 
-    if (index == OCTAVE_UP)
+    if (index == LP_OCTAVE_UP)
     {
         if (sr->zoom < MAX_ZOOM)
         {
@@ -356,7 +356,7 @@ u8 sequencer_handle_zoom(Sequencer* sr, u8 index, u8 value)
             sr->x *= 2;
         }
     }
-    else if (index == OCTAVE_DOWN)
+    else if (index == LP_OCTAVE_DOWN)
     {
         if (sr->zoom > 0)
         {
@@ -375,13 +375,13 @@ u8 sequencer_handle_zoom(Sequencer* sr, u8 index, u8 value)
 u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
 {
     if (value == 0
-        || index < FIRST_PLAY || index > LAST_PLAY
-        || (index - FIRST_PLAY) % PLAY_GAP != 0)
+        || index < LP_FIRST_PLAY || index > LP_LAST_PLAY
+        || (index - LP_FIRST_PLAY) % LP_PLAY_GAP != 0)
     {
         return 0;
     }
 
-    u8 si = GRID_SIZE - 1 - (index - FIRST_PLAY) / PLAY_GAP;
+    u8 si = GRID_SIZE - 1 - (index - LP_FIRST_PLAY) / LP_PLAY_GAP;
     Sequence* s = &sr->sequences[si];
 
     if (flag_is_set(sr->flags, SQR_ARM_HELD))
@@ -454,19 +454,19 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
 
 u8 sequencer_handle_modifiers(Sequencer* sr, u8 index, u8 value)
 {
-    if (index == RECORD_ARM)
+    if (index == LP_RECORD_ARM)
     {
         sr->flags = assign_flag(sr->flags, SQR_ARM_HELD, value > 0);
     }
-    else if (index == TRACK_SELECT)
+    else if (index == LP_TRACK_SELECT)
     {
         sr->flags = assign_flag(sr->flags, SQR_SELECT_HELD, value > 0);
     }
-    else if (index == MUTE)
+    else if (index == LP_MUTE)
     {
         sr->flags = assign_flag(sr->flags, SQR_MUTE_HELD, value > 0);
     }
-    else if (index == SOLO)
+    else if (index == LP_SOLO)
     {
         sr->flags = assign_flag(sr->flags, SQR_SOLO_HELD, value > 0);
     }

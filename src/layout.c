@@ -120,19 +120,19 @@ u8 layout_handle_transpose(Layout* l, u8 index, u8 value)
         return 0;
     }
 
-    if (index == TRANSPOSE_UP)
+    if (index == LP_TRANSPOSE_UP)
     {
         layout_transpose(l, 1);
     }
-    else if (index == TRANSPOSE_DOWN)
+    else if (index == LP_TRANSPOSE_DOWN)
     {
         layout_transpose(l, -1);
     }
-    else if (index == OCTAVE_UP)
+    else if (index == LP_OCTAVE_UP)
     {
         layout_transpose_octave(l, 1);
     }
-    else if (index == OCTAVE_DOWN)
+    else if (index == LP_OCTAVE_DOWN)
     {
         layout_transpose_octave(l, -1);
     }

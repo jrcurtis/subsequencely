@@ -25,7 +25,7 @@ u8 index_to_pad(u8 i, u8* x, u8* y)
 
 void clear_leds()
 {
-    for (u8 i = FIRST_BUTTON; i <= LAST_BUTTON; i++)
+    for (u8 i = LP_FIRST_BUTTON; i <= LP_LAST_BUTTON; i++)
     {
         hal_plot_led(TYPEPAD, i, 0x00, 0x00, 0x00);
     }
