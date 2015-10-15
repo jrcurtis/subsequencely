@@ -1,20 +1,39 @@
 
 #include "sequencer.h"
 
-#define zoom_to_sequencer_x(sr)       (1 << (MAX_ZOOM - (sr)->zoom))
+#define zoom_to_sequence_x(sr)        (1 << (MAX_ZOOM - (sr)->zoom))
 
-#define grid_to_sequencer_x(sr, gx)   (((gx) + (sr)->x)                        \
-                                       * (1 << (MAX_ZOOM - (sr)->zoom)))
+#define grid_to_sequence_x(sr, gx)    (((gx) + (s)->x)                         \
+                                       * (1 << (MAX_ZOOM - (s)->zoom)))
 
-#define grid_to_sequencer_y(sr, gy)   ((sr)->layout->scale->offsets[           \
-                                           ((gy) + (sr)->y)                    \
-                                           % (sr)->layout->scale->num_notes    \
+#define grid_to_sequence_y(s, gy)     ((s)->layout.scale->offsets[             \
+                                           ((gy) + (s)->y)                     \
+                                           % (s)->layout.scale->num_notes      \
                                        ]                                       \
-                                       + (sr)->layout->root_note               \
+                                       + (s)->layout.root_note                \
                                        + NUM_NOTES * (                         \
-                                           ((gy) + (sr)->y)                    \
-                                           / sr->layout->scale->num_notes      \
+                                           ((gy) + (s)->y)                     \
+                                           / (s)->layout.scale->num_notes      \
                                        ))
+
+
+/*******************************************************************************
+ * Note functions
+ ******************************************************************************/
+
+void note_play(Note* n, u8 channel)
+{
+    hal_send_midi(
+        USBSTANDALONE, NOTEON | channel,
+        n->note_number, n->velocity & NOTE_MASK);
+}
+
+void note_kill(Note* n, u8 channel)
+{
+    hal_send_midi(
+        USBSTANDALONE, NOTEOFF | channel,
+        n->note_number, n->velocity & NOTE_MASK);
+}
 
 /*******************************************************************************
  * Sequence functions
@@ -24,6 +43,9 @@ void sequence_init(Sequence* s, u8 channel)
 {
     s->channel = channel;
     s->playhead = 0;
+    s->x = 0;
+    s->y = 0;
+    s->zoom = 0;
     s->flags = 0x00;
 
     for (u8 i = 0; i < SEQUENCE_LENGTH; i++)
@@ -36,50 +58,54 @@ void sequence_init(Sequence* s, u8 channel)
 void sequence_become_active(Sequence* s)
 {
     s->flags = set_flag(s->flags, SEQ_ACTIVE);
+    layout_become_active(&s->layout);
 }
 
 void sequence_become_inactive(Sequence* s)
 {
     s->flags = clear_flag(s->flags, SEQ_ACTIVE);
-
+    layout_become_inactive(&s->layout);
 }
 
-void sequence_kill_note(Sequence* s, Sequencer* sr)
+void sequence_kill_note(Sequence* s, Layout* l, Note* n)
 {
-    Note* n = &s->notes[s->playhead];
     if (n->note_number != -1)
     {
         if (flag_is_set(s->flags, SEQ_ACTIVE))
         {
-            layout_light_note(sr->layout, n->note_number, n->velocity, 0);
+            layout_light_note(l, n->note_number, n->velocity & NOTE_MASK, 0);
 
-            if (n->note_number == sr->layout->held_note)
+            if (n->note_number == l->held_note)
             {
                 return;
             }
         }
 
-        hal_send_midi(
-            USBSTANDALONE, NOTEOFF | s->channel,
-            n->note_number, n->velocity);
-
+        note_kill(n, s->channel);
     }
 }
 
-void sequence_play_note(Sequence* s, Sequencer* sr)
+void sequence_kill_current_note(Sequence* s, Layout* l)
 {
-    Note* n = &s->notes[s->playhead];
+    sequence_kill_note(s, l, &s->notes[s->playhead]);
+}
+
+void sequence_play_note(Sequence* s, Layout* l, Note* n)
+{
     if (n->note_number != -1)
     {
         if (flag_is_set(s->flags, SEQ_ACTIVE))
         {
-            layout_light_note(sr->layout, n->note_number, n->velocity, 1);
+            layout_light_note(l, n->note_number, n->velocity & NOTE_MASK, 1);
         }
 
-        hal_send_midi(
-            USBSTANDALONE, NOTEON | s->channel,
-            n->note_number, n->velocity);
+        note_play(n, s->channel);
     }
+}
+
+void sequence_play_current_note(Sequence* s, Layout* l)
+{
+    sequence_play_note(s, l, &s->notes[s->playhead]);
 }
 
 void sequence_queue(Sequence* s)
@@ -87,12 +113,30 @@ void sequence_queue(Sequence* s)
     s->flags = set_flag(s->flags, SEQ_QUEUED);
 }
 
-void sequence_stop(Sequence* s, Sequencer* sr)
+void sequence_stop(Sequence* s, Layout* l)
 {
     s->flags = clear_flag(s->flags, SEQ_QUEUED);
     s->flags = clear_flag(s->flags, SEQ_PLAYING);
-    sequence_kill_note(s, sr);
+    sequence_kill_current_note(s, l);
     s->playhead = 0;
+}
+
+void sequence_handle_record(Sequence* s, Layout* l, u8 press)
+{
+    if (flag_is_set(s->flags, SEQ_ARMED)
+        && flag_is_set(s->flags, SEQ_PLAYING)
+        && l->held_note != -1)
+    {
+        Note* n = &s->notes[s->playhead];
+
+        if (press)
+        {
+            note_kill(n, s->channel);
+        }
+
+        n->note_number = l->held_note;
+        n->velocity = (press ? 0x00 : NOTE_SLIDE) | l->held_velocity;
+    }
 }
 
 void sequence_step(Sequence* s, Sequencer* sr)
@@ -100,6 +144,8 @@ void sequence_step(Sequence* s, Sequencer* sr)
     u8 enabled = !flag_is_set(s->flags, SEQ_MUTED)
         && (sr->soloed_tracks == 0
             || flag_is_set(s->flags, SEQ_SOLOED));
+
+    s8 slide_kill = -1;
 
     // If this sequence is not playing and not about to start playing
     // skip it.
@@ -120,16 +166,30 @@ void sequence_step(Sequence* s, Sequencer* sr)
     {
         if (enabled)
         {
-            sequence_kill_note(s, sr);
+            if (s->notes[s->playhead].velocity | NOTE_SLIDE)
+            {
+                slide_kill = s->playhead;
+            }
+            else
+            {
+                sequence_kill_current_note(s, &s->layout);
+            }
         }
 
         s->playhead = (s->playhead + 1) % SEQUENCE_LENGTH;
     }
 
+    sequence_handle_record(s, &s->layout, 0);
+
     // Play the note.
     if (enabled)
     {
-        sequence_play_note(s, sr);
+        sequence_play_current_note(s, &s->layout);
+    }
+
+    if (slide_kill != -1 && s->notes[slide_kill].note_number != s->notes[s->playhead].note_number)
+    {
+        sequence_kill_note(s, &s->layout, &s->notes[slide_kill]);
     }
 }
 
@@ -137,36 +197,47 @@ void sequence_step(Sequence* s, Sequencer* sr)
  * Sequencer functions
  ******************************************************************************/
 
-void sequencer_init(Sequencer* sr, Layout* l)
+void sequencer_init(Sequencer* sr)
 {
-    sr->layout = l;
     sr->tempo = bpm_to_khz(DEFAULT_TEMPO);
     sr->timer = 0;
-    sr->zoom = 0;
     sr->active_sequence = 0;
     sr->soloed_tracks = 0;
-    sr->x = 0;
-    sr->y = 0;
     sr->flags = 0x00;
+
+    scale_init(&sr->scale);
 
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
-        sequence_init(&sr->sequences[i], i);
+        Sequence* s = &sr->sequences[i];
+        sequence_init(s, i);
+        layout_init(&s->layout, &sr->scale, &sr->pad_notes);
     }
 
-    sequence_become_active(&sr->sequences[sr->active_sequence]);
+    sequence_become_active(sequencer_get_active(sr));
 }
 
 void sequencer_set_octave(Sequencer* sr, u8 octave)
 {
-    sr->y = octave * sr->layout->scale->num_notes;
+    Sequence* s = sequencer_get_active(sr);
+    s->y = octave * s->layout.scale->num_notes;
 }
 
 void sequencer_set_active(Sequencer* sr, u8 i)
 {
-    sequence_become_inactive(&sr->sequences[sr->active_sequence]);
+    sequence_become_inactive(sequencer_get_active(sr));
     sr->active_sequence = i;
     sequence_become_active(&sr->sequences[i]);
+}
+
+Sequence* sequencer_get_active(Sequencer* sr)
+{
+    return &sr->sequences[sr->active_sequence];
+}
+
+Layout* sequencer_get_layout(Sequencer* sr)
+{
+    return &sequencer_get_active(sr)->layout;
 }
 
 /*******************************************************************************
@@ -243,34 +314,34 @@ void sequencer_play_draw(Sequencer* sr)
 
 void sequencer_grid_draw(Sequencer* sr)
 {
-    u8 scale_deg = sr->y % sr->layout->scale->num_notes;
-    u8 octave = sr->y / sr->layout->scale->num_notes;
-    Sequence* s = &sr->sequences[sr->active_sequence];
+    Sequence* s = sequencer_get_active(sr);
+    u8 scale_deg = s->y % s->layout.scale->num_notes;
+    u8 octave = s->y / s->layout.scale->num_notes;
     u8 index = FIRST_PAD;
-    u8 zoom = zoom_to_sequencer_x(sr);
+    u8 zoom = zoom_to_sequence_x(s);
 
     for (u8 y = 0; y < GRID_SIZE; y++)
     {
-        u8 note_number = sr->layout->scale->offsets[scale_deg]
-            + sr->layout->root_note
+        u8 note_number = s->layout.scale->offsets[scale_deg]
+            + s->layout.root_note
             + NUM_NOTES * octave;
 
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
-            u8 seq_x = grid_to_sequencer_x(sr, x);
+            u8 seq_x = grid_to_sequence_x(s, x);
             Note* n = &s->notes[seq_x];
             
             if (n->note_number == note_number)
             {
                 const u8* color = number_colors[seq_x & 3];
-                u8 dimness = 5 - n->velocity / (127 / 5);
+                u8 dimness = 8 - ((n->velocity & NOTE_MASK) >> 4);
                 plot_pad_dim(index, color, dimness);
             }
-            else if (s->playhead / zoom == x + sr->x)
+            else if (s->playhead / zoom == x + s->x)
             {
                 plot_pad(index, on_color);
             }
-            else if (layout_is_root_note(sr->layout, note_number))
+            else if (layout_is_root_note(&s->layout, note_number))
             {
                 plot_pad(index, root_note_color);
             }
@@ -283,7 +354,7 @@ void sequencer_grid_draw(Sequencer* sr)
         }
 
         scale_deg++;
-        if (scale_deg >= sr->layout->scale->num_notes)
+        if (scale_deg >= s->layout.scale->num_notes)
         {
             scale_deg = 0;
             octave++;
@@ -305,32 +376,34 @@ u8 sequencer_handle_translate(Sequencer* sr, u8 index, u8 value)
         return 0;
     }
 
+    Sequence* s = sequencer_get_active(sr);
+
     if (index == LP_OCTAVE_UP)
     {
-        if (grid_to_sequencer_y(sr, GRID_SIZE - 1) < MAX_NOTE)
+        if (grid_to_sequence_y(s, GRID_SIZE - 1) < MAX_NOTE)
         {
-            sr->y++;
+            s->y++;
         }
     }
     else if (index == LP_OCTAVE_DOWN)
     {
-        if (sr->y > 0)
+        if (s->y > 0)
         {
-            sr->y--;
+            s->y--;
         }
     }
     else if (index == LP_TRANSPOSE_UP)
     {
-        if ((sr->x + GRID_SIZE) * zoom_to_sequencer_x(sr) < SEQUENCE_LENGTH)
+        if ((s->x + GRID_SIZE) * zoom_to_sequence_x(s) < SEQUENCE_LENGTH)
         {
-            sr->x++;
+            s->x++;
         }
     }
     else if (index == LP_TRANSPOSE_DOWN)
     {
-        if (sr->x > 0)
+        if (s->x > 0)
         {
-            sr->x--;
+            s->x--;
         }
     }
     else
@@ -348,20 +421,22 @@ u8 sequencer_handle_zoom(Sequencer* sr, u8 index, u8 value)
         return 0;
     }
 
+    Sequence* s = sequencer_get_active(sr);
+
     if (index == LP_OCTAVE_UP)
     {
-        if (sr->zoom < MAX_ZOOM)
+        if (s->zoom < MAX_ZOOM)
         {
-            sr->zoom++;
-            sr->x *= 2;
+            s->zoom++;
+            s->x *= 2;
         }
     }
     else if (index == LP_OCTAVE_DOWN)
     {
-        if (sr->zoom > 0)
+        if (s->zoom > 0)
         {
-            sr->zoom--;
-            sr->x /= 2;
+            s->zoom--;
+            s->x /= 2;
         }
     }
     else
@@ -399,7 +474,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
         // If the sequence has switched to muted, kill the current note.
         if (flag_is_set(s->flags, SEQ_MUTED))
         {
-            sequence_kill_note(s, sr);
+            sequence_kill_current_note(s, &s->layout);
         }
     }
     else if (flag_is_set(sr->flags, SQR_SOLO_HELD))
@@ -420,7 +495,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
                         && flag_is_set(sk->flags, SEQ_PLAYING)
                         && !flag_is_set(sk->flags, SEQ_MUTED))
                     {
-                        sequence_kill_note(sk, sr);
+                        sequence_kill_current_note(sk, &s->layout);
                     }
                 }
             }
@@ -429,19 +504,19 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
         // then this sequence essentially becomes muted, so kill it.
         else if (sr->soloed_tracks > 0)
         {
-            sequence_kill_note(s, sr);
+            sequence_kill_current_note(s, &s->layout);
         }
     }
     // If the sequence has been queued, but hasn't started playing, just
     // unqueue it.
     else if (flag_is_set(s->flags, SEQ_QUEUED))
     {
-        sequence_stop(s, sr);
+        sequence_stop(s, &s->layout);
     }
     // If the sequence is playing, stop it and reset the playhead.
     else if (flag_is_set(s->flags, SEQ_PLAYING))
     {
-        sequence_stop(s, sr);
+        sequence_stop(s, &s->layout);
     }
     // Otherwise, queue it to start playing on the next step.
     else
@@ -487,15 +562,15 @@ u8 sequencer_grid_handle_press(Sequencer* sr, u8 index, u8 value)
     else if (sequencer_handle_translate(sr, index, value)) { }
     else if (index_to_pad(index, &x, &y))
     {
-        u8 seq_x = grid_to_sequencer_x(sr, x);
-        Sequence* s = &sr->sequences[sr->active_sequence];
+        Sequence* s = sequencer_get_active(sr);
+        u8 seq_x = grid_to_sequence_x(s, x);
         Note* n = &s->notes[seq_x];
 
-        u8 note_number = grid_to_sequencer_y(sr, y);
+        u8 note_number = grid_to_sequence_y(s, y);
 
         if (s->playhead == seq_x)
         {
-            sequence_kill_note(s, sr);
+            sequence_kill_current_note(s, &s->layout);
         }
 
         if (value == 0)
@@ -523,25 +598,13 @@ u8 sequencer_grid_handle_press(Sequencer* sr, u8 index, u8 value)
 
 u8 sequencer_handle_record(Sequencer* sr)
 {
-    u8 note_recorded = 0;
-
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
         Sequence* s = &sr->sequences[i];
-        Note* n = &s->notes[s->playhead];
-
-        if (flag_is_set(s->flags, SEQ_ARMED)
-            && flag_is_set(s->flags, SEQ_PLAYING)
-            && sr->layout->held_note != -1)
-        {
-            sequence_kill_note(s, sr);
-            n->note_number = sr->layout->held_note;
-            n->velocity = sr->layout->held_velocity;
-            note_recorded = 1;
-        }
+        sequence_handle_record(s, &s->layout, 1);
     }
 
-    return note_recorded;
+    return 0;
 }
 
 /*******************************************************************************
@@ -561,7 +624,7 @@ void sequencer_tick(Sequencer* sr)
 
     // If the current sequence is playing when the sequence ticks, then a
     // display refresh is needed.
-    if (flag_is_set(sr->sequences[sr->active_sequence].flags, SEQ_PLAYING))
+    if (flag_is_set(sequencer_get_active(sr)->flags, SEQ_PLAYING))
     {
         sr->flags = set_flag(sr->flags, SQR_DIRTY);
     }

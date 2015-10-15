@@ -18,7 +18,7 @@ typedef enum
 typedef struct
 {
     /// Whether the slider is drawn horizontally or vertically.
-    Orientation orientation;
+    u8 orientation;
 
     /// The row (for horizontal faders) or column (for vertical ones) to draw
     /// this slider in.

@@ -3,10 +3,10 @@
 #define SEQUENCER_H
 
 #include "app.h"
-#include "buttons.h"
-#include "colors.h"
-#include "layout.h"
-#include "util.h"
+#include "seq.h"
+
+#define NOTE_SLIDE    (0x80)
+#define NOTE_MASK     (0x7F)
 
 typedef enum
 {
@@ -16,7 +16,8 @@ typedef enum
     SEQ_ARMED = 0x08,
     SEQ_QUEUED = 0x10,
     SEQ_BEAT_QUEUED = 0x20,
-    SEQ_ACTIVE = 0x40
+    SEQ_ACTIVE = 0x40,
+    SEQ_LINKED = 0x80
 } SequenceFlags;
 
 typedef enum
@@ -36,30 +37,39 @@ typedef struct
 
 typedef struct
 {
-    Note notes[SEQUENCE_LENGTH];
+    Layout layout;
     u8 channel;
-    u8 playhead;
     u8 flags;
+
+    u8 playhead;
+    u8 zoom;
+    u8 x;
+    u8 y;
+
+    Note notes[SEQUENCE_LENGTH];
 } Sequence;
 
 typedef Sequence Sequences[GRID_SIZE];
 
 typedef struct
 {
-    Layout* layout;
     u16 tempo;
     u16 timer;
-    u8 zoom;
+
     u8 active_sequence;
     u8 soloed_tracks;
-    u8 x;
-    u8 y;
     u8 flags;
+
+    Scale scale;
+    PadNotes pad_notes;
     Sequences sequences;
 } Sequencer;
 
-void sequencer_init(Sequencer* sr, Layout* l);
+void sequencer_init(Sequencer* sr);
 void sequencer_set_octave(Sequencer* sr, u8 octave);
+void sequencer_set_active(Sequencer* sr, u8 i);
+Sequence* sequencer_get_active(Sequencer* sr);
+Layout* sequencer_get_layout(Sequencer* sr);
 
 void sequencer_play_draw(Sequencer* sr);
 void sequencer_grid_draw(Sequencer* sr);

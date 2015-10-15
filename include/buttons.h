@@ -40,6 +40,4 @@
 #define LP_SENDS          (7)
 #define LP_STOP_CLIP      (8)
 
-extern u8 shift_held;
-
 #endif

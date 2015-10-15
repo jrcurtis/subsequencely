@@ -8,7 +8,7 @@
 #include "layout.h"
 
 #define NUM_KEYBOARD_PADS  (2 * ROW_SIZE - ROW_GAP)
-#define FIRST_KEYBOARD_PAD FIRST_PAD
+#define FIRST_KEYBOARD_PAD (FIRST_PAD)
 #define LAST_KEYBOARD_PAD  (FIRST_KEYBOARD_PAD + NUM_KEYBOARD_PADS - 1)
 
 /// Represents an onscreen keyboard that can be transposed up or down, and have

@@ -66,10 +66,6 @@ u16 tap_tempo_timer = 1000;
 u16 tap_tempo_sum = 0;
 u8 tap_tempo_counter = 0;
 
-// Notes
-Scale scale;
-Layout layout;
-
 // Notes setup
 Keyboard keyboard;
 Slider row_offset_slider;
@@ -126,6 +122,26 @@ u8 tap_tempo_handle_press(u8 index, u8 value)
     return 0;
 }
 
+void session_mode_become_active()
+{
+    
+}
+
+void session_mode_become_inactive()
+{
+    
+}
+
+void session_setup_become_active()
+{
+    
+} 
+
+void session_setup_become_inactive()
+{
+    
+}
+
 void session_mode_draw()
 {
     
@@ -144,6 +160,26 @@ u8 session_mode_handle_press(u8 index, u8 value)
 u8 session_setup_handle_press(u8 index, u8 value)
 {
     return 0;
+}
+
+void sequencer_mode_become_active()
+{
+    
+}
+
+void sequencer_mode_become_inactive()
+{
+    
+}
+
+void sequencer_setup_become_active()
+{
+    
+} 
+
+void sequencer_setup_become_inactive()
+{
+    
 }
 
 void sequencer_mode_draw()
@@ -185,10 +221,32 @@ u8 sequencer_setup_handle_press(u8 index, u8 value)
     return 1;
 }
 
+void notes_mode_become_active()
+{
+    
+}
+
+void notes_mode_become_inactive()
+{
+    
+}
+
+void notes_setup_become_active()
+{
+    keyboard_init(&keyboard, sequencer_get_layout(&sequencer));
+    slider_set_value(
+        &row_offset_slider,
+        sequencer_get_layout(&sequencer)->row_offset);
+} 
+
+void notes_setup_become_inactive()
+{
+    
+}
 
 void notes_mode_draw()
 {
-    layout_draw(&layout);
+    layout_draw(sequencer_get_layout(&sequencer));
 }
 
 void notes_setup_draw()
@@ -199,11 +257,13 @@ void notes_setup_draw()
 
 u8 notes_mode_handle_press(u8 index, u8 value)
 {
-    if (layout_handle_transpose(&layout, index, value))
+    Layout* l = sequencer_get_layout(&sequencer);
+
+    if (layout_handle_transpose(l, index, value))
     {
         keyboard_update_indices(&keyboard);
     }
-    else if (layout_play(&layout, index, value, midi_channel))
+    else if (layout_play(l, index, value, midi_channel))
     {
         sequencer_handle_record(&sequencer);
     }
@@ -217,11 +277,13 @@ u8 notes_mode_handle_press(u8 index, u8 value)
 
 u8 notes_setup_handle_press(u8 index, u8 value)
 {
+    Layout* l = sequencer_get_layout(&sequencer);
+
     if (slider_handle_press(&row_offset_slider, index, value))
     {
-        layout_set_row_offset(&layout, row_offset_slider.value);
+        layout_set_row_offset(l, row_offset_slider.value);
     }
-    else if (layout_handle_transpose(&layout, index, value))
+    else if (layout_handle_transpose(l, index, value))
     {
         keyboard_update_indices(&keyboard);
     }
@@ -246,6 +308,40 @@ void set_state(State st, u8 setup)
         return;
     }
 
+    if (state == SESSION_MODE)
+    {
+        if (setup)
+        {
+            session_setup_become_inactive();
+        }
+        else
+        {
+            session_mode_become_inactive();
+        }
+    }
+    else if (state == NOTES_MODE)
+    {
+        if (setup)
+        {
+            notes_setup_become_inactive();
+        }
+        else
+        {
+            notes_mode_become_inactive();
+        }
+    }
+    else if (state == SEQUENCER_MODE)
+    {
+        if (setup)
+        {
+            sequencer_setup_become_inactive();
+        }
+        else
+        {
+            sequencer_mode_become_inactive();
+        }
+    }
+
     clear_leds();
 
     if (st == SESSION_MODE)
@@ -254,11 +350,13 @@ void set_state(State st, u8 setup)
 
         if (setup)
         {
+            session_setup_become_active();
             plot_setup(on_color);
             session_setup_draw();
         }
         else
         {
+            session_mode_become_active();
             plot_setup(number_colors[SESSION_MODE]);
             session_mode_draw();
         }
@@ -269,11 +367,13 @@ void set_state(State st, u8 setup)
 
         if (setup)
         {
+            notes_setup_become_active();
             plot_setup(on_color);
             notes_setup_draw();
         }
         else
         {
+            notes_mode_become_active();
             plot_setup(number_colors[NOTES_MODE]);
             notes_mode_draw();
         }
@@ -284,11 +384,13 @@ void set_state(State st, u8 setup)
 
         if (setup)
         {
+            sequencer_setup_become_active();
             plot_setup(on_color);
             sequencer_setup_draw();
         }
         else
         {
+            sequencer_mode_become_active();
             plot_setup(number_colors[SEQUENCER_MODE]);
             sequencer_mode_draw();
         }
@@ -393,7 +495,9 @@ void app_aftertouch_event(u8 index, u8 value)
 {
     if (state == NOTES_MODE && !flag_is_set(flags, IS_SETUP))
     {
-        layout_aftertouch(&layout, index, value, midi_channel);
+        layout_aftertouch(
+            sequencer_get_layout(&sequencer),
+            index, value, midi_channel);
     }
 }
 	
@@ -416,40 +520,37 @@ void app_timer_event()
     sequencer_tick(&sequencer);
     tap_tempo_timer++;
 
-    if (state == SEQUENCER_MODE
-        && !flag_is_set(flags, IS_SETUP)
+    if (!flag_is_set(flags, IS_SETUP)
         && flag_is_set(sequencer.flags, SQR_DIRTY))
     {
         sequencer.flags = clear_flag(sequencer.flags, SQR_DIRTY);
-        sequencer_mode_draw();
-    }
-    else if (state == NOTES_MODE
-        && !flag_is_set(flags, IS_SETUP)
-        && flag_is_set(layout.flags, LYT_DIRTY))
-    {
-        layout.flags = clear_flag(layout.flags, LYT_DIRTY);
-        notes_mode_draw();
+        if (state == SEQUENCER_MODE)
+        {
+            sequencer_mode_draw();
+        }
+        else if (state == NOTES_MODE)
+        {
+            notes_mode_draw();
+        }
     }
 }
 
 
 void app_init()
 {
-    layout_init(&layout, &scale);
-
-    keyboard_init(&keyboard, &layout);
-    slider_init(
-        &row_offset_slider,
-        HORIZONTAL, 2, slider_color,
-        1, 0,
-        layout.row_offset);
-
-    sequencer_init(&sequencer, &layout);
+    sequencer_init(&sequencer);
     slider_init(
         &tempo_slider,
         HORIZONTAL, 7, slider_color,
         15, 60,
         DEFAULT_TEMPO);
+
+    keyboard_init(&keyboard, sequencer_get_layout(&sequencer));
+    slider_init(
+        &row_offset_slider,
+        HORIZONTAL, 2, slider_color,
+        1, 0,
+        0);
 
     set_state(NOTES_MODE, 0);
 }

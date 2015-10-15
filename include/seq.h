@@ -11,4 +11,7 @@
 #include "slider.h"
 #include "sequencer.h"
 
+
+extern u8 shift_held;
+
 #endif

@@ -8,11 +8,8 @@
 #include "colors.h"
 #include "scale.h"
 
-typedef enum
-{
-    LYT_DIRTY = 0x01
-} LayoutFlags;
-
+/// Cache of which midi note numbers correspond to which pad. Used to avoid
+/// calculating every time a pad is pressed.
 typedef u8 PadNotes[GRID_SIZE][GRID_SIZE];
 
 /// Represents a layout of a scale on a grid. Determines which note and octave
@@ -22,6 +19,8 @@ typedef struct
     /// The scale this layout is based on. Only notes in the scale are included
     /// in the layout.
     Scale* scale;
+
+    PadNotes* pad_notes;
 
     /// The root note (0-11 <=> C-B) of the layout.
     s8 root_note;
@@ -40,19 +39,18 @@ typedef struct
     /// Buffer of bit fields to indicate which pads to light up. Used while
     /// playing notes, and during sequence playback.
     u8 lit_pads[GRID_SIZE];
-
-    u8 flags;
-
-    /// Cache of which midi note numbers correspond to which pad. Used to avoid
-    /// calculating every time a pad is pressed.
-    PadNotes pad_notes;
 } Layout;
 
 /// Initialize the layout data.
-void layout_init(Layout* l, Scale* s);
+void layout_init(Layout* l, Scale* s, PadNotes* pn);
 
 /// True if the midi note number is the same or an octave of the root note.
 u8 layout_is_root_note(Layout* l, u8 note_number);
+
+void layout_assign_pads(Layout* l);
+
+void layout_become_active(Layout* l);
+void layout_become_inactive(Layout* l);
 
 /// Toggles the note in the scale, and updates the layout.
 void layout_toggle_note(Layout* l, u8 note);

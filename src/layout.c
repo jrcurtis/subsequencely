@@ -1,6 +1,34 @@
 
 #include "layout.h"
 
+void layout_init(Layout* l, Scale* s, PadNotes* pn)
+{
+    l->scale = s;
+    l->root_note = 0;
+    l->octave = 2;
+    l->row_offset = 5;
+    l->held_note = -1;
+    l->held_velocity = -1;
+    l->pad_notes = pn;
+}
+
+/*******************************************************************************
+ * Accessor functions
+ ******************************************************************************/
+
+void layout_become_active(Layout* l)
+{
+    layout_assign_pads(l);
+}
+
+void layout_become_inactive(Layout* l)
+{
+    for (int i = 0; i < GRID_SIZE; i++)
+    {
+        l->lit_pads[i] = 0x00;
+    }
+}
+
 u8 layout_is_root_note(Layout* l, u8 note_number)
 {
     return ((s8)note_number - l->root_note) % NUM_NOTES == 0;
@@ -28,23 +56,11 @@ void layout_assign_pads(Layout* l)
             u8 note_number = l->root_note + octave * NUM_NOTES;
             note_number += l->scale->offsets[scale_deg];
 
-            l->pad_notes[y][x] = note_number;
+            (*l->pad_notes)[y][x] = note_number;
         }
 
         start_scale_deg += l->row_offset;
     }
-}
-
-void layout_init(Layout* l, Scale* s)
-{
-    l->scale = s;
-    scale_init(l->scale);
-    l->root_note = 0;
-    l->octave = 2;
-    l->row_offset = 5;
-    l->held_note = -1;
-    l->held_velocity = -1;
-    layout_assign_pads(l);
 }
 
 void layout_toggle_note(Layout* l, u8 note)
@@ -77,19 +93,19 @@ void layout_light_note(Layout* l, u8 note_number, u8 velocity, u8 on)
 
     for (u8 y = 0; y < GRID_SIZE; y++)
     {
-        if (l->pad_notes[y][GRID_SIZE - 1] < note_number)
+        if ((*l->pad_notes)[y][GRID_SIZE - 1] < note_number)
         {
             index += GRID_SIZE + ROW_GAP;
             continue;
         }
-        else if (l->pad_notes[y][0] > note_number)
+        else if ((*l->pad_notes)[y][0] > note_number)
         {
             break;
         }
 
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
-            if (l->pad_notes[y][x] != note_number)
+            if ((*l->pad_notes)[y][x] != note_number)
             {
                 index++;
                 continue;
@@ -104,7 +120,6 @@ void layout_light_note(Layout* l, u8 note_number, u8 velocity, u8 on)
                 l->lit_pads[y] &= ~(1 << x);
             }
 
-            l->flags = set_flag(l->flags, LYT_DIRTY);
             index++;
         }
 
@@ -112,6 +127,9 @@ void layout_light_note(Layout* l, u8 note_number, u8 velocity, u8 on)
     }
 }
 
+/*******************************************************************************
+ * Event handling functions
+ ******************************************************************************/
 
 u8 layout_handle_transpose(Layout* l, u8 index, u8 value)
 {
@@ -150,7 +168,7 @@ u8 layout_play(Layout* l, u8 index, u8 value, u8 midi_channel)
 
     if (index_to_pad(index, &x, &y))
     {
-        u8 note_number = l->pad_notes[y][x];
+        u8 note_number = (*l->pad_notes)[y][x];
 
         if (note_number <= MAX_NOTE)
         {
@@ -191,7 +209,7 @@ u8 layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel)
 
     if (index_to_pad(index, &x, &y))
     {
-        u8 note_number = l->pad_notes[y][x];
+        u8 note_number = (*l->pad_notes)[y][x];
 
         if (note_number <= MAX_NOTE)
         {
@@ -208,6 +226,10 @@ u8 layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel)
     return 1;
 }
 
+/*******************************************************************************
+ * Drawing functions
+ ******************************************************************************/
+
 void layout_draw(Layout* l)
 {
     u8 index = FIRST_PAD;
@@ -222,7 +244,7 @@ void layout_draw(Layout* l)
             {
                 color = on_color;
             }
-            else if (layout_is_root_note(l, l->pad_notes[y][x]))
+            else if (layout_is_root_note(l, (*l->pad_notes)[y][x]))
             {
                 color = root_note_color;
             }

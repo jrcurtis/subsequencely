@@ -93,7 +93,7 @@ void keyboard_draw(Keyboard* k)
             color = black_key_color;
         }
 
-        u8 is_in_scale = k->layout->scale->notes[deg];
+        u8 is_in_scale = scale_contains_note(k->layout->scale, deg);
         u8 dimness = !is_in_scale * 4;
         plot_pad_dim(i + FIRST_KEYBOARD_PAD, color, dimness);
     }
