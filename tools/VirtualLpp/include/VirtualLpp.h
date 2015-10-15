@@ -2,6 +2,7 @@
 #pragma once
 
 #include <string>
+
 #include "cinder/Cinder.h"
 #include "cinder/cairo/Cairo.h"
 

@@ -83,6 +83,7 @@
 		8C4FBD2A1BCE10640030F8F9 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
 		8C64BB3D1BCEEB4300E0D655 /* VirtualPad.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = VirtualPad.h; path = ../include/VirtualPad.h; sourceTree = "<group>"; };
 		8C64BB3E1BCEEBD800E0D655 /* VirtualPad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VirtualPad.cpp; path = ../src/VirtualPad.cpp; sourceTree = "<group>"; };
+		8CC751731BD04B94005CD976 /* Timer.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; name = Timer.h; path = ../include/Timer.h; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* VirtualLpp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VirtualLpp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A3CFAE9019F4727A88E74D7 /* Cairo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Cairo.h; path = ../blocks/Cairo/include/cinder/cairo/Cairo.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -205,6 +206,7 @@
 				3ABB3A015103429DAB35026C /* Resources.h */,
 				2F469C8CCBBE4F23A3AA3710 /* VirtualLpp_Prefix.pch */,
 				8C64BB3D1BCEEB4300E0D655 /* VirtualPad.h */,
+				8CC751731BD04B94005CD976 /* Timer.h */,
 			);
 			name = Headers;
 			sourceTree = "<group>";

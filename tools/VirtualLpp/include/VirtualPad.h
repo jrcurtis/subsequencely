@@ -2,9 +2,11 @@
 #pragma once
 
 #include <string>
+
 #include "cinder/Cinder.h"
 #include "cinder/cairo/Cairo.h"
 #include "glm/gtx/component_wise.hpp"
+
 #include "app.h"
 #include "seq.h"
 

@@ -1,4 +1,7 @@
 
+#include <thread>
+#include <utility>
+
 #include "cinder/app/App.h"
 #include "cinder/Path2d.h"
 #include "cinder/cairo/Cairo.h"
@@ -7,16 +10,19 @@
 #include "cinder/Utilities.h"
 
 #include "VirtualLpp.h"
+#include "Timer.h"
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
+using namespace std::chrono;
 using namespace glm;
 
 class VirtualLppApp : public App
 {
 public:
     void setup() override;
+    void cleanup() override;
     void mouseDown( MouseEvent event ) override;
     void mouseUp(MouseEvent event) override;
     void mouseDrag(MouseEvent event) override;
@@ -27,41 +33,56 @@ public:
     
 private:
     VirtualLpp lpp;
+    lpp::Timer lppTimer;
+    mutex lppMutex;
 };
 
 void VirtualLppApp::setup()
 {
     lpp.setWidth(800);
+    lppTimer.start(milliseconds(1), [&] {
+        lock_guard<mutex> lock(lppMutex);
+        lpp.update();
+    });
+}
+
+void VirtualLppApp::cleanup()
+{
+    lppTimer.stop();
 }
 
 void VirtualLppApp::mouseDown(MouseEvent event)
 {
+    lock_guard<mutex> lock(lppMutex);
     lpp.mouseDown(event);
 }
 
 void VirtualLppApp::mouseUp(MouseEvent event)
 {
+    lock_guard<mutex> lock(lppMutex);
     lpp.mouseUp(event);
 }
 
 void VirtualLppApp::mouseDrag(MouseEvent event)
 {
+    lock_guard<mutex> lock(lppMutex);
     lpp.mouseDrag(event);
 }
 
 void VirtualLppApp::resize()
 {
+    
     int w = min(getWindowWidth(), getWindowHeight());
-    lpp.setWidth(w);
+    {
+        lock_guard<mutex> lock(lppMutex);
+        lpp.setWidth(w);
+    }
     setWindowSize(w, w);
 }
 
 void VirtualLppApp::update()
 {
-    for (int i = 0; i < 1000 / (int)getFrameRate(); i++)
-    {
-        lpp.update();
-    }
+    
 }
 
 void VirtualLppApp::draw()
@@ -79,7 +100,10 @@ void VirtualLppApp::renderScene( cairo::Context &ctx )
     ctx.setSource( radialGrad );
     ctx.paint();
     
-    lpp.draw(ctx);
+    {
+        lock_guard<mutex> lock(lppMutex);
+        lpp.draw(ctx);
+    }
 }
 
 CINDER_APP( VirtualLppApp, Renderer2d, [&]( App::Settings *settings ) {

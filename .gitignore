@@ -48,3 +48,5 @@ tools/osx/simulator.xcodeproj/xcuserdata/davehodder.xcuserdatad/xcschemes/xcsche
 
 *.xcbkptlist
 tools/osx/simulator.xcodeproj/xcuserdata
+tools/VirtualLpp/xcode/VirtualLpp.xcodeproj/xcuserdata
+tools/VirtualLpp/xcode/VirtualLpp.xcodeproj/project.xcworkspace
