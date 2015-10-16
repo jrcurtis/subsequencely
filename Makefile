@@ -36,6 +36,9 @@ LDFLAGS += -T$(LDSCRIPT) -u _start -u _Minimum_Stack_Size  -mcpu=cortex-m3 -mthu
 
 all: $(SYX)
 
+debug: CFLAGS += -DSEQ_DEBUG
+debug: $(SYX)
+
 # build the final sysex file from the ELF - run the simulator first
 $(SYX): $(HEX) $(HEXTOSYX) $(SIMULATOR)
 	./$(SIMULATOR)

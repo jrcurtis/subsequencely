@@ -5,10 +5,16 @@
 #include "VirtualLpp.h"
 
 using namespace glm;
+using namespace std::placeholders;
 
 void handleMidiError(RtMidiError::Type type, const string& errorText)
 {
     cout << "midi error: " << errorText << endl;
+}
+
+void receiveMidiCallback(double timestamp, vector<unsigned char>* message, void* userData)
+{
+    ((VirtualLpp*)userData)->receiveMidi(timestamp, message, nullptr);
 }
 
 VirtualLpp* VirtualLpp::instance = nullptr;
@@ -34,15 +40,31 @@ VirtualLpp::VirtualLpp(int width)
     
     try
     {
-        midiOut = make_shared<RtMidiOut>(RtMidi::Api::MACOSX_CORE, "VirtualLpp");
+        midiOut = make_shared<RtMidiOut>(RtMidi::Api::UNSPECIFIED, "VirtualLpp");
         midiOut->setErrorCallback(handleMidiError);
         midiOut->openVirtualPort("VirtualLppOut");
     }
     catch (RtMidiError& error)
     {
-        cout << "midi error: " << error.getMessage() << endl;
+        //cout << "midi error: " << error.getMessage() << endl;
     }
+    
+    try
+    {
+        midiIn = make_shared<RtMidiIn>(RtMidi::Api::UNSPECIFIED, "VirtualLpp");
+        midiIn->setErrorCallback(handleMidiError);
+        midiIn->setCallback(receiveMidiCallback, this);
+        midiIn->openVirtualPort("VirtualLppIn");
+    }
+    catch (RtMidiError& error)
+    {
         
+    }
+    
+    for (int i = 0; i <= LP_LAST_BUTTON; i++)
+    {
+        pads[i].setIndex(i);
+    }
     
     app_init();
 }
@@ -68,6 +90,19 @@ void VirtualLpp::sendSysex(u8 port, const u8* data, u16 length)
     
 }
 
+void VirtualLpp::receiveMidi(double timestamp, vector<unsigned char>* message, void* userData)
+{
+    u8 type = (*message)[0] & 0xF0;
+    if (type == NOTEON || type == POLYAFTERTOUCH)
+    {
+        pads[(*message)[1]].press((*message)[2]);
+    }
+    else if (type == NOTEOFF)
+    {
+        pads[(*message)[1]].press(0);
+    }
+}
+
 void VirtualLpp::mouseDown(MouseEvent event)
 {
     int velocity = 0;
@@ -82,10 +117,7 @@ void VirtualLpp::mouseDown(int index, int velocity)
     {
         heldIndex = index;
         heldVelocity = velocity;
-        app_surface_event(
-            heldIndex == LP_SETUP ? TYPESETUP : TYPEPAD,
-            heldIndex,
-            heldVelocity);
+        pads[index].press(velocity);
     }
 }
 
@@ -98,10 +130,7 @@ void VirtualLpp::mouseUp()
 {
     if (heldIndex != -1)
     {
-        app_surface_event(
-            heldIndex == LP_SETUP ? TYPESETUP : TYPEPAD,
-            heldIndex,
-            0);
+        pads[heldIndex].press(0);
         heldIndex = -1;
         heldVelocity = -1;
     }
@@ -122,7 +151,7 @@ void VirtualLpp::mouseDrag(MouseEvent event)
         else if (velocity != heldVelocity)
         {
             heldVelocity = velocity;
-            app_aftertouch_event(heldIndex, heldVelocity);
+            pads[heldIndex].press(heldVelocity);
         }
     }
     else

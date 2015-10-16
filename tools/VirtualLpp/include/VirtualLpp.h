@@ -36,6 +36,8 @@ public:
     void update();
     void draw(Context& ctx);
     void setWidth(double w);
+    
+    void receiveMidi(double timestamp, vector<unsigned char>* message, void* userData);
 
     void mouseDown(MouseEvent event);
     void mouseDown(int index, int velocity);
@@ -56,6 +58,7 @@ private:
     int heldVelocity;
     
     shared_ptr<RtMidiOut> midiOut;
+    shared_ptr<RtMidiIn> midiIn;
     
     VirtualPad pads[LP_LAST_BUTTON + 1];
 };

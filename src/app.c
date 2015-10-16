@@ -406,6 +406,7 @@ void set_state(State st, u8 setup)
 
 void app_surface_event(u8 type, u8 index, u8 value)
 {
+#ifndef SEQ_DEBUG
     if (index == LP_SHIFT)
     {
         shift_held = value > 0;
@@ -467,6 +468,13 @@ void app_surface_event(u8 type, u8 index, u8 value)
     }
 
     sequencer_play_draw(&sequencer);
+#else
+    hal_send_midi(
+        USBSTANDALONE,
+        value > 0 ? NOTEON : NOTEOFF,
+        type == TYPEPAD ? index : LP_SETUP,
+        value);
+#endif
 }
 
 void app_midi_event(u8 port, u8 status, u8 d1, u8 d2)
@@ -491,12 +499,19 @@ void app_sysex_event(u8 port, u8 * data, u16 count)
 
 void app_aftertouch_event(u8 index, u8 value)
 {
+#ifndef SEQ_DEBUG
     if (state == NOTES_MODE && !flag_is_set(flags, IS_SETUP))
     {
         layout_aftertouch(
             sequencer_get_layout(&sequencer),
             index, value, midi_channel);
     }
+#else
+    hal_send_midi(
+        USBSTANDALONE,
+        POLYAFTERTOUCH,
+        index, value);
+#endif
 }
 	
 
@@ -515,6 +530,7 @@ void app_cable_event(u8 type, u8 value)
 
 void app_timer_event()
 {
+#ifndef SEQ_DEBUG
     sequencer_tick(&sequencer);
     tap_tempo_timer++;
 
@@ -531,11 +547,15 @@ void app_timer_event()
             notes_mode_draw();
         }
     }
+#else
+
+#endif
 }
 
 
 void app_init()
 {
+#ifndef SEQ_DEBUG
     sequencer_init(&sequencer);
     slider_init(
         &tempo_slider,
@@ -550,4 +570,14 @@ void app_init()
         0);
 
     set_state(NOTES_MODE, 0);
+#else
+    for (u8 i = 0; i < 100; i++)
+    {
+        u8 m = i % 10;
+        if (i < 10 || i > 89 || m == 0 || m == 9)
+        {
+            hal_plot_led(TYPEPAD, i, 0x0F, 0x00, 0x00);
+        }
+    }
+#endif
 }

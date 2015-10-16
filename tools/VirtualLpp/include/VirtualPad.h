@@ -22,15 +22,21 @@ public:
     static FontFace font;
     
     VirtualPad(string l="")
-    : label(l),
-    isButton(l != ""),
-    color(defaultColor)
+    : index(0),
+      label(l),
+      isButton(l != ""),
+      color(defaultColor),
+      held(false),
+      velocity(0)
     { }
     
     VirtualPad(const char* l=nullptr)
-    : label(l == nullptr ? "" : l),
-    isButton(l != nullptr),
-    color(defaultColor)
+    : index(0),
+      label(l == nullptr ? "" : l),
+      isButton(l != nullptr),
+      color(defaultColor),
+      held(false),
+      velocity(0)
     { }
     
     void draw(Context& ctx, double x, double y, double w, double h);
@@ -45,9 +51,42 @@ public:
         color = scale == 0 ? defaultColor : scale * c;
     }
     
+    void press(u8 v)
+    {
+        if (held && v > 0)
+        {
+            if (!isButton)
+            {
+                app_aftertouch_event(index, v);
+            }
+        }
+        else
+        {
+            app_surface_event(
+                index == LP_SETUP ? TYPESETUP : TYPEPAD,
+                index,
+                v);
+        }
+        
+        held = v > 0;
+        velocity = v;
+    }
+    
+    u8 getIndex() { return index; }
+    void setIndex(u8 i) { index = i; }
+    
+    bool isHeld() { return held; }
+    
+    int getVelocity() { return velocity; }
+    
 private:
+    u8 index;
+    
     const string label;
     bool isButton;
     Color color;
     float brightness;
+    
+    bool held;
+    u8 velocity;
 };
