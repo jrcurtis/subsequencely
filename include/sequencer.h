@@ -61,6 +61,7 @@ typedef struct
     u8 flags;
 
     Scale scale;
+    Keyboard keyboard;
     PadNotes pad_notes;
     Sequences sequences;
 } Sequencer;

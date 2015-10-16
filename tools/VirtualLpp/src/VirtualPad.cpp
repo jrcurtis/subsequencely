@@ -20,14 +20,12 @@ void VirtualPad::draw(Context& ctx, double x, double y, double w, double h)
         ctx.translate(r, r);
         ctx.arc(x, y, r * sizeScale, 0.0, 2 * M_PI);
         ctx.translate(-r, -r);
-        // draw label
     }
     else
     {
         ctx.rectangle(x, y, w, h);
     }
     
-    ctx.closePath();
     ctx.fill();
     
     if (isButton)
@@ -42,8 +40,8 @@ void VirtualPad::draw(Context& ctx, double x, double y, double w, double h)
         double ty = y + fontSize / 2 + r - te.height() / 2;
         ctx.translate(tx, ty);
         ctx.textPath(label);
+        ctx.translate(-tx, -ty);
         
         ctx.fill();
-        ctx.translate(-tx, -ty);
     }
 }

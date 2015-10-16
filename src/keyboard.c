@@ -78,7 +78,6 @@ void keyboard_draw(Keyboard* k)
     for (u8 i = 0; i < NUM_KEYBOARD_PADS; i++)
     {
         s8 note = k->index_to_note[i];
-        s8 deg = (note - k->layout->root_note + NUM_NOTES) % NUM_NOTES;
 
         if (note == -1)
         {
@@ -93,6 +92,7 @@ void keyboard_draw(Keyboard* k)
             color = black_key_color;
         }
 
+        s8 deg = (note + NUM_NOTES - k->layout->root_note) % NUM_NOTES;
         u8 is_in_scale = scale_contains_note(k->layout->scale, deg);
         u8 dimness = !is_in_scale * 4;
         plot_pad_dim(i + FIRST_KEYBOARD_PAD, color, dimness);

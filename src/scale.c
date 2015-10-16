@@ -5,7 +5,7 @@
 void scale_init(Scale* s)
 {
     s->num_notes = NUM_NOTES;
-    s->notes = 0x0000;
+    s->notes = 0x0FFF;
 
     for (u8 i = 0; i < NUM_NOTES; i++)
     {
@@ -19,27 +19,27 @@ void scale_update_offsets(Scale* s)
 
     for (u8 i = 0; i < NUM_NOTES; i++)
     {
-        while (!flag_is_set(s->notes, 1 << i))
-        {
-            offset++;
-        }
-
         if (i < s->num_notes)
         {
+            while (!scale_contains_note(s, offset))
+            {
+                offset++;
+            }
+
             s->offsets[i] = offset;
+
+            offset++;
         }
         else
         {
             s->offsets[i] = -1;
         }
-
-        offset++;
     }
 }
 
 u8 scale_contains_note(Scale* s, u8 note)
 {
-    return flag_is_set(s->notes, 1 << note);
+    return flag_is_set(s->notes, 1 << note) != 0;
 }
 
 void scale_toggle_note(Scale* s, u8 note)

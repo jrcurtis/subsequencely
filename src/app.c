@@ -67,7 +67,6 @@ u16 tap_tempo_sum = 0;
 u8 tap_tempo_counter = 0;
 
 // Notes setup
-Keyboard keyboard;
 Slider row_offset_slider;
 
 // Sequencer
@@ -233,7 +232,6 @@ void notes_mode_become_inactive()
 
 void notes_setup_become_active()
 {
-    keyboard_init(&keyboard, sequencer_get_layout(&sequencer));
     slider_set_value(
         &row_offset_slider,
         sequencer_get_layout(&sequencer)->row_offset);
@@ -251,7 +249,7 @@ void notes_mode_draw()
 
 void notes_setup_draw()
 {
-    keyboard_draw(&keyboard);
+    keyboard_draw(&sequencer.keyboard);
     slider_draw(&row_offset_slider);
 }
 
@@ -261,7 +259,7 @@ u8 notes_mode_handle_press(u8 index, u8 value)
 
     if (layout_handle_transpose(l, index, value))
     {
-        keyboard_update_indices(&keyboard);
+        keyboard_update_indices(&sequencer.keyboard);
     }
     else if (layout_play(l, index, value, midi_channel))
     {
@@ -285,9 +283,9 @@ u8 notes_setup_handle_press(u8 index, u8 value)
     }
     else if (layout_handle_transpose(l, index, value))
     {
-        keyboard_update_indices(&keyboard);
+        keyboard_update_indices(&sequencer.keyboard);
     }
-    else if (keyboard_handle_press(&keyboard, index, value)) { }
+    else if (keyboard_handle_press(&sequencer.keyboard, index, value)) { }
     else
     {
         return 0;
@@ -545,7 +543,6 @@ void app_init()
         15, 60,
         DEFAULT_TEMPO);
 
-    keyboard_init(&keyboard, sequencer_get_layout(&sequencer));
     slider_init(
         &row_offset_slider,
         HORIZONTAL, 2, slider_color,

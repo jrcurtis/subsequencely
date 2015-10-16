@@ -2,9 +2,11 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 #include "cinder/Cinder.h"
 #include "cinder/cairo/Cairo.h"
+#include "RtMidi.h"
 
 #include "app.h"
 #include "seq.h"
@@ -49,7 +51,11 @@ private:
     Rectd lpRect;
     double padSize;
     double padPadding;
+    
     int heldIndex;
     int heldVelocity;
+    
+    shared_ptr<RtMidiOut> midiOut;
+    
     VirtualPad pads[LP_LAST_BUTTON + 1];
 };

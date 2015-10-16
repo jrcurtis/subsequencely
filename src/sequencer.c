@@ -214,7 +214,7 @@ void sequencer_init(Sequencer* sr)
         layout_init(&s->layout, &sr->scale, &sr->pad_notes);
     }
 
-    sequence_become_active(sequencer_get_active(sr));
+    sequencer_set_active(sr, 0);
 }
 
 void sequencer_set_octave(Sequencer* sr, u8 octave)
@@ -228,6 +228,7 @@ void sequencer_set_active(Sequencer* sr, u8 i)
     sequence_become_inactive(sequencer_get_active(sr));
     sr->active_sequence = i;
     sequence_become_active(&sr->sequences[i]);
+    keyboard_init(&sr->keyboard, sequencer_get_layout(sr));
 }
 
 Sequence* sequencer_get_active(Sequencer* sr)
@@ -334,7 +335,7 @@ void sequencer_grid_draw(Sequencer* sr)
             if (n->note_number == note_number)
             {
                 const u8* color = number_colors[seq_x & 3];
-                u8 dimness = 8 - ((n->velocity & NOTE_MASK) >> 4);
+                u8 dimness = min(100, 127 - (n->velocity & NOTE_MASK)) / 25;
                 plot_pad_dim(index, color, dimness);
             }
             else if (s->playhead / zoom == x + s->x)

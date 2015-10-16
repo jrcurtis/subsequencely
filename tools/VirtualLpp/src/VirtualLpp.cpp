@@ -1,7 +1,15 @@
 
+#include <iostream>
+#include <glm/glm.hpp>
 
 #include "VirtualLpp.h"
 
+using namespace glm;
+
+void handleMidiError(RtMidiError::Type type, const string& errorText)
+{
+    cout << "midi error: " << errorText << endl;
+}
 
 VirtualLpp* VirtualLpp::instance = nullptr;
 
@@ -22,9 +30,20 @@ VirtualLpp::VirtualLpp(int width)
       }
 {
     VirtualLpp::instance = this;
-    
     setWidth(width);
-
+    
+    try
+    {
+        midiOut = make_shared<RtMidiOut>(RtMidi::Api::MACOSX_CORE, "VirtualLpp");
+        midiOut->setErrorCallback(handleMidiError);
+        midiOut->openVirtualPort("VirtualLppOut");
+    }
+    catch (RtMidiError& error)
+    {
+        cout << "midi error: " << error.getMessage() << endl;
+    }
+        
+    
     app_init();
 }
 
@@ -40,7 +59,8 @@ void VirtualLpp::plotLed(u8 type, u8 index, u8 red, u8 green, u8 blue)
 
 void VirtualLpp::sendMidi(u8 port, u8 status, u8 data1, u8 data2)
 {
-    
+    vector<unsigned char> bytes {status, data1, data2};
+    midiOut->sendMessage(&bytes);
 }
 
 void VirtualLpp::sendSysex(u8 port, const u8* data, u16 length)
@@ -119,11 +139,10 @@ void VirtualLpp::update()
 void VirtualLpp::draw(Context& ctx)
 {
     ctx.setSource(Color(0.2, 0.2, 0.2));
-    ctx.newSubPath();
+    ctx.moveTo(lpRect.x1, lpRect.x2);
 
-    ctx.rectangle(lpRect.x1, lpRect.y1, lpRect.getWidth(), lpRect.getHeight());
+    ctx.rectangle(0, 0, lpRect.getWidth(), lpRect.getHeight());
     
-    ctx.closePath();
     ctx.fill();
 
     double px = padPadding;
@@ -156,18 +175,18 @@ void VirtualLpp::setWidth(double w)
 int VirtualLpp::pixelToIndex(int px, int py, int* v)
 {
     px -= lpRect.getX1();
-    int wholePadSize = padSize + padPadding;
-    int x = px / wholePadSize;
-    int xOffset = px % wholePadSize;
+    double wholePadSize = padSize + padPadding;
+    int x = floor(px / wholePadSize);
+    double xOffset = mod((double)px, wholePadSize);
 
     if (x < 0 || x >= ROW_SIZE || xOffset < padPadding)
     {
         return -1;
     }
 
-    py -= lpRect.getY1();
-    int y = ROW_SIZE - 1 - py / wholePadSize;
-    int yOffset = py % wholePadSize;
+    py = lpRect.getHeight() - (py - lpRect.getY1());
+    int y = floor(py / wholePadSize);
+    double yOffset = mod((double)py, wholePadSize);
 
     if (y < 0 || y >= ROW_SIZE || yOffset < padPadding)
     {
@@ -176,7 +195,7 @@ int VirtualLpp::pixelToIndex(int px, int py, int* v)
 
     if (v != nullptr)
     {
-        *v = 127 * yOffset / (int)padSize;
+        *v = 127 * (yOffset - padPadding) / padSize;
     }
 
     return y * ROW_SIZE + x;
