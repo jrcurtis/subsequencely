@@ -1,15 +1,14 @@
 
 #include "layout.h"
 
-void layout_init(Layout* l, Scale* s, PadNotes* pn)
+void layout_init(Layout* l, Scale* s, PadNotes* pn, Voices* vs)
 {
     l->scale = s;
+    l->pad_notes = pn;
+    l->voices = vs;
     l->root_note = 0;
     l->octave = 2;
     l->row_offset = 5;
-    l->held_note = -1;
-    l->held_velocity = -1;
-    l->pad_notes = pn;
 }
 
 /*******************************************************************************
@@ -177,14 +176,12 @@ u8 layout_play(Layout* l, u8 index, u8 value, u8 midi_channel)
             if (value > 0)
             {
                 midi_message = NOTEON;
-                l->held_note = note_number;
-                l->held_velocity = value;
+                voices_add(l->voices, note_number, value);
             }
             else
             {
                 midi_message = NOTEOFF;
-                l->held_note = -1;
-                l->held_velocity = -1;
+                voices_remove(l->voices, note_number);
             }
 
             hal_send_midi(

@@ -10,8 +10,6 @@
 #include "keyboard.h"
 #include "slider.h"
 #include "sequencer.h"
-
-
-extern u8 shift_held;
+#include "voices.h"
 
 #endif

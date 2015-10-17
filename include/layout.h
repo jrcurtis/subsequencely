@@ -4,9 +4,10 @@
 
 #include "app.h"
 #include "buttons.h"
-#include "util.h"
 #include "colors.h"
 #include "scale.h"
+#include "voices.h"
+#include "util.h"
 
 /// Cache of which midi note numbers correspond to which pad. Used to avoid
 /// calculating every time a pad is pressed.
@@ -22,6 +23,8 @@ typedef struct
 
     PadNotes* pad_notes;
 
+    Voices* voices;
+
     /// The root note (0-11 <=> C-B) of the layout.
     s8 root_note;
 
@@ -33,16 +36,13 @@ typedef struct
     /// rows. To tune in 4ths for a chromatic scale, this would be set to 5.
     u8 row_offset;
 
-    s8 held_note;
-    s8 held_velocity;
-
     /// Buffer of bit fields to indicate which pads to light up. Used while
     /// playing notes, and during sequence playback.
     u8 lit_pads[GRID_SIZE];
 } Layout;
 
 /// Initialize the layout data.
-void layout_init(Layout* l, Scale* s, PadNotes* pn);
+void layout_init(Layout* l, Scale* s, PadNotes* pn, Voices* vs);
 
 /// True if the midi note number is the same or an octave of the root note.
 u8 layout_is_root_note(Layout* l, u8 note_number);

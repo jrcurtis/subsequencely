@@ -2,7 +2,7 @@ BUILDDIR = build
 
 TOOLS = tools
 
-SOURCES += src/app.c src/scale.c src/layout.c src/keyboard.c src/colors.c src/util.c src/slider.c src/sequencer.c
+SOURCES += src/app.c src/scale.c src/layout.c src/keyboard.c src/colors.c src/util.c src/slider.c src/sequencer.c src/voices.c
 
 INCLUDES += -Iinclude -I
 

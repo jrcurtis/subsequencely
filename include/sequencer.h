@@ -3,10 +3,19 @@
 #define SEQUENCER_H
 
 #include "app.h"
-#include "seq.h"
+#include "buttons.h"
+#include "colors.h"
+#include "keyboard.h"
+#include "layout.h"
+#include "scale.h"
+#include "voices.h"
+#include "util.h"
 
-#define NOTE_SLIDE    (0x80)
-#define NOTE_MASK     (0x7F)
+typedef enum
+{
+    NTE_ON = 0x01,
+    NTE_SLIDE = 0x02
+} NoteFlags;
 
 typedef enum
 {
@@ -33,6 +42,7 @@ typedef struct
 {
     s8 note_number;
     s8 velocity;
+    u8 flags;
 } Note;
 
 typedef struct
@@ -62,6 +72,7 @@ typedef struct
 
     Scale scale;
     Keyboard keyboard;
+    Voices voices;
     PadNotes pad_notes;
     Sequences sequences;
 } Sequencer;
