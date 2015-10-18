@@ -2,6 +2,8 @@
 #ifndef SEQ_H
 #define SEQ_H
 
+
+#include "app.h"
 #include "util.h"
 #include "buttons.h"
 #include "colors.h"
@@ -11,5 +13,6 @@
 #include "slider.h"
 #include "sequencer.h"
 #include "voices.h"
+
 
 #endif

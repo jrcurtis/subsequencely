@@ -2,44 +2,33 @@
 #pragma once
 
 #include <string>
+#include <map>
 
 #include "cinder/Cinder.h"
-#include "cinder/cairo/Cairo.h"
+#include "cinder/Font.h"
+#include "cinder/GeomIo.h"
+#include "cinder/gl/gl.h"
 #include "glm/gtx/component_wise.hpp"
 
-#include "app.h"
 #include "seq.h"
 
 using namespace std;
 using namespace ci;
-using namespace cairo;
 using namespace glm;
 
 class VirtualPad
 {
 public:
     static Color defaultColor;
-    static FontFace font;
+    static Font font;
+    static gl::TextureFontRef textureFont;
+    static gl::GlslProgRef prog;
+    static gl::BatchRef rectBatch;
+    static gl::BatchRef circleBatch;
     
-    VirtualPad(string l="")
-    : index(0),
-      label(l),
-      isButton(l != ""),
-      color(defaultColor),
-      held(false),
-      velocity(0)
-    { }
+    VirtualPad(const char* l=nullptr);
     
-    VirtualPad(const char* l=nullptr)
-    : index(0),
-      label(l == nullptr ? "" : l),
-      isButton(l != nullptr),
-      color(defaultColor),
-      held(false),
-      velocity(0)
-    { }
-    
-    void draw(Context& ctx, double x, double y, double w, double h);
+    void draw(float x, float y, float w, float h);
     
     Color getColor() { return color; }
     void setColor(Color c)
@@ -51,26 +40,7 @@ public:
         color = scale == 0 ? defaultColor : scale * c;
     }
     
-    void press(u8 v)
-    {
-        if (held && v > 0)
-        {
-            if (!isButton)
-            {
-                app_aftertouch_event(index, v);
-            }
-        }
-        else
-        {
-            app_surface_event(
-                index == LP_SETUP ? TYPESETUP : TYPEPAD,
-                index,
-                v);
-        }
-        
-        held = v > 0;
-        velocity = v;
-    }
+    void press(u8 v);
     
     u8 getIndex() { return index; }
     void setIndex(u8 i) { index = i; }

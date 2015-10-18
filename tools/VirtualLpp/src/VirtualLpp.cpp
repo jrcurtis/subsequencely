@@ -165,36 +165,29 @@ void VirtualLpp::update()
     app_timer_event();
 }
 
-void VirtualLpp::draw(Context& ctx)
+void VirtualLpp::draw()
 {
-    ctx.setSource(Color(0.2, 0.2, 0.2));
-    ctx.moveTo(lpRect.x1, lpRect.x2);
-
-    ctx.rectangle(0, 0, lpRect.getWidth(), lpRect.getHeight());
-    
-    ctx.fill();
-
-    double px = padPadding;
-    double py = lpRect.getHeight() - padSize - padPadding;
+    double px = padPadding + padSize / 2;
+    double py = lpRect.getHeight() - padSize / 2 - padPadding;
 
     for (int i = 0; i <= LP_LAST_BUTTON; i++)
     {
         if (i > 0 && (i % ROW_SIZE == 0))
         {
-            px = padPadding;
+            px = padPadding + padSize / 2;
             py -= padSize + padPadding;
         }
 
         if (i != 0 && i != 9)
         {
-            pads[i].draw(ctx, px, py, padSize, padSize);
+            pads[i].draw(px, py, padSize, padSize);
         }
 
         px += padSize + padPadding;
     }
 }
 
-void VirtualLpp::setWidth(double w)
+void VirtualLpp::setWidth(float w)
 {
     lpRect.set(0, 0, w, w);
     padSize = 0.9 * w / ROW_SIZE;
@@ -203,10 +196,16 @@ void VirtualLpp::setWidth(double w)
 
 int VirtualLpp::pixelToIndex(int px, int py, int* v)
 {
+    if (px < 0 || px >= lpRect.getWidth()
+        || py < 0 || py > lpRect.getHeight())
+    {
+        return -1;
+    }
+    
     px -= lpRect.getX1();
-    double wholePadSize = padSize + padPadding;
+    float wholePadSize = padSize + padPadding;
     int x = floor(px / wholePadSize);
-    double xOffset = mod((double)px, wholePadSize);
+    float xOffset = mod((float)px, wholePadSize);
 
     if (x < 0 || x >= ROW_SIZE || xOffset < padPadding)
     {
@@ -215,7 +214,7 @@ int VirtualLpp::pixelToIndex(int px, int py, int* v)
 
     py = lpRect.getHeight() - (py - lpRect.getY1());
     int y = floor(py / wholePadSize);
-    double yOffset = mod((double)py, wholePadSize);
+    float yOffset = mod((float)py, wholePadSize);
 
     if (y < 0 || y >= ROW_SIZE || yOffset < padPadding)
     {

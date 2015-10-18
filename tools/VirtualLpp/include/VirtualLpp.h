@@ -3,19 +3,18 @@
 
 #include <string>
 #include <memory>
+#include <array>
 
 #include "cinder/Cinder.h"
-#include "cinder/cairo/Cairo.h"
+#include "cinder/gl/gl.h"
 #include "RtMidi.h"
 
-#include "app.h"
 #include "seq.h"
 #include "VirtualPad.h"
 
 using namespace std;
 using namespace ci;
 using namespace ci::app;
-using namespace cairo;
 using namespace glm;
 
 
@@ -34,8 +33,8 @@ public:
     void sendSysex(u8 port, const u8* data, u16 length);
 
     void update();
-    void draw(Context& ctx);
-    void setWidth(double w);
+    void draw();
+    void setWidth(float w);
     
     void receiveMidi(double timestamp, vector<unsigned char>* message, void* userData);
 
@@ -51,8 +50,8 @@ private:
     int pixelToIndex(int x, int y, int* v=nullptr);
 
     Rectd lpRect;
-    double padSize;
-    double padPadding;
+    float padSize;
+    float padPadding;
     
     int heldIndex;
     int heldVelocity;
@@ -60,5 +59,5 @@ private:
     shared_ptr<RtMidiOut> midiOut;
     shared_ptr<RtMidiIn> midiIn;
     
-    VirtualPad pads[LP_LAST_BUTTON + 1];
+    array<VirtualPad, LP_LAST_BUTTON + 1> pads;
 };

@@ -16,8 +16,11 @@
 		00B784B60FF439BC000DE1D7 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B20FF439BC000DE1D7 /* CoreAudio.framework */; };
 		00B9955A1B128DF400A5C623 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B995581B128DF400A5C623 /* IOKit.framework */; };
 		00B9955B1B128DF400A5C623 /* IOSurface.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B995591B128DF400A5C623 /* IOSurface.framework */; };
-		37E45A03D0224A64919BEDF5 /* Cairo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 35FFD74E4A7942E0B60F368F /* Cairo.cpp */; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
+		8C2CC7A41BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C2CC7A21BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp */; settings = {ASSET_TAGS = (); }; };
+		8C42764F1BD2021100422293 /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4276471BD2021100422293 /* imgui_demo.cpp */; settings = {ASSET_TAGS = (); }; };
+		8C4276501BD2021100422293 /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4276481BD2021100422293 /* imgui_draw.cpp */; settings = {ASSET_TAGS = (); }; };
+		8C4276511BD2021100422293 /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C42764A1BD2021100422293 /* imgui.cpp */; settings = {ASSET_TAGS = (); }; };
 		8C4FBD0A1BCE036D0030F8F9 /* RtMidi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD071BCE036D0030F8F9 /* RtMidi.cpp */; settings = {ASSET_TAGS = (); }; };
 		8C4FBD0B1BCE036D0030F8F9 /* VirtualHal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD081BCE036D0030F8F9 /* VirtualHal.cpp */; settings = {ASSET_TAGS = (); }; };
 		8C4FBD0C1BCE036D0030F8F9 /* VirtualLpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD091BCE036D0030F8F9 /* VirtualLpp.cpp */; settings = {ASSET_TAGS = (); }; };
@@ -31,6 +34,8 @@
 		8C4FBD291BCE04560030F8F9 /* util.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD211BCE04560030F8F9 /* util.c */; settings = {ASSET_TAGS = (); }; };
 		8C4FBD2B1BCE10650030F8F9 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8C4FBD2A1BCE10640030F8F9 /* CoreMIDI.framework */; };
 		8C64BB3F1BCEEBD800E0D655 /* VirtualPad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C64BB3E1BCEEBD800E0D655 /* VirtualPad.cpp */; settings = {ASSET_TAGS = (); }; };
+		8CAC381E1BD2FFE300BBDB05 /* shaders in Resources */ = {isa = PBXBuildFile; fileRef = 8CAC381D1BD2FFE300BBDB05 /* shaders */; settings = {ASSET_TAGS = (); }; };
+		8CC751761BD0F08C005CD976 /* voices.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CC751751BD0F08C005CD976 /* voices.c */; settings = {ASSET_TAGS = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		A3896E2F25B9485FBC4A26A3 /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 450E15B07B6049D29E23AF2B /* CinderApp.icns */; };
 		BD92F027A4EE47F886B1F960 /* VirtualLppApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 63433217FDB540E9A4DD1DDC /* VirtualLppApp.cpp */; };
@@ -51,16 +56,26 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		2F469C8CCBBE4F23A3AA3710 /* VirtualLpp_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = VirtualLpp_Prefix.pch; sourceTree = "<group>"; };
-		35FFD74E4A7942E0B60F368F /* Cairo.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = Cairo.cpp; path = ../blocks/Cairo/src/Cairo.cpp; sourceTree = "<group>"; };
-		3ABB3A015103429DAB35026C /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
+		3ABB3A015103429DAB35026C /* Resources.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
 		450E15B07B6049D29E23AF2B /* CinderApp.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = CinderApp.icns; path = ../resources/CinderApp.icns; sourceTree = "<group>"; };
 		5323E6B10EAFCA74003A9687 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = /System/Library/Frameworks/CoreVideo.framework; sourceTree = "<absolute>"; };
 		63433217FDB540E9A4DD1DDC /* VirtualLppApp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = VirtualLppApp.cpp; path = ../src/VirtualLppApp.cpp; sourceTree = "<group>"; };
-		8C4FBD071BCE036D0030F8F9 /* RtMidi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RtMidi.cpp; path = ../src/RtMidi.cpp; sourceTree = "<group>"; };
-		8C4FBD081BCE036D0030F8F9 /* VirtualHal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VirtualHal.cpp; path = ../src/VirtualHal.cpp; sourceTree = "<group>"; };
+		8C2CC7A21BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_impl_cinder_gl3.cpp; path = ../imgui/imgui_impl_cinder_gl3.cpp; sourceTree = "<group>"; };
+		8C2CC7A31BD39108008EDAA0 /* imgui_impl_cinder_gl3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui_impl_cinder_gl3.h; path = ../imgui/imgui_impl_cinder_gl3.h; sourceTree = "<group>"; };
+		8C4276461BD2021100422293 /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imconfig.h; path = ../imgui/imconfig.h; sourceTree = "<group>"; };
+		8C4276471BD2021100422293 /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_demo.cpp; path = ../imgui/imgui_demo.cpp; sourceTree = "<group>"; };
+		8C4276481BD2021100422293 /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_draw.cpp; path = ../imgui/imgui_draw.cpp; sourceTree = "<group>"; };
+		8C4276491BD2021100422293 /* imgui_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui_internal.h; path = ../imgui/imgui_internal.h; sourceTree = "<group>"; };
+		8C42764A1BD2021100422293 /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui.cpp; path = ../imgui/imgui.cpp; sourceTree = "<group>"; };
+		8C42764B1BD2021100422293 /* imgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui.h; path = ../imgui/imgui.h; sourceTree = "<group>"; };
+		8C42764C1BD2021100422293 /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_rect_pack.h; path = ../imgui/stb_rect_pack.h; sourceTree = "<group>"; };
+		8C42764D1BD2021100422293 /* stb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_textedit.h; path = ../imgui/stb_textedit.h; sourceTree = "<group>"; };
+		8C42764E1BD2021100422293 /* stb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_truetype.h; path = ../imgui/stb_truetype.h; sourceTree = "<group>"; };
+		8C4FBD071BCE036D0030F8F9 /* RtMidi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RtMidi.cpp; path = ../rtmidi/RtMidi.cpp; sourceTree = "<group>"; };
+		8C4FBD081BCE036D0030F8F9 /* VirtualHal.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = VirtualHal.cpp; path = ../src/VirtualHal.cpp; sourceTree = "<group>"; };
 		8C4FBD091BCE036D0030F8F9 /* VirtualLpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VirtualLpp.cpp; path = ../src/VirtualLpp.cpp; sourceTree = "<group>"; };
-		8C4FBD0D1BCE03A40030F8F9 /* RtMidi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RtMidi.h; path = ../include/RtMidi.h; sourceTree = "<group>"; };
-		8C4FBD0E1BCE03A40030F8F9 /* VirtualLpp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VirtualLpp.h; path = ../include/VirtualLpp.h; sourceTree = "<group>"; };
+		8C4FBD0D1BCE03A40030F8F9 /* RtMidi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RtMidi.h; path = ../rtmidi/RtMidi.h; sourceTree = "<group>"; };
+		8C4FBD0E1BCE03A40030F8F9 /* VirtualLpp.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = VirtualLpp.h; path = ../include/VirtualLpp.h; sourceTree = "<group>"; };
 		8C4FBD0F1BCE04260030F8F9 /* app_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = app_defs.h; path = ../../../include/app_defs.h; sourceTree = "<group>"; };
 		8C4FBD101BCE04260030F8F9 /* app.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = app.h; path = ../../../include/app.h; sourceTree = "<group>"; };
 		8C4FBD111BCE04260030F8F9 /* buttons.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = buttons.h; path = ../../../include/buttons.h; sourceTree = "<group>"; };
@@ -81,11 +96,13 @@
 		8C4FBD201BCE04560030F8F9 /* slider.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = slider.c; path = ../../../src/slider.c; sourceTree = "<group>"; };
 		8C4FBD211BCE04560030F8F9 /* util.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = util.c; path = ../../../src/util.c; sourceTree = "<group>"; };
 		8C4FBD2A1BCE10640030F8F9 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
-		8C64BB3D1BCEEB4300E0D655 /* VirtualPad.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = VirtualPad.h; path = ../include/VirtualPad.h; sourceTree = "<group>"; };
+		8C64BB3D1BCEEB4300E0D655 /* VirtualPad.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; name = VirtualPad.h; path = ../include/VirtualPad.h; sourceTree = "<group>"; };
 		8C64BB3E1BCEEBD800E0D655 /* VirtualPad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VirtualPad.cpp; path = ../src/VirtualPad.cpp; sourceTree = "<group>"; };
+		8CAC381D1BD2FFE300BBDB05 /* shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shaders; path = ../assets/shaders; sourceTree = "<group>"; };
 		8CC751731BD04B94005CD976 /* Timer.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; name = Timer.h; path = ../include/Timer.h; sourceTree = "<group>"; };
+		8CC751741BD0F062005CD976 /* voices.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = voices.h; path = ../../../include/voices.h; sourceTree = "<group>"; };
+		8CC751751BD0F08C005CD976 /* voices.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = voices.c; path = ../../../src/voices.c; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* VirtualLpp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VirtualLpp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		9A3CFAE9019F4727A88E74D7 /* Cairo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Cairo.h; path = ../blocks/Cairo/include/cinder/cairo/Cairo.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -114,7 +131,6 @@
 		01B97315FEAEA392516A2CEA /* Blocks */ = {
 			isa = PBXGroup;
 			children = (
-				8038D66A21AC4B60A0AF2FA9 /* Cairo */,
 			);
 			name = Blocks;
 			sourceTree = "<group>";
@@ -122,6 +138,7 @@
 		080E96DDFE201D6D7F000001 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				8CC751751BD0F08C005CD976 /* voices.c */,
 				8C4FBD1A1BCE04560030F8F9 /* app.c */,
 				8C4FBD1B1BCE04560030F8F9 /* colors.c */,
 				8C4FBD1C1BCE04560030F8F9 /* keyboard.c */,
@@ -130,7 +147,6 @@
 				8C4FBD1F1BCE04560030F8F9 /* sequencer.c */,
 				8C4FBD201BCE04560030F8F9 /* slider.c */,
 				8C4FBD211BCE04560030F8F9 /* util.c */,
-				8C4FBD071BCE036D0030F8F9 /* RtMidi.cpp */,
 				8C4FBD081BCE036D0030F8F9 /* VirtualHal.cpp */,
 				8C4FBD091BCE036D0030F8F9 /* VirtualLpp.cpp */,
 				63433217FDB540E9A4DD1DDC /* VirtualLppApp.cpp */,
@@ -177,6 +193,8 @@
 		29B97314FDCFA39411CA2CEA /* VirtualLpp */ = {
 			isa = PBXGroup;
 			children = (
+				8C4276451BD201B100422293 /* imgui */,
+				8C4276441BD2019300422293 /* RtMidi */,
 				01B97315FEAEA392516A2CEA /* Blocks */,
 				29B97315FDCFA39411CA2CEA /* Headers */,
 				080E96DDFE201D6D7F000001 /* Source */,
@@ -190,6 +208,7 @@
 		29B97315FDCFA39411CA2CEA /* Headers */ = {
 			isa = PBXGroup;
 			children = (
+				8CC751741BD0F062005CD976 /* voices.h */,
 				8C4FBD0F1BCE04260030F8F9 /* app_defs.h */,
 				8C4FBD101BCE04260030F8F9 /* app.h */,
 				8C4FBD111BCE04260030F8F9 /* buttons.h */,
@@ -201,7 +220,6 @@
 				8C4FBD171BCE04260030F8F9 /* sequencer.h */,
 				8C4FBD181BCE04260030F8F9 /* slider.h */,
 				8C4FBD191BCE04260030F8F9 /* util.h */,
-				8C4FBD0D1BCE03A40030F8F9 /* RtMidi.h */,
 				8C4FBD0E1BCE03A40030F8F9 /* VirtualLpp.h */,
 				3ABB3A015103429DAB35026C /* Resources.h */,
 				2F469C8CCBBE4F23A3AA3710 /* VirtualLpp_Prefix.pch */,
@@ -214,6 +232,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				8CAC381D1BD2FFE300BBDB05 /* shaders */,
 				450E15B07B6049D29E23AF2B /* CinderApp.icns */,
 				005B21374FF24A3D80532FCC /* Info.plist */,
 			);
@@ -230,45 +249,31 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		52C9DB7728F448B496207261 /* include */ = {
+		8C4276441BD2019300422293 /* RtMidi */ = {
 			isa = PBXGroup;
 			children = (
-				912DFE41E4364A5CAAB558A7 /* cinder */,
+				8C4FBD0D1BCE03A40030F8F9 /* RtMidi.h */,
+				8C4FBD071BCE036D0030F8F9 /* RtMidi.cpp */,
 			);
-			name = include;
+			name = RtMidi;
 			sourceTree = "<group>";
 		};
-		701C4F80F5B3462D80A68951 /* src */ = {
+		8C4276451BD201B100422293 /* imgui */ = {
 			isa = PBXGroup;
 			children = (
-				35FFD74E4A7942E0B60F368F /* Cairo.cpp */,
+				8C2CC7A21BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp */,
+				8C2CC7A31BD39108008EDAA0 /* imgui_impl_cinder_gl3.h */,
+				8C4276461BD2021100422293 /* imconfig.h */,
+				8C4276471BD2021100422293 /* imgui_demo.cpp */,
+				8C4276481BD2021100422293 /* imgui_draw.cpp */,
+				8C4276491BD2021100422293 /* imgui_internal.h */,
+				8C42764A1BD2021100422293 /* imgui.cpp */,
+				8C42764B1BD2021100422293 /* imgui.h */,
+				8C42764C1BD2021100422293 /* stb_rect_pack.h */,
+				8C42764D1BD2021100422293 /* stb_textedit.h */,
+				8C42764E1BD2021100422293 /* stb_truetype.h */,
 			);
-			name = src;
-			sourceTree = "<group>";
-		};
-		8038D66A21AC4B60A0AF2FA9 /* Cairo */ = {
-			isa = PBXGroup;
-			children = (
-				701C4F80F5B3462D80A68951 /* src */,
-				52C9DB7728F448B496207261 /* include */,
-			);
-			name = Cairo;
-			sourceTree = "<group>";
-		};
-		912DFE41E4364A5CAAB558A7 /* cinder */ = {
-			isa = PBXGroup;
-			children = (
-				C18043CEBD80422BA9CA99F0 /* cairo */,
-			);
-			name = cinder;
-			sourceTree = "<group>";
-		};
-		C18043CEBD80422BA9CA99F0 /* cairo */ = {
-			isa = PBXGroup;
-			children = (
-				9A3CFAE9019F4727A88E74D7 /* Cairo.h */,
-			);
-			name = cairo;
+			name = imgui;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -324,6 +329,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3896E2F25B9485FBC4A26A3 /* CinderApp.icns in Resources */,
+				8CAC381E1BD2FFE300BBDB05 /* shaders in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -336,18 +342,22 @@
 			files = (
 				8C4FBD291BCE04560030F8F9 /* util.c in Sources */,
 				BD92F027A4EE47F886B1F960 /* VirtualLppApp.cpp in Sources */,
-				37E45A03D0224A64919BEDF5 /* Cairo.cpp in Sources */,
 				8C4FBD271BCE04560030F8F9 /* sequencer.c in Sources */,
 				8C4FBD0A1BCE036D0030F8F9 /* RtMidi.cpp in Sources */,
 				8C4FBD281BCE04560030F8F9 /* slider.c in Sources */,
+				8CC751761BD0F08C005CD976 /* voices.c in Sources */,
 				8C4FBD251BCE04560030F8F9 /* layout.c in Sources */,
 				8C64BB3F1BCEEBD800E0D655 /* VirtualPad.cpp in Sources */,
 				8C4FBD221BCE04560030F8F9 /* app.c in Sources */,
 				8C4FBD241BCE04560030F8F9 /* keyboard.c in Sources */,
+				8C4276501BD2021100422293 /* imgui_draw.cpp in Sources */,
 				8C4FBD261BCE04560030F8F9 /* scale.c in Sources */,
 				8C4FBD231BCE04560030F8F9 /* colors.c in Sources */,
+				8C2CC7A41BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp in Sources */,
 				8C4FBD0C1BCE036D0030F8F9 /* VirtualLpp.cpp in Sources */,
+				8C42764F1BD2021100422293 /* imgui_demo.cpp in Sources */,
 				8C4FBD0B1BCE036D0030F8F9 /* VirtualHal.cpp in Sources */,
+				8C4276511BD2021100422293 /* imgui.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -367,6 +377,12 @@
 				GCC_PREFIX_HEADER = VirtualLpp_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX_CORE__;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"\"$(CINDER_PATH)/include\"",
+					../blocks/Cairo/include/macosx,
+					../imgui,
+					../rtmidi,
+				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
@@ -397,6 +413,12 @@
 				GCC_PREFIX_HEADER = VirtualLpp_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX_CORE__;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"\"$(CINDER_PATH)/include\"",
+					../blocks/Cairo/include/macosx,
+					../imgui,
+					../rtmidi,
+				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
