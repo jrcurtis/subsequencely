@@ -60,6 +60,11 @@ s8 voices_get_newest(Voices* vs)
     }
 }
 
+u8 voices_get_num_active(Voices* vs)
+{
+    return vs->max_index + 1;
+}
+
 void voices_reset(Voices* vs)
 {
     vs->max_index = -1;

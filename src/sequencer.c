@@ -170,7 +170,8 @@ void sequence_handle_record(Sequence* s, u8 press)
             if (press)
             {
                 sequence_kill_note(s, n);
-                n->flags = clear_flag(n->flags, NTE_SLIDE);
+                u8 slide = voices_get_num_active(s->layout.voices) > 1;
+                n->flags = assign_flag(n->flags, NTE_SLIDE, slide);
             }
             else
             {
@@ -209,18 +210,22 @@ void sequence_step(Sequence* s, u8 audible)
 
         if (flag_is_set(n->flags, NTE_ON))
         {
-            if (n->note_number == next_n->note_number)
+            if (flag_is_set(next_n->flags, NTE_SLIDE))
             {
-                LP_LOG("%d hold note %d", s->playhead, next_n->note_number);
-                n->flags = clear_flag(n->flags, NTE_ON);
-                next_n->flags = set_flag(next_n->flags, NTE_ON);
-            }
-            else if (flag_is_set(next_n->flags, NTE_SLIDE))
-            {
-                LP_LOG("%d slide note %d", s->playhead, next_n->note_number);
+                if (n->note_number == next_n->note_number)
+                {
+                    LP_LOG("%d hold note %d", s->playhead, next_n->note_number);
 
-                sequence_play_note(s, next_n);
-                sequence_kill_note(s, n);
+                    n->flags = clear_flag(n->flags, NTE_ON);
+                    next_n->flags = set_flag(next_n->flags, NTE_ON);
+                }
+                else
+                {
+                    LP_LOG("%d slide note %d", s->playhead, next_n->note_number);
+
+                    sequence_play_note(s, next_n);
+                    sequence_kill_note(s, n);
+                }
             }
             else
             {

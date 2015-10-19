@@ -27,6 +27,8 @@ void voices_remove(Voices* vs, u8 note_number);
 
 s8 voices_get_newest(Voices* vs);
 
+u8 voices_get_num_active(Voices* vs);
+
 void voices_reset(Voices* vs);
 
 #endif

@@ -263,7 +263,10 @@ u8 notes_mode_handle_press(u8 index, u8 value)
     }
     else if (layout_play(l, index, value, midi_channel))
     {
-        sequencer_handle_record(&sequencer);
+        if (value > 0)
+        {
+            sequencer_handle_record(&sequencer);
+        }
     }
     else
     {
