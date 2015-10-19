@@ -80,7 +80,7 @@ void VirtualLppApp::setup()
     io.IniFilename = nullptr;
     io.Fonts->AddFontFromFileTTF(
         getAssetPath("Cousine-Regular.ttf").string().data(),
-        12.0);
+        14.0);
     io.Fonts->Build();
     
     showGui = true;
@@ -199,11 +199,12 @@ void VirtualLppApp::drawGui()
  ******************************************************************************/
     ImGui::SetNextWindowPos(bottomPanelPos);
     ImGui::SetNextWindowSize(bottomPanelSize);
-    ImGui::SetNextWindowContentSize(ImVec2(1500, 0));
-    ImGui::Begin("bottom panel", NULL, windowFlags);
-    ImGui::Text(shift_held ? "yeah!" : "naw :/");
+    ImGui::Begin(
+        "bottom panel", NULL,
+        windowFlags | ImGuiWindowFlags_HorizontalScrollbar);
     
-    ImGui::BeginGroup();
+    ImGui::PushItemWidth(50);
+    ImGui::LabelText("BPM", "%.2f", khz_to_bpm((float)sequencer.tempo));
     
     for (int seqI = 0; seqI < GRID_SIZE; seqI++)
     {
@@ -213,10 +214,12 @@ void VirtualLppApp::drawGui()
         {
             Note& n = s.notes[stepI];
             
-            ImVec4 color = flag_is_set(n.flags, NTE_SLIDE)
-                ? ImVec4(1, 1, 0, 1)
-                : ImVec4(0, 1, 0, 1);
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
+            ImVec4 color =
+                s.playhead == stepI ? ImVec4(0.2, 0.2, 0.2, 1)
+                : flag_is_set(n.flags, NTE_SLIDE) ? ImVec4(0, 0.2, 0.2, 1)
+                : n.note_number > -1 ? ImVec4(0, 0.2, 0, 1)
+                : ImVec4(0.2, 0, 0, 1);
+            ImGui::PushStyleColor(ImGuiCol_Button, color);
             
             ImGui::SmallButton(to_string(n.note_number).data());
             
@@ -225,8 +228,6 @@ void VirtualLppApp::drawGui()
         }
         ImGui::Dummy(ImVec2(0, 0));
     }
-    
-    ImGui::EndGroup();
     
     ImGui::End();
 }

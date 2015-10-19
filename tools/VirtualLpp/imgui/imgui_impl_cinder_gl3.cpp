@@ -300,6 +300,9 @@ bool    ImGui_ImplCinder_Init(bool install_callbacks)
         window->getSignalMouseMove().connect([] (ci::app::MouseEvent e) {
             ImGui_ImplCinder_MouseMoveCallback(e);
         });
+        window->getSignalMouseDrag().connect([] (ci::app::MouseEvent e) {
+            ImGui_ImplCinder_MouseMoveCallback(e);
+        });
         window->getSignalMouseWheel().connect([] (ci::app::MouseEvent e) {
             ImGui_ImplCinder_ScrollCallback(e);
         });
