@@ -53,9 +53,14 @@ public:
     void resize() override;
     void update() override;
     void draw() override;
-    void drawGui();
     
 private:
+    void drawGui();
+    void drawBottomPanel();
+    void drawSidePanel();
+    void drawSequenceNotes(Sequence& s);
+    void drawSequenceInfo(Sequence& s);
+    
     VirtualLpp lpp;
     lpp::Timer lppTimer;
     mutex lppMutex;
@@ -66,6 +71,8 @@ private:
     ImVec2 sidePanelSize;
     ImVec2 bottomPanelPos;
     ImVec2 bottomPanelSize;
+    
+    array<string, GRID_SIZE> sequenceNames;
 };
 
 void VirtualLppApp::setup()
@@ -84,6 +91,11 @@ void VirtualLppApp::setup()
     io.Fonts->Build();
     
     showGui = true;
+    
+    for (int i = 0; i < GRID_SIZE; i++)
+    {
+        sequenceNames[i] = "Sequence " + to_string(i + 1);
+    }
     
     gl::enableAlphaBlending();
 }
@@ -173,64 +185,96 @@ void VirtualLppApp::draw()
 
 void VirtualLppApp::drawGui()
 {
-/*******************************************************************************
- * Side Panel
- ******************************************************************************/
+    drawBottomPanel();
+    drawSidePanel();
+}
+
+void VirtualLppApp::drawBottomPanel()
+{
+    ImGui::SetNextWindowPos(bottomPanelPos);
+    ImGui::SetNextWindowSize(bottomPanelSize);
+    ImGui::Begin(
+                 "bottom panel", NULL,
+                 windowFlags | ImGuiWindowFlags_HorizontalScrollbar);
+    
+    string scaleSteps = "";
+    int lastOffset = 0;
+    for (int i = 1; i < sequencer.scale.num_notes; i++)
+    {
+        scaleSteps += to_string(sequencer.scale.offsets[i] - lastOffset);
+        lastOffset = sequencer.scale.offsets[i];
+        scaleSteps += ", ";
+    }
+    scaleSteps += to_string(12 - lastOffset);
+    
+    ImGui::Value("BPM", khz_to_bpm((float)sequencer.tempo));
+    ImGui::SameLine();
+    ImGui::Text("Scale: %s", scaleSteps.data());
+    
+    for (int seqI = 0; seqI < GRID_SIZE; seqI++)
+    {
+        drawSequenceNotes(sequencer.sequences[seqI]);
+    }
+    
+    ImGui::End();
+}
+
+void VirtualLppApp::drawSidePanel()
+{
     ImGui::SetNextWindowPos(sidePanelPos);
     ImGui::SetNextWindowSize(sidePanelSize);
     ImGui::Begin("side panel", NULL, windowFlags);
     
     for (int i = 0; i < GRID_SIZE; i++)
     {
-        if (flag_is_set(sequencer.sequences[i].flags, SEQ_PLAYING))
+        if (ImGui::TreeNode(sequenceNames[i].data()))
         {
-            ImGui::Text("It's playing!");
+            ImGui::BeginGroup();
+            drawSequenceInfo(sequencer.sequences[i]);
+            ImGui::EndGroup();
+            ImGui::TreePop();
         }
-        else
-        {
-            ImGui::Text("It isn't playing :(");
-        }
-    }
-    
-    ImGui::End();
-
-/*******************************************************************************
- * Bottom Panel
- ******************************************************************************/
-    ImGui::SetNextWindowPos(bottomPanelPos);
-    ImGui::SetNextWindowSize(bottomPanelSize);
-    ImGui::Begin(
-        "bottom panel", NULL,
-        windowFlags | ImGuiWindowFlags_HorizontalScrollbar);
-    
-    ImGui::PushItemWidth(50);
-    ImGui::LabelText("BPM", "%.2f", khz_to_bpm((float)sequencer.tempo));
-    
-    for (int seqI = 0; seqI < GRID_SIZE; seqI++)
-    {
-        Sequence& s = sequencer.sequences[seqI];
-        
-        for (int stepI = 0; stepI < SEQUENCE_LENGTH; stepI++)
-        {
-            Note& n = s.notes[stepI];
-            
-            ImVec4 color =
-                s.playhead == stepI ? ImVec4(0.2, 0.2, 0.2, 1)
-                : flag_is_set(n.flags, NTE_SLIDE) ? ImVec4(0, 0, 0.3, 1)
-                : n.note_number > -1 ? ImVec4(0, 0.3, 0, 1)
-                : ImVec4(0.2, 0, 0, 1);
-            ImGui::PushStyleColor(ImGuiCol_Button, color);
-            
-            ImGui::SmallButton(to_string(n.note_number).data());
-            
-            ImGui::PopStyleColor();
-            ImGui::SameLine();
-        }
-        ImGui::Dummy(ImVec2(0, 0));
     }
     
     ImGui::End();
 }
+
+void VirtualLppApp::drawSequenceNotes(Sequence& s)
+{
+    for (int stepI = 0; stepI < SEQUENCE_LENGTH; stepI++)
+    {
+        Note& n = s.notes[stepI];
+        
+        ImVec4 color =
+        s.playhead == stepI ? ImVec4(0.2, 0.2, 0.2, 1)
+        : flag_is_set(n.flags, NTE_SLIDE) ? ImVec4(0, 0, 0.3, 1)
+        : n.note_number > -1 ? ImVec4(0, 0.3, 0, 1)
+        : ImVec4(0.2, 0, 0, 1);
+        ImGui::PushStyleColor(ImGuiCol_Button, color);
+        
+        ImGui::SmallButton(to_string(n.note_number).data());
+        
+        ImGui::PopStyleColor();
+        ImGui::SameLine();
+    }
+    ImGui::Dummy(ImVec2(0, 0));
+}
+
+void VirtualLppApp::drawSequenceInfo(Sequence& s)
+{
+    ImGui::Text("State: %s",
+        flag_is_set(s.flags, SEQ_PLAYING)
+            ? "Playing" : "Stopped");
+    
+    ImGui::Value("Muted", flag_is_set(s.flags, SEQ_MUTED) != 0);
+    ImGui::Value("Soloed", flag_is_set(s.flags, SEQ_SOLOED) != 0);
+    ImGui::Value("Armed", flag_is_set(s.flags, SEQ_ARMED) != 0);
+
+    ImGui::Value("Octave", s.layout.octave);
+    ImGui::Value("Root Note", s.layout.root_note);
+    ImGui::Value("Channel", s.channel);
+}
+
 
 CINDER_APP(VirtualLppApp,
            RendererGl(RendererGl::Options().msaa(4)),
