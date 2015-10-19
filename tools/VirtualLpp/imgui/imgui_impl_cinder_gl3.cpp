@@ -13,6 +13,7 @@
 // Data
 static double       g_Time = 0.0f;
 static bool         g_MousePressed[3] = { false, false, false };
+static ImVec2       g_MousePos;
 static float        g_MouseWheel = 0.0f;
 static GLuint       g_FontTexture = 0;
 static int          g_ShaderHandle = 0, g_VertHandle = 0, g_FragHandle = 0;
@@ -120,15 +121,18 @@ static void ImGui_ImplCinder_SetClipboardText(const char* text)
 
 void ImGui_ImplCinder_MouseButtonCallback(ci::app::MouseEvent e, bool isDown)
 {
-//    if (isDown)
-//    {
-        if (e.isLeft())
-            g_MousePressed[0] = isDown;
-        else if (e.isRight())
-            g_MousePressed[1] = isDown;
-        else if (e.isMiddle())
-            g_MousePressed[2] = isDown;
-//    }
+    if (e.isLeft())
+        g_MousePressed[0] = isDown;
+    else if (e.isRight())
+        g_MousePressed[1] = isDown;
+    else if (e.isMiddle())
+        g_MousePressed[2] = isDown;
+}
+
+void ImGui_ImplCinder_MouseMoveCallback(ci::app::MouseEvent e)
+{
+    g_MousePos.x = e.getX();
+    g_MousePos.y = e.getY();
 }
 
 void ImGui_ImplCinder_ScrollCallback(ci::app::MouseEvent e)
@@ -293,6 +297,9 @@ bool    ImGui_ImplCinder_Init(bool install_callbacks)
         window->getSignalMouseUp().connect([] (ci::app::MouseEvent e) {
             ImGui_ImplCinder_MouseButtonCallback(e, false);
         });
+        window->getSignalMouseMove().connect([] (ci::app::MouseEvent e) {
+            ImGui_ImplCinder_MouseMoveCallback(e);
+        });
         window->getSignalMouseWheel().connect([] (ci::app::MouseEvent e) {
             ImGui_ImplCinder_ScrollCallback(e);
         });
@@ -364,8 +371,7 @@ void ImGui_ImplCinder_NewFrame()
     // (we already got mouse wheel, keyboard keys & characters from glfw callbacks polled in glfwPollEvents())
     if (app->getForegroundWindow() != nullptr)
     {
-        ci::vec2 mousePos = app->getMousePos();
-    	io.MousePos = ImVec2(mousePos.x, mousePos.y);   // Mouse position in screen coordinates (set to -1,-1 if no mouse / on another screen, etc.)
+    	io.MousePos = ImVec2(g_MousePos);   // Mouse position in screen coordinates (set to -1,-1 if no mouse / on another screen, etc.)
     }
     else
     {

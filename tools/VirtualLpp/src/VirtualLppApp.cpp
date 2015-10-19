@@ -173,7 +173,9 @@ void VirtualLppApp::draw()
 
 void VirtualLppApp::drawGui()
 {
-    // Side Panel
+/*******************************************************************************
+ * Side Panel
+ ******************************************************************************/
     ImGui::SetNextWindowPos(sidePanelPos);
     ImGui::SetNextWindowSize(sidePanelSize);
     ImGui::Begin("side panel", NULL, windowFlags);
@@ -191,12 +193,41 @@ void VirtualLppApp::drawGui()
     }
     
     ImGui::End();
-    
-    // Bottom Panel
+
+/*******************************************************************************
+ * Bottom Panel
+ ******************************************************************************/
     ImGui::SetNextWindowPos(bottomPanelPos);
     ImGui::SetNextWindowSize(bottomPanelSize);
+    ImGui::SetNextWindowContentSize(ImVec2(1500, 0));
     ImGui::Begin("bottom panel", NULL, windowFlags);
     ImGui::Text(shift_held ? "yeah!" : "naw :/");
+    
+    ImGui::BeginGroup();
+    
+    for (int seqI = 0; seqI < GRID_SIZE; seqI++)
+    {
+        Sequence& s = sequencer.sequences[seqI];
+        
+        for (int stepI = 0; stepI < SEQUENCE_LENGTH; stepI++)
+        {
+            Note& n = s.notes[stepI];
+            
+            ImVec4 color = flag_is_set(n.flags, NTE_SLIDE)
+                ? ImVec4(1, 1, 0, 1)
+                : ImVec4(0, 1, 0, 1);
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
+            
+            ImGui::SmallButton(to_string(n.note_number).data());
+            
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+        }
+        ImGui::Dummy(ImVec2(0, 0));
+    }
+    
+    ImGui::EndGroup();
+    
     ImGui::End();
 }
 
@@ -205,3 +236,7 @@ CINDER_APP(VirtualLppApp,
            [&]( App::Settings *settings ) {
                settings->setWindowSize(defaultSize, defaultSize);
            })
+
+
+
+

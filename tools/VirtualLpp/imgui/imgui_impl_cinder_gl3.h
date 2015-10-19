@@ -19,6 +19,7 @@ IMGUI_API bool        ImGui_ImplCinder_CreateDeviceObjects();
 // Provided here if you want to chain callbacks.
 // You can also handle inputs yourself and use those as a reference.
 IMGUI_API void        ImGui_ImplCinder_MouseButtonCallback(ci::app::MouseEvent e, bool isDown);
+IMGUI_API void        ImGui_ImplCinder_MouseMoveCallback(ci::app::MouseEvent e);
 IMGUI_API void        ImGui_ImplCinder_ScrollCallback(ci::app::MouseEvent e);
 IMGUI_API void        ImGui_ImplCinder_KeyCallback(ci::app::KeyEvent e, bool isDown);
 IMGUI_API void        ImGui_ImplCinder_CharCallback(ci::app::KeyEvent e);
