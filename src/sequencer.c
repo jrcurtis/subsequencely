@@ -64,6 +64,11 @@ void sequence_init(Sequence* s, u8 channel)
     }
 }
 
+u8 sequence_get_next_playhead(Sequence* s)
+{
+    return (s->playhead + 1) % SEQUENCE_LENGTH;
+}
+
 void sequence_become_active(Sequence* s)
 {
     s->flags = set_flag(s->flags, SEQ_ACTIVE);
@@ -198,17 +203,24 @@ void sequence_step(Sequence* s, u8 audible)
     {
         s->flags = clear_flag(s->flags, SEQ_QUEUED);
         s->flags = set_flag(s->flags, SEQ_PLAYING);
-        sequence_play_current_note(s);
+        if (audible)
+        {
+            sequence_play_current_note(s);
+        }
     }
     // Otherwise find the next note, and if it is a slide note, play it
     // before killing the current one.
     else
     {
-        u8 next_playhead = (s->playhead + 1) % SEQUENCE_LENGTH;
+        u8 next_playhead = sequence_get_next_playhead(s);
         Note* n = &s->notes[s->playhead];
         Note* next_n = &s->notes[next_playhead];
 
-        if (flag_is_set(n->flags, NTE_ON))
+        if (!audible)
+        {
+            // Play nothing
+        }
+        else if (flag_is_set(n->flags, NTE_ON))
         {
             if (flag_is_set(next_n->flags, NTE_SLIDE))
             {
@@ -249,6 +261,23 @@ void sequence_step(Sequence* s, u8 audible)
     sequence_handle_record(s, 0);
 }
 
+void sequence_off_step(Sequence* s)
+{
+    if (flag_is_set(s->flags, SEQ_PLAYING))
+    {
+        u8 next_playhead = sequence_get_next_playhead(s);
+        Note* n = &s->notes[s->playhead];
+        Note* next_n = &s->notes[next_playhead];
+
+        if (flag_is_set(n->flags, NTE_ON)
+            && !flag_is_set(next_n->flags, NTE_SLIDE))
+        {
+            LP_LOG("%d earlykill note %d", s->playhead, next_n->note_number);
+
+            sequence_kill_note(s, n);
+        }
+    }
+}
 
 /*******************************************************************************
  * Sequencer functions
@@ -677,6 +706,14 @@ void sequencer_tick(Sequencer* sr)
 
     if (sr->timer < sr->tempo)
     {
+        if (sr->timer == sr->tempo / 2)
+        {
+            for (u8 i = 0; i < GRID_SIZE; i++)
+            {
+                sequence_off_step(&sr->sequences[i]);
+            }
+        }
+
         return;
     }
 
