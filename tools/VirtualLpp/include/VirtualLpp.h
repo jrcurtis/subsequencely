@@ -37,6 +37,7 @@ public:
     void setWidth(float w);
     
     void receiveMidi(double timestamp, vector<unsigned char>* message, void* userData);
+    void receiveMidiControl(double timestamp, vector<unsigned char>* message, void* userData);
 
     void mouseDown(MouseEvent event);
     void mouseDown(int index, int velocity);
@@ -58,6 +59,9 @@ private:
     
     shared_ptr<RtMidiOut> midiOut;
     shared_ptr<RtMidiIn> midiIn;
+    
+    shared_ptr<RtMidiOut> midiLightsOut;
+    shared_ptr<RtMidiIn> midiControlIn;
     
     array<VirtualPad, LP_LAST_BUTTON + 1> pads;
 };

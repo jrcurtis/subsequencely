@@ -493,7 +493,14 @@ void app_midi_event(u8 port, u8 status, u8 d1, u8 d2)
 
 void app_sysex_event(u8 port, u8 * data, u16 count)
 {
-	
+#ifndef SEQ_DEBUG
+
+#else
+    if (port == USBSTANDALONE && count == 9)
+    {
+        plot_pad(data[4], data + 5);
+    }
+#endif
 }
 
 

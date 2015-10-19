@@ -216,8 +216,8 @@ void VirtualLppApp::drawGui()
             
             ImVec4 color =
                 s.playhead == stepI ? ImVec4(0.2, 0.2, 0.2, 1)
-                : flag_is_set(n.flags, NTE_SLIDE) ? ImVec4(0, 0.2, 0.2, 1)
-                : n.note_number > -1 ? ImVec4(0, 0.2, 0, 1)
+                : flag_is_set(n.flags, NTE_SLIDE) ? ImVec4(0, 0, 0.3, 1)
+                : n.note_number > -1 ? ImVec4(0, 0.3, 0, 1)
                 : ImVec4(0.2, 0, 0, 1);
             ImGui::PushStyleColor(ImGuiCol_Button, color);
             

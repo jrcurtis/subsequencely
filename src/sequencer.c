@@ -10,7 +10,7 @@
                                            ((gy) + (s)->y)                     \
                                            % (s)->layout.scale->num_notes      \
                                        ]                                       \
-                                       + (s)->layout.root_note                \
+                                       + (s)->layout.root_note                 \
                                        + NUM_NOTES * (                         \
                                            ((gy) + (s)->y)                     \
                                            / (s)->layout.scale->num_notes      \
@@ -211,21 +211,29 @@ void sequence_step(Sequence* s, u8 audible)
         {
             if (n->note_number == next_n->note_number)
             {
-                
+                LP_LOG("%d hold note %d", s->playhead, next_n->note_number);
+                n->flags = clear_flag(n->flags, NTE_ON);
+                next_n->flags = set_flag(next_n->flags, NTE_ON);
             }
             else if (flag_is_set(next_n->flags, NTE_SLIDE))
             {
+                LP_LOG("%d slide note %d", s->playhead, next_n->note_number);
+
                 sequence_play_note(s, next_n);
                 sequence_kill_note(s, n);
             }
             else
             {
+                LP_LOG("%d noslide note %d", s->playhead, next_n->note_number);
+
                 sequence_kill_note(s, n);
                 sequence_play_note(s, next_n);
             }
         }
         else
         {
+            LP_LOG("%d new note %d", s->playhead, next_n->note_number);
+
             sequence_play_note(s, next_n);
         }
 

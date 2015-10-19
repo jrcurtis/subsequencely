@@ -17,6 +17,11 @@ void receiveMidiCallback(double timestamp, vector<unsigned char>* message, void*
     ((VirtualLpp*)userData)->receiveMidi(timestamp, message, nullptr);
 }
 
+void receiveMidiControlCallback(double timestamp, vector<unsigned char>* message, void* userData)
+{
+    ((VirtualLpp*)userData)->receiveMidiControl(timestamp, message, nullptr);
+}
+
 VirtualLpp* VirtualLpp::instance = nullptr;
 
 VirtualLpp::VirtualLpp(int width)
@@ -37,29 +42,41 @@ VirtualLpp::VirtualLpp(int width)
 {
     VirtualLpp::instance = this;
     setWidth(width);
+
+    midiOut = make_shared<RtMidiOut>(RtMidi::Api::UNSPECIFIED, "VirtualLpp");
+    midiOut->setErrorCallback(handleMidiError);
+    midiOut->openVirtualPort("VirtualLppOut");
+
+    midiIn = make_shared<RtMidiIn>(RtMidi::Api::UNSPECIFIED, "VirtualLpp");
+    midiIn->setErrorCallback(handleMidiError);
+    midiIn->setCallback(receiveMidiCallback, this);
+    midiIn->openVirtualPort("VirtualLppIn");
     
-    try
+    midiLightsOut = make_shared<RtMidiOut>(RtMidi::Api::UNSPECIFIED, "VirtualLpp");
+    midiLightsOut->setErrorCallback(handleMidiError);
+    for (int i = 0; i < midiLightsOut->getPortCount(); i++)
     {
-        midiOut = make_shared<RtMidiOut>(RtMidi::Api::UNSPECIFIED, "VirtualLpp");
-        midiOut->setErrorCallback(handleMidiError);
-        midiOut->openVirtualPort("VirtualLppOut");
-    }
-    catch (RtMidiError& error)
-    {
-        //cout << "midi error: " << error.getMessage() << endl;
+        string name = midiLightsOut->getPortName(i);
+        if (midiLightsOut->getPortName(i) == "Launchpad Open Standalone Port")
+        {
+            midiLightsOut->openPort(i);
+            break;
+        }
     }
     
-    try
+    midiControlIn = make_shared<RtMidiIn>(RtMidiIn::Api::UNSPECIFIED, "VirtualLpp");
+    midiControlIn->setErrorCallback(handleMidiError);
+    midiControlIn->setCallback(receiveMidiControlCallback, this);
+    for (int i = 0; i < midiControlIn->getPortCount(); i++)
     {
-        midiIn = make_shared<RtMidiIn>(RtMidi::Api::UNSPECIFIED, "VirtualLpp");
-        midiIn->setErrorCallback(handleMidiError);
-        midiIn->setCallback(receiveMidiCallback, this);
-        midiIn->openVirtualPort("VirtualLppIn");
+        string name = midiLightsOut->getPortName(i);
+        if (midiControlIn->getPortName(i) == "Launchpad Open Standalone Port")
+        {
+            midiControlIn->openPort(i);
+            break;
+        }
     }
-    catch (RtMidiError& error)
-    {
-        
-    }
+    
     
     for (int i = 0; i <= LP_LAST_BUTTON; i++)
     {
@@ -77,6 +94,13 @@ void VirtualLpp::plotLed(u8 type, u8 index, u8 red, u8 green, u8 blue)
     }
 
     pads[index].setColor(Color(red / 255.0, green / 255.0, blue / 255.0));
+    
+    vector<unsigned char> msg {
+        0xF0, 0x00, 0x20, 0x29,
+        index, (u8)(red & 0x7F), (u8)(green & 0x7F), (u8)(blue & 0x7F),
+        0xF7
+    };
+    midiLightsOut->sendMessage(&msg);
 }
 
 void VirtualLpp::sendMidi(u8 port, u8 status, u8 data1, u8 data2)
@@ -91,6 +115,11 @@ void VirtualLpp::sendSysex(u8 port, const u8* data, u16 length)
 }
 
 void VirtualLpp::receiveMidi(double timestamp, vector<unsigned char>* message, void* userData)
+{
+    app_midi_event(USBSTANDALONE, (*message)[0], (*message)[1], (*message)[2]);
+}
+
+void VirtualLpp::receiveMidiControl(double timestamp, vector<unsigned char>* message, void* userData)
 {
     u8 type = (*message)[0] & 0xF0;
     if (type == NOTEON || type == POLYAFTERTOUCH)

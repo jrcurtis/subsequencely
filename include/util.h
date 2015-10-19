@@ -59,4 +59,11 @@ u8 index_to_pad(u8 i, u8* x, u8* y);
 void clear_leds();
 void clear_pad_leds();
 
+#ifdef VIRTUAL_LPP
+#include <stdio.h>
+#define LP_LOG(x, ...) printf(x "\n", __VA_ARGS__)
+#else
+#define LP_LOG(x, ...)
+#endif
+
 #endif
