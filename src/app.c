@@ -197,7 +197,7 @@ void sequencer_setup_draw()
 
 u8 sequencer_mode_handle_press(u8 index, u8 value)
 {
-    if (sequencer_grid_handle_press(&sequencer, index, value)) { }
+    if (grid_handle_press(&sequencer, index, value)) { }
     else
     {
         return 0;

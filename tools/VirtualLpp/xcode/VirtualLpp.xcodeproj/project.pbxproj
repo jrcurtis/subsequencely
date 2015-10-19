@@ -33,6 +33,9 @@
 		8C4FBD281BCE04560030F8F9 /* slider.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD201BCE04560030F8F9 /* slider.c */; settings = {ASSET_TAGS = (); }; };
 		8C4FBD291BCE04560030F8F9 /* util.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD211BCE04560030F8F9 /* util.c */; settings = {ASSET_TAGS = (); }; };
 		8C4FBD2B1BCE10650030F8F9 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8C4FBD2A1BCE10640030F8F9 /* CoreMIDI.framework */; };
+		8C51F9B11BD5A3280032CE68 /* grid.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9AE1BD5A3280032CE68 /* grid.c */; settings = {ASSET_TAGS = (); }; };
+		8C51F9B21BD5A3280032CE68 /* sequence.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9AF1BD5A3280032CE68 /* sequence.c */; settings = {ASSET_TAGS = (); }; };
+		8C51F9B31BD5A3280032CE68 /* session.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9B01BD5A3280032CE68 /* session.c */; settings = {ASSET_TAGS = (); }; };
 		8C64BB3F1BCEEBD800E0D655 /* VirtualPad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C64BB3E1BCEEBD800E0D655 /* VirtualPad.cpp */; settings = {ASSET_TAGS = (); }; };
 		8CAC381E1BD2FFE300BBDB05 /* shaders in Resources */ = {isa = PBXBuildFile; fileRef = 8CAC381D1BD2FFE300BBDB05 /* shaders */; settings = {ASSET_TAGS = (); }; };
 		8CC751761BD0F08C005CD976 /* voices.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CC751751BD0F08C005CD976 /* voices.c */; settings = {ASSET_TAGS = (); }; };
@@ -96,6 +99,12 @@
 		8C4FBD201BCE04560030F8F9 /* slider.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = slider.c; path = ../../../src/slider.c; sourceTree = "<group>"; };
 		8C4FBD211BCE04560030F8F9 /* util.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = util.c; path = ../../../src/util.c; sourceTree = "<group>"; };
 		8C4FBD2A1BCE10640030F8F9 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
+		8C51F9AB1BD5A3180032CE68 /* grid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = grid.h; path = ../../../include/grid.h; sourceTree = "<group>"; };
+		8C51F9AC1BD5A3180032CE68 /* sequence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sequence.h; path = ../../../include/sequence.h; sourceTree = "<group>"; };
+		8C51F9AD1BD5A3180032CE68 /* session.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = session.h; path = ../../../include/session.h; sourceTree = "<group>"; };
+		8C51F9AE1BD5A3280032CE68 /* grid.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = grid.c; path = ../../../src/grid.c; sourceTree = "<group>"; };
+		8C51F9AF1BD5A3280032CE68 /* sequence.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = sequence.c; path = ../../../src/sequence.c; sourceTree = "<group>"; };
+		8C51F9B01BD5A3280032CE68 /* session.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = session.c; path = ../../../src/session.c; sourceTree = "<group>"; };
 		8C64BB3D1BCEEB4300E0D655 /* VirtualPad.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; name = VirtualPad.h; path = ../include/VirtualPad.h; sourceTree = "<group>"; };
 		8C64BB3E1BCEEBD800E0D655 /* VirtualPad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VirtualPad.cpp; path = ../src/VirtualPad.cpp; sourceTree = "<group>"; };
 		8CAC381D1BD2FFE300BBDB05 /* shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shaders; path = ../assets/shaders; sourceTree = "<group>"; };
@@ -138,6 +147,9 @@
 		080E96DDFE201D6D7F000001 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				8C51F9AE1BD5A3280032CE68 /* grid.c */,
+				8C51F9AF1BD5A3280032CE68 /* sequence.c */,
+				8C51F9B01BD5A3280032CE68 /* session.c */,
 				8CC751751BD0F08C005CD976 /* voices.c */,
 				8C4FBD1A1BCE04560030F8F9 /* app.c */,
 				8C4FBD1B1BCE04560030F8F9 /* colors.c */,
@@ -208,6 +220,9 @@
 		29B97315FDCFA39411CA2CEA /* Headers */ = {
 			isa = PBXGroup;
 			children = (
+				8C51F9AB1BD5A3180032CE68 /* grid.h */,
+				8C51F9AC1BD5A3180032CE68 /* sequence.h */,
+				8C51F9AD1BD5A3180032CE68 /* session.h */,
 				8CC751741BD0F062005CD976 /* voices.h */,
 				8C4FBD0F1BCE04260030F8F9 /* app_defs.h */,
 				8C4FBD101BCE04260030F8F9 /* app.h */,
@@ -344,12 +359,15 @@
 				BD92F027A4EE47F886B1F960 /* VirtualLppApp.cpp in Sources */,
 				8C4FBD271BCE04560030F8F9 /* sequencer.c in Sources */,
 				8C4FBD0A1BCE036D0030F8F9 /* RtMidi.cpp in Sources */,
+				8C51F9B31BD5A3280032CE68 /* session.c in Sources */,
+				8C51F9B21BD5A3280032CE68 /* sequence.c in Sources */,
 				8C4FBD281BCE04560030F8F9 /* slider.c in Sources */,
 				8CC751761BD0F08C005CD976 /* voices.c in Sources */,
 				8C4FBD251BCE04560030F8F9 /* layout.c in Sources */,
 				8C64BB3F1BCEEBD800E0D655 /* VirtualPad.cpp in Sources */,
 				8C4FBD221BCE04560030F8F9 /* app.c in Sources */,
 				8C4FBD241BCE04560030F8F9 /* keyboard.c in Sources */,
+				8C51F9B11BD5A3280032CE68 /* grid.c in Sources */,
 				8C4276501BD2021100422293 /* imgui_draw.cpp in Sources */,
 				8C4FBD261BCE04560030F8F9 /* scale.c in Sources */,
 				8C4FBD231BCE04560030F8F9 /* colors.c in Sources */,
