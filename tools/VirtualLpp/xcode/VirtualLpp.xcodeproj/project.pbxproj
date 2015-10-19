@@ -385,12 +385,7 @@
 				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				OTHER_LDFLAGS = (
-					"\"$(CINDER_PATH)/lib/libcinder_d.a\"",
-					../blocks/Cairo/lib/macosx/libcairo.a,
-					"\"../blocks/Cairo/lib/macosx/libpixman-1.a\"",
-					../blocks/Cairo/lib/macosx/libpng16.a,
-				);
+				OTHER_LDFLAGS = "\"$(CINDER_PATH)/lib/libcinder_d.a\"";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.libcinder.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = VirtualLpp;
 				SYMROOT = ./build;
@@ -421,12 +416,7 @@
 				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				OTHER_LDFLAGS = (
-					"\"$(CINDER_PATH)/lib/libcinder.a\"",
-					../blocks/Cairo/lib/macosx/libcairo.a,
-					"\"../blocks/Cairo/lib/macosx/libpixman-1.a\"",
-					../blocks/Cairo/lib/macosx/libpng16.a,
-				);
+				OTHER_LDFLAGS = "\"$(CINDER_PATH)/lib/libcinder.a\"";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.libcinder.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = VirtualLpp;
 				STRIP_INSTALLED_PRODUCT = YES;
