@@ -75,6 +75,8 @@ Keyboard keyboard;
 Slider row_offset_slider;
 Checkbox control_checkbox;
 Number control_number;
+Slider control_sens_slider;
+Slider control_offset_slider;
 
 /*******************************************************************************
  * App functionality
@@ -259,6 +261,8 @@ void notes_setup_draw()
     checkbox_draw(&port_checkbox);
     checkbox_draw(&control_checkbox);
     number_draw(&control_number);
+    slider_draw(&control_sens_slider);
+    slider_draw(&control_offset_slider);
 }
 
 u8 notes_mode_handle_press(u8 index, u8 value)
@@ -308,6 +312,14 @@ u8 notes_setup_handle_press(u8 index, u8 value)
     else if (number_handle_press(&control_number, index, value))
     {
         s->control_code = min(control_number.value, 119);
+    }
+    else if (slider_handle_press(&control_sens_slider, index, value))
+    {
+        s->control_div = 8 - slider_get_value(&control_sens_slider);
+    }
+    else if (slider_handle_press(&control_offset_slider, index, value))
+    {
+        s->control_offset = slider_get_value(&control_offset_slider);
     }
     else if (layout_handle_transpose(l, index, value))
     {
@@ -531,12 +543,14 @@ void app_sysex_event(u8 port, u8 * data, u16 count)
 void app_aftertouch_event(u8 index, u8 value)
 {
 #ifndef SEQ_DEBUG
-    if (state == NOTES_MODE && !flag_is_set(flags, IS_SETUP))
+    u8 setup = flag_is_set(flags, IS_SETUP);
+
+    if (state == NOTES_MODE && !setup)
     {
         sequence_handle_aftertouch(
             sequencer_get_active(&sequencer), index, value);
     }
-    else if (state == SEQUENCER_MODE && flag_is_set(flags, IS_SETUP))
+    else if (state == SEQUENCER_MODE && setup)
     {
         if (slider_handle_press(&tempo_slider, index, value))
         {
@@ -615,10 +629,24 @@ void app_init()
 
     number_init(&control_number, 7, coord_to_index(1, 7), 0);
 
+    slider_init(
+        &control_sens_slider,
+        HORIZONTAL, 6, sequence_colors[7],
+        1, -1,
+        7);
+
+    slider_init(
+        &control_offset_slider,
+        HORIZONTAL, 5, sequence_colors[6],
+        16, -1,
+        0);
+
     sequencer.keyboard = &keyboard;
     sequencer.row_offset_slider = &row_offset_slider;
     sequencer.control_checkbox = &control_checkbox;
     sequencer.control_number = &control_number;
+    sequencer.control_sens_slider = &control_sens_slider;
+    sequencer.control_offset_slider = &control_offset_slider;
     sequencer_init(&sequencer);
 
     set_state(NOTES_MODE, 0);

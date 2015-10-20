@@ -6,7 +6,7 @@
  * Note functions
  ******************************************************************************/
 
-void note_play(Note* n, u8 channel, s8 control_code)
+void note_play(Note* n, u8 channel)
 {
     if (!flag_is_set(n->flags, NTE_ON))
     {
@@ -14,13 +14,17 @@ void note_play(Note* n, u8 channel, s8 control_code)
         send_midi(
             NOTEON | channel,
             n->note_number, n->velocity);
+    }
+}
 
-        if (n->aftertouch != -1 && control_code != -1)
-        {
-            send_midi(
-                CC | channel,
-                control_code, n->aftertouch);
-        }
+void note_control(Note* n, Sequence* s)
+{
+    if (n->aftertouch != -1)
+    {
+        send_midi(
+            CC | s->channel,
+            s->control_code,
+            n->aftertouch / s->control_div + s->control_offset);
     }
 }
 
@@ -43,6 +47,8 @@ void sequence_init(Sequence* s, u8 channel)
 {
     s->channel = channel;
     s->control_code = 0;
+    s->control_div = 1;
+    s->control_offset = 0;
     s->playhead = 0;
     s->x = 0;
     s->y = 0;
@@ -135,10 +141,7 @@ void sequence_play_note(Sequence* s, Note* n)
         }
     }
 
-    note_play(n, s->channel,
-              flag_is_set(s->flags, SEQ_RECORD_CONTROL)
-              ? s->control_code
-              : -1);
+    note_play(n, s->channel);
 }
 
 void sequence_play_current_note(Sequence* s)
@@ -258,6 +261,14 @@ void sequence_step(Sequence* s, u8 audible)
             sequence_play_note(s, next_n);
         }
 
+        // CC is handled separately because it should be sent even if the
+        // note is held and no note on is being sent.
+        if (audible
+            && flag_is_set(s->flags, SEQ_RECORD_CONTROL))
+        {
+            note_control(next_n, s);
+        }
+
         s->playhead = next_playhead;
     }
     
@@ -276,8 +287,6 @@ void sequence_off_step(Sequence* s)
         if (flag_is_set(n->flags, NTE_ON)
             && !flag_is_set(next_n->flags, NTE_SLIDE))
         {
-            LP_LOG("%d earlykill note %d", s->playhead, next_n->note_number);
-
             sequence_kill_note(s, n);
         }
     }
@@ -300,11 +309,9 @@ u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
 
 u8 sequence_handle_aftertouch(Sequence* s, u8 index, u8 value)
 {
-    if (layout_handle_aftertouch(
-            &s->layout, index, value, s->channel,
-            flag_is_set(s->flags, SEQ_RECORD_CONTROL)
-                ? s->control_code
-                : -1))
+    if (flag_is_set(s->flags, SEQ_RECORD_CONTROL)
+        && layout_handle_aftertouch(
+            &s->layout, index, value, s))
     {
 
     }

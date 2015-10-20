@@ -46,11 +46,13 @@ typedef struct
     u8 flags;
 } Note;
 
-typedef struct
+typedef struct Sequence_
 {
     Layout layout;
     u8 channel;
     u8 control_code;
+    u8 control_div;
+    u8 control_offset;
     u16 flags;
 
     u8 playhead;

@@ -1,4 +1,6 @@
 
+#include "sequence.h"
+
 #include "layout.h"
 
 void layout_init(Layout* l, Scale* s, PadNotes* pn, Voices* vs)
@@ -200,8 +202,7 @@ u8 layout_handle_press(Layout* l, u8 index, u8 value, u8 midi_channel)
     return 1;
 }
 
-u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value,
-                            u8 midi_channel, s8 control_code)
+u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, struct Sequence_* s)
 {
     u8 x, y;
 
@@ -212,15 +213,15 @@ u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value,
         if (note_number <= MAX_NOTE)
         {
             send_midi(
-                POLYAFTERTOUCH | midi_channel,
+                POLYAFTERTOUCH | s->channel,
                 note_number, value);
 
-            if (voices_handle_aftertouch(l->voices, note_number, value)
-                && control_code >= 0)
+            if (voices_handle_aftertouch(l->voices, note_number, value))
             {
                 send_midi(
-                    CC | midi_channel,
-                    control_code, value);
+                    CC | s->channel,
+                    s->control_code,
+                    value / s->control_div + s->control_offset);
             }
         }
     }

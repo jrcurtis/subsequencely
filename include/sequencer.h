@@ -38,6 +38,8 @@ typedef struct
     Slider* row_offset_slider;
     Checkbox* control_checkbox;
     Number* control_number;
+    Slider* control_sens_slider;
+    Slider* control_offset_slider;
 
     // Data
     Scale scale;

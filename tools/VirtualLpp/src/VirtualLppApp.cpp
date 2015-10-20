@@ -294,6 +294,8 @@ void VirtualLppApp::drawSequenceInfo(Sequence& s)
     
     ImGui::Value("Record Control", flag_is_set(s.flags, SEQ_RECORD_CONTROL));
     ImGui::Value("Control Code", s.control_code);
+    ImGui::Value("Control Division", s.control_div);
+    ImGui::Value("Control Offset", s.control_offset);
 }
 
 
