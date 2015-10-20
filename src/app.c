@@ -78,6 +78,8 @@ Number control_number;
 Slider control_sens_slider;
 Slider control_offset_slider;
 
+Number channel_numbers[GRID_SIZE];
+
 /*******************************************************************************
  * App functionality
  ******************************************************************************/
@@ -151,7 +153,10 @@ void session_mode_draw()
 
 void session_setup_draw()
 {
-    
+    for (u8 i = 0; i < GRID_SIZE; i++)
+    {
+        number_draw(&channel_numbers[i], sequence_colors[i]);
+    }
 }
 
 u8 session_mode_handle_press(u8 index, u8 value)
@@ -167,6 +172,15 @@ u8 session_mode_handle_press(u8 index, u8 value)
 
 u8 session_setup_handle_press(u8 index, u8 value)
 {
+    for (u8 i = 0; i < GRID_SIZE; i++)
+    {
+        if (number_handle_press(&channel_numbers[i], index, value))
+        {
+            sequencer.sequences[i].channel = channel_numbers[i].value;
+            return 1;
+        }
+    }
+
     return 0;
 }
 
@@ -260,7 +274,7 @@ void notes_setup_draw()
     slider_draw(&row_offset_slider);
     checkbox_draw(&port_checkbox);
     checkbox_draw(&control_checkbox);
-    number_draw(&control_number);
+    number_draw(&control_number, number_colors[3]);
     slider_draw(&control_sens_slider);
     slider_draw(&control_offset_slider);
 }
@@ -648,6 +662,13 @@ void app_init()
     sequencer.control_sens_slider = &control_sens_slider;
     sequencer.control_offset_slider = &control_offset_slider;
     sequencer_init(&sequencer);
+
+    for (u8 i = 0; i < GRID_SIZE; i++)
+    {
+        number_init(
+            &channel_numbers[i],
+            4, coord_to_index(4, row_to_seq(i)), i);
+    }
 
     set_state(NOTES_MODE, 0);
 #else

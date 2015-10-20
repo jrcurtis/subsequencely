@@ -13,13 +13,13 @@ void number_set_value(Number* n, u8 value)
     n->value = value;
 }
 
-void number_draw(Number* n)
+void number_draw(Number* n, const u8* color)
 {
     u8 index = n->pos;
     for (s8 i = n->bits - 1; i >= 0; i--)
     {
         u8 dimness = 5 * ((n->value & (1 << i)) == 0);
-        plot_pad_dim(index, number_colors[3], dimness);
+        plot_pad_dim(index, color, dimness);
         index++;
     }
 }

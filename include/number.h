@@ -17,7 +17,7 @@ void number_init(Number* n, u8 bits, u8 pos, u8 value);
 
 void number_set_value(Number* n, u8 value);
 
-void number_draw(Number* n);
+void number_draw(Number* n, const u8* color);
 
 u8 number_handle_press(Number* n, u8 index, u8 value);
 
