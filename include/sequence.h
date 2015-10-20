@@ -70,6 +70,8 @@ void sequence_play_current_note(Sequence* s);
 
 void sequence_queue(Sequence* s);
 
+void sequence_queue_at(Sequence* s, u8 step);
+
 void sequence_stop(Sequence* s, Layout* l);
 
 void sequence_handle_record(Sequence* s, u8 press);

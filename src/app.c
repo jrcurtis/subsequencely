@@ -142,7 +142,7 @@ void session_setup_become_inactive()
 
 void session_mode_draw()
 {
-    
+    session_draw(&sequencer);
 }
 
 void session_setup_draw()
@@ -152,7 +152,13 @@ void session_setup_draw()
 
 u8 session_mode_handle_press(u8 index, u8 value)
 {
-    return 0;
+    if (session_handle_press(&sequencer, index, value)) {}
+    else
+    {
+        return 0;
+    }
+
+    return 1;
 }
 
 u8 session_setup_handle_press(u8 index, u8 value)
@@ -547,6 +553,10 @@ void app_timer_event()
         if (state == SEQUENCER_MODE)
         {
             sequencer_mode_draw();
+        }
+        else if (state == SESSION_MODE)
+        {
+            session_mode_draw();
         }
         else if (state == NOTES_MODE)
         {

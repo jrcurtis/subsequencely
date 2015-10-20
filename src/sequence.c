@@ -139,6 +139,17 @@ void sequence_queue(Sequence* s)
     s->flags = set_flag(s->flags, SEQ_QUEUED);
 }
 
+void sequence_queue_at(Sequence* s, u8 step)
+{
+    if (step < SEQUENCE_LENGTH)
+    {
+        sequence_kill_current_note(s);
+        s->playhead = step;
+        s->flags = clear_flag(s->flags, SEQ_PLAYING);
+        s->flags = set_flag(s->flags, SEQ_QUEUED);
+    }
+}
+
 void sequence_stop(Sequence* s, Layout* l)
 {
     s->flags = clear_flag(s->flags, SEQ_QUEUED);

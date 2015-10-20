@@ -242,13 +242,7 @@ void sequencer_tick(Sequencer* sr)
     }
 
     sr->timer = 0;
-
-    // If the current sequence is playing when the sequence ticks, then a
-    // display refresh is needed.
-    if (flag_is_set(sequencer_get_active(sr)->flags, SEQ_PLAYING))
-    {
-        sr->flags = set_flag(sr->flags, SQR_DIRTY);
-    }
+    sr->flags = set_flag(sr->flags, SQR_DIRTY);
 
     for (u8 i = 0; i < GRID_SIZE; i++)
     {

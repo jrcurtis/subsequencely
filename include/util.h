@@ -41,6 +41,8 @@
 
 u8 index_to_pad(u8 i, u8* x, u8* y);
 
+#define row_to_seq(y)           (GRID_SIZE - y - 1)
+
 #define plot_pad(i, c)          (hal_plot_led(                                 \
                                      TYPEPAD, (i),                             \
                                      (c)[0], (c)[1], (c)[2]))
