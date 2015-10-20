@@ -184,8 +184,8 @@ u8 layout_play(Layout* l, u8 index, u8 value, u8 midi_channel)
                 voices_remove(l->voices, note_number);
             }
 
-            hal_send_midi(
-                USBSTANDALONE, midi_message | midi_channel,
+            send_midi(
+                midi_message | midi_channel,
                 note_number, value);
 
             layout_light_note(l, note_number, value, value > 0);
@@ -210,8 +210,8 @@ u8 layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel)
 
         if (note_number <= MAX_NOTE)
         {
-            hal_send_midi(
-                USBSTANDALONE, POLYAFTERTOUCH | midi_channel,
+            send_midi(
+                POLYAFTERTOUCH | midi_channel,
                 note_number, value);
         }
     }

@@ -36,4 +36,6 @@ u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
     {
         sequence_queue_at(&sr->sequences[seq_i], x * STEPS_PER_PAD);
     }
+
+    return 1;
 }

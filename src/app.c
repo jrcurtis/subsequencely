@@ -56,7 +56,7 @@ typedef enum
  ******************************************************************************/
 
 // Global settings
-u8 midi_channel = 0;
+u8 midi_port = USBMIDI;
 
 // Program state
 State state = NUM_MODES;
@@ -67,6 +67,7 @@ u8 tap_tempo_counter = 0;
 
 // Notes setup
 Slider row_offset_slider;
+Checkbox port_checkbox;
 
 // Sequencer
 Sequencer sequencer;
@@ -152,7 +153,7 @@ void session_setup_draw()
 
 u8 session_mode_handle_press(u8 index, u8 value)
 {
-    if (session_handle_press(&sequencer, index, value)) {}
+    if (session_handle_press(&sequencer, index, value)) { }
     else
     {
         return 0;
@@ -256,6 +257,7 @@ void notes_setup_draw()
 {
     keyboard_draw(&sequencer.keyboard);
     slider_draw(&row_offset_slider);
+    checkbox_draw(&port_checkbox);
 }
 
 u8 notes_mode_handle_press(u8 index, u8 value)
@@ -266,7 +268,9 @@ u8 notes_mode_handle_press(u8 index, u8 value)
     {
         keyboard_update_indices(&sequencer.keyboard);
     }
-    else if (layout_play(l, index, value, midi_channel))
+    else if (layout_play(
+                 l, index, value,
+                 sequencer_get_active(&sequencer)->channel))
     {
         if (value > 0)
         {
@@ -288,6 +292,10 @@ u8 notes_setup_handle_press(u8 index, u8 value)
     if (slider_handle_press(&row_offset_slider, index, value))
     {
         layout_set_row_offset(l, row_offset_slider.value);
+    }
+    else if (checkbox_handle_press(&port_checkbox, index, value))
+    {
+        midi_port = port_checkbox.value ? DINMIDI : USBMIDI;
     }
     else if (layout_handle_transpose(l, index, value))
     {
@@ -474,8 +482,7 @@ void app_surface_event(u8 type, u8 index, u8 value)
 
     sequencer_play_draw(&sequencer);
 #else
-    hal_send_midi(
-        USBSTANDALONE,
+    send_midi(
         value > 0 ? NOTEON : NOTEOFF,
         type == TYPEPAD ? index : LP_SETUP,
         value);
@@ -516,11 +523,11 @@ void app_aftertouch_event(u8 index, u8 value)
     {
         layout_aftertouch(
             sequencer_get_layout(&sequencer),
-            index, value, midi_channel);
+            index, value,
+            sequencer_get_active(&sequencer)->channel);
     }
 #else
-    hal_send_midi(
-        USBSTANDALONE,
+    send_midi(
         POLYAFTERTOUCH,
         index, value);
 #endif
@@ -584,6 +591,7 @@ void app_init()
         HORIZONTAL, 2, slider_color,
         1, 0,
         0);
+    checkbox_init(&port_checkbox, coord_to_index(0, 3), 0);
 
     set_state(NOTES_MODE, 0);
 #else

@@ -11,8 +11,8 @@ void note_play(Note* n, u8 channel)
     if (!flag_is_set(n->flags, NTE_ON))
     {
         n->flags = set_flag(n->flags, NTE_ON);
-        hal_send_midi(
-            USBSTANDALONE, NOTEON | channel,
+        send_midi(
+            NOTEON | channel,
             n->note_number, n->velocity);
     }
 }
@@ -22,8 +22,8 @@ void note_kill(Note* n, u8 channel)
     if (flag_is_set(n->flags, NTE_ON))
     {
         n->flags = clear_flag(n->flags, NTE_ON);
-        hal_send_midi(
-            USBSTANDALONE, NOTEOFF | channel,
+        send_midi(
+            NOTEOFF | channel,
             n->note_number, n->velocity);
     }
 }

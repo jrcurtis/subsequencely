@@ -5,6 +5,7 @@
 
 #include "app.h"
 #include "buttons.h"
+#include "checkbox.h"
 #include "colors.h"
 #include "grid.h"
 #include "keyboard.h"
