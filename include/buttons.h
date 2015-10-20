@@ -40,6 +40,32 @@
 #define LP_SENDS          (7)
 #define LP_STOP_CLIP      (8)
 
-extern u8 shift_held;
+
+/*******************************************************************************
+ * Modifier buttons bit flag versions
+ ******************************************************************************/
+
+#define LP_RECORD_ARM_FLAG     (1 << 0)
+#define LP_TRACK_SELECT_FLAG   (1 << 1)
+#define LP_MUTE_FLAG           (1 << 2)
+#define LP_SOLO_FLAG           (1 << 3)
+#define LP_VOLUME_FLAG         (1 << 4)
+#define LP_PAN_FLAG            (1 << 5)
+#define LP_SENDS_FLAG          (1 << 6)
+#define LP_STOP_CLIP_FLAG      (1 << 7)
+
+#define LP_OCTAVE_DOWN_FLAG    (1 << 8)
+#define LP_OCTAVE_UP_FLAG      (1 << 9)
+#define LP_TRANSPOSE_DOWN_FLAG (1 << 10)
+#define LP_TRANSPOSE_UP_FLAG   (1 << 11)
+
+#define LP_RECORD_FLAG         (1 << 12)
+#define LP_DOUBLE_FLAG         (1 << 13)
+#define LP_DUPLICATE_FLAG      (1 << 14)
+#define LP_QUANTISE_FLAG       (1 << 15)
+#define LP_DELETE_FLAG         (1 << 16)
+#define LP_UNDO_FLAG           (1 << 17)
+#define LP_CLICK_FLAG          (1 << 18)
+#define LP_SHIFT_FLAG          (1 << 19)
 
 #endif

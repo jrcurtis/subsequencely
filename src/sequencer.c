@@ -65,25 +65,25 @@ void sequencer_play_draw(Sequencer* sr)
     {
         Sequence* s = &sr->sequences[i];
 
-        if (flag_is_set(sr->flags, SQR_ARM_HELD))
+        if (modifier_held(LP_RECORD_ARM))
         {
             color = flag_is_set(s->flags, SEQ_ARMED)
                 ? number_colors[0]
                 : off_color;
         }
-        else if (flag_is_set(sr->flags, SQR_SELECT_HELD))
+        else if (modifier_held(LP_TRACK_SELECT))
         {
             color = sr->active_sequence == i
                 ? number_colors[2]
                 : off_color;
         }
-        else if (flag_is_set(sr->flags, SQR_MUTE_HELD))
+        else if (modifier_held(LP_MUTE))
         {
             color = flag_is_set(s->flags, SEQ_MUTED)
                 ? number_colors[1]
                 : off_color;
         }
-        else if (flag_is_set(sr->flags, SQR_SOLO_HELD))
+        else if (modifier_held(LP_SOLO))
         {
             color = flag_is_set(s->flags, SEQ_SOLOED)
                 ? number_colors[3]
@@ -123,57 +123,6 @@ void sequencer_play_draw(Sequencer* sr)
              ? number_colors[3] : off_color);
 }
 
-void sequencer_grid_draw(Sequencer* sr)
-{
-    Sequence* s = sequencer_get_active(sr);
-    u8 scale_deg = s->y % s->layout.scale->num_notes;
-    u8 octave = s->y / s->layout.scale->num_notes;
-    u8 index = FIRST_PAD;
-    u8 zoom = zoom_to_sequence_x(s);
-
-    for (u8 y = 0; y < GRID_SIZE; y++)
-    {
-        u8 note_number = s->layout.scale->offsets[scale_deg]
-            + s->layout.root_note
-            + NUM_NOTES * octave;
-
-        for (u8 x = 0; x < GRID_SIZE; x++)
-        {
-            u8 seq_x = grid_to_sequence_x(s, x);
-            Note* n = &s->notes[seq_x];
-            
-            if (n->note_number == note_number)
-            {
-                const u8* color = number_colors[seq_x & 3];
-                u8 dimness = min(100, 127 - n->velocity) / 25;
-                plot_pad_dim(index, color, dimness);
-            }
-            else if (s->playhead / zoom == x + s->x)
-            {
-                plot_pad(index, on_color);
-            }
-            else if (layout_is_root_note(&s->layout, note_number))
-            {
-                plot_pad(index, root_note_color);
-            }
-            else
-            {
-                plot_pad(index, off_color);
-            }
-
-            index++;
-        }
-
-        scale_deg++;
-        if (scale_deg >= s->layout.scale->num_notes)
-        {
-            scale_deg = 0;
-            octave++;
-        }
-
-        index += ROW_GAP;
-    }
-}
 
 
 /*******************************************************************************
@@ -193,15 +142,15 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
     u8 si = GRID_SIZE - 1 - (index - LP_FIRST_PLAY) / LP_PLAY_GAP;
     Sequence* s = &sr->sequences[si];
 
-    if (flag_is_set(sr->flags, SQR_ARM_HELD))
+    if (modifier_held(LP_RECORD_ARM))
     {
         s->flags = toggle_flag(s->flags, SEQ_ARMED);
     }
-    else if (flag_is_set(sr->flags, SQR_SELECT_HELD))
+    else if (modifier_held(LP_TRACK_SELECT))
     {
         sequencer_set_active(sr, si);
     }
-    else if (flag_is_set(sr->flags, SQR_MUTE_HELD))
+    else if (modifier_held(LP_MUTE))
     {
         s->flags = toggle_flag(s->flags, SEQ_MUTED);
 
@@ -211,7 +160,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
             sequence_kill_current_note(s);
         }
     }
-    else if (flag_is_set(sr->flags, SQR_SOLO_HELD))
+    else if (modifier_held(LP_SOLO))
     {
         s->flags = toggle_flag(s->flags, SEQ_SOLOED);
         sr->soloed_tracks += flag_is_set(s->flags, SEQ_SOLOED) ? 1 : -1;
@@ -260,33 +209,6 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
 
     return 1;
 }
-
-u8 sequencer_handle_modifiers(Sequencer* sr, u8 index, u8 value)
-{
-    if (index == LP_RECORD_ARM)
-    {
-        sr->flags = assign_flag(sr->flags, SQR_ARM_HELD, value > 0);
-    }
-    else if (index == LP_TRACK_SELECT)
-    {
-        sr->flags = assign_flag(sr->flags, SQR_SELECT_HELD, value > 0);
-    }
-    else if (index == LP_MUTE)
-    {
-        sr->flags = assign_flag(sr->flags, SQR_MUTE_HELD, value > 0);
-    }
-    else if (index == LP_SOLO)
-    {
-        sr->flags = assign_flag(sr->flags, SQR_SOLO_HELD, value > 0);
-    }
-    else
-    {
-        return 0;
-    }
-
-    return 1;
-}
-
 
 u8 sequencer_handle_record(Sequencer* sr)
 {

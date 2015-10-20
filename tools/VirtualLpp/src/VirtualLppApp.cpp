@@ -210,6 +210,8 @@ void VirtualLppApp::drawBottomPanel()
     ImGui::Value("BPM", khz_to_bpm((float)sequencer.tempo));
     ImGui::SameLine();
     ImGui::Text("Scale: %s", scaleSteps.data());
+    ImGui::SameLine();
+    ImGui::Text("Modifiers: 0x%08x", (unsigned int)modifiers);
     
     for (int seqI = 0; seqI < GRID_SIZE; seqI++)
     {

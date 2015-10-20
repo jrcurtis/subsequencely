@@ -3,6 +3,8 @@
 
 #include "buttons.h"
 
+u32 modifiers = 0x00000000;
+
 u8 index_to_pad(u8 i, u8* x, u8* y)
 {
     if (i < FIRST_PAD || i > LAST_PAD)
@@ -45,4 +47,32 @@ void clear_pad_leds()
             index += ROW_GAP;
         }
     }
+}
+
+void modifier_index_assign(u8 index, u8 value)
+{
+    u32 flag = 1;
+
+    if (index <= LP_STOP_CLIP)
+    {
+        flag <<= index - 1;
+    }
+    else if (index >= LP_OCTAVE_UP)
+    {
+        flag <<= index - LP_OCTAVE_UP + LP_STOP_CLIP;
+    }
+    else if (index >= LP_RECORD
+             && index <= LP_SHIFT
+             && (index - LP_RECORD) % ROW_SIZE == 0)
+    {
+        flag <<= (index - LP_RECORD) / ROW_SIZE
+            + LP_STOP_CLIP
+            + (LP_TRANSPOSE_UP - LP_OCTAVE_UP + 1);
+    }
+    else
+    {
+        return;
+    }
+
+    modifiers = assign_flag(modifiers, flag, value);
 }

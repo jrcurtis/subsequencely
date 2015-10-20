@@ -61,7 +61,6 @@ u8 midi_channel = 0;
 // Program state
 State state = NUM_MODES;
 u8 flags = 0;
-u8 shift_held = 0;
 u16 tap_tempo_timer = 1000;
 u16 tap_tempo_sum = 0;
 u8 tap_tempo_counter = 0;
@@ -183,7 +182,7 @@ void sequencer_setup_become_inactive()
 
 void sequencer_mode_draw()
 {
-    sequencer_grid_draw(&sequencer);
+    grid_draw(&sequencer);
     sequencer_play_draw(&sequencer);
 }
 
@@ -410,11 +409,9 @@ void set_state(State st, u8 setup)
 void app_surface_event(u8 type, u8 index, u8 value)
 {
 #ifndef SEQ_DEBUG
-    if (index == LP_SHIFT)
-    {
-        shift_held = value > 0;
-    }
-    else if (index == LP_SESSION && value > 0)
+    modifier_index_assign(index, value > 0);
+
+    if (index == LP_SESSION && value > 0)
     {
         set_state(SESSION_MODE, 0);
     }
@@ -430,7 +427,6 @@ void app_surface_event(u8 type, u8 index, u8 value)
     {
         set_state(state, !flag_is_set(flags, IS_SETUP));
     }
-    else if (sequencer_handle_modifiers(&sequencer, index, value)) { }
     else if (sequencer_handle_play(&sequencer, index, value)) { }
     else if (tap_tempo_handle_press(index, value)) { }
     else if (!flag_is_set(flags, IS_SETUP))

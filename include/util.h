@@ -55,6 +55,9 @@ u8 index_to_pad(u8 i, u8* x, u8* y);
                                      TYPESETUP, 0,                             \
                                      (c)[0], (c)[1], (c)[2]))
 
+extern u32 modifiers;
+#define modifier_held(m)        (flag_is_set(modifiers, m##_FLAG))
+void modifier_index_assign(u8 index, u8 value);
 
 void clear_leds();
 void clear_pad_leds();

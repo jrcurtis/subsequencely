@@ -14,11 +14,7 @@
 
 typedef enum
 {
-    SQR_ARM_HELD = 0x01,
-    SQR_SELECT_HELD = 0x02,
-    SQR_MUTE_HELD = 0x04,
-    SQR_SOLO_HELD = 0x08,
-    SQR_DIRTY = 0x10
+    SQR_DIRTY = 0x01
 } SequencerFlags;
 
 typedef Sequence Sequences[GRID_SIZE];
@@ -46,10 +42,8 @@ Sequence* sequencer_get_active(Sequencer* sr);
 Layout* sequencer_get_layout(Sequencer* sr);
 
 void sequencer_play_draw(Sequencer* sr);
-void sequencer_grid_draw(Sequencer* sr);
 
 u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value);
-u8 sequencer_handle_modifiers(Sequencer* sr, u8 index, u8 value);
 u8 sequencer_handle_record(Sequencer* sr);
 
 void sequencer_tick(Sequencer* sr);
