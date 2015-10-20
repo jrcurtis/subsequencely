@@ -4,11 +4,14 @@
 
 #include "app.h"
 #include "buttons.h"
+#include "checkbox.h"
 #include "colors.h"
 #include "keyboard.h"
 #include "layout.h"
+#include "number.h"
 #include "scale.h"
 #include "sequence.h"
+#include "slider.h"
 #include "voices.h"
 #include "util.h"
 
@@ -21,15 +24,23 @@ typedef Sequence Sequences[GRID_SIZE];
 
 typedef struct
 {
+    // Time handling
     u16 tempo;
     u16 timer;
 
+    // State
     u8 active_sequence;
     u8 soloed_tracks;
     u8 flags;
 
+    // UI widgets
+    Keyboard* keyboard;
+    Slider* row_offset_slider;
+    Checkbox* control_checkbox;
+    Number* control_number;
+
+    // Data
     Scale scale;
-    Keyboard keyboard;
     Voices voices;
     PadNotes pad_notes;
     Sequences sequences;

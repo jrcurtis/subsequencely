@@ -6,7 +6,7 @@
  * Note functions
  ******************************************************************************/
 
-void note_play(Note* n, u8 channel, u8 control_code)
+void note_play(Note* n, u8 channel, s8 control_code)
 {
     if (!flag_is_set(n->flags, NTE_ON))
     {
@@ -15,7 +15,7 @@ void note_play(Note* n, u8 channel, u8 control_code)
             NOTEON | channel,
             n->note_number, n->velocity);
 
-        if (n->aftertouch != -1)
+        if (n->aftertouch != -1 && control_code != -1)
         {
             send_midi(
                 CC | channel,
@@ -53,6 +53,7 @@ void sequence_init(Sequence* s, u8 channel)
     {
         s->notes[i].note_number = -1;
         s->notes[i].velocity = 0;
+        s->notes[i].aftertouch = -1;
         s->notes[i].flags = 0x00;
     }
 }
@@ -134,7 +135,10 @@ void sequence_play_note(Sequence* s, Note* n)
         }
     }
 
-    note_play(n, s->channel, s->control_code);
+    note_play(n, s->channel,
+              flag_is_set(s->flags, SEQ_RECORD_CONTROL)
+              ? s->control_code
+              : -1);
 }
 
 void sequence_play_current_note(Sequence* s)
@@ -234,31 +238,23 @@ void sequence_step(Sequence* s, u8 audible)
             {
                 if (n->note_number == next_n->note_number)
                 {
-                    LP_LOG("%d hold note %d", s->playhead, next_n->note_number);
-
                     n->flags = clear_flag(n->flags, NTE_ON);
                     next_n->flags = set_flag(next_n->flags, NTE_ON);
                 }
                 else
                 {
-                    LP_LOG("%d slide note %d", s->playhead, next_n->note_number);
-
                     sequence_play_note(s, next_n);
                     sequence_kill_note(s, n);
                 }
             }
             else
             {
-                LP_LOG("%d noslide note %d", s->playhead, next_n->note_number);
-
                 sequence_kill_note(s, n);
                 sequence_play_note(s, next_n);
             }
         }
         else
         {
-            LP_LOG("%d new note %d", s->playhead, next_n->note_number);
-
             sequence_play_note(s, next_n);
         }
 
@@ -304,8 +300,13 @@ u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
 
 u8 sequence_handle_aftertouch(Sequence* s, u8 index, u8 value)
 {
-    if (layout_handle_aftertouch(&s->layout, index, value, s->channel))
+    if (layout_handle_aftertouch(
+            &s->layout, index, value, s->channel,
+            flag_is_set(s->flags, SEQ_RECORD_CONTROL)
+                ? s->control_code
+                : -1))
     {
+
     }
     else
     {

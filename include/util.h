@@ -31,7 +31,7 @@
 #define bpm_to_khz(b)   (60000 / (b) / STEPS_PER_PAD)
 #define khz_to_bpm(k)   (60000 / (k * STEPS_PER_PAD))
 
-#define flag_is_set(v, f)    ((v) & (f))
+#define flag_is_set(v, f)    (((v) & (f)) != 0)
 #define set_flag(v, f)       ((v) | (f))
 #define clear_flag(v, f)     ((v) & ~(f))
 #define toggle_flag(v, f)    ((v) ^ (f))

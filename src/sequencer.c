@@ -35,9 +35,19 @@ void sequencer_set_octave(Sequencer* sr, u8 octave)
 void sequencer_set_active(Sequencer* sr, u8 i)
 {
     sequence_become_inactive(sequencer_get_active(sr));
+
     sr->active_sequence = i;
-    sequence_become_active(&sr->sequences[i]);
-    keyboard_init(&sr->keyboard, sequencer_get_layout(sr));
+    Sequence* s = &sr->sequences[i];
+    sequence_become_active(s);
+
+    keyboard_init(sr->keyboard, &s->layout);
+    slider_set_value(sr->row_offset_slider,
+                     s->layout.row_offset);
+    checkbox_set_value(sr->control_checkbox,
+                       flag_is_set(s->flags, SEQ_RECORD_CONTROL));
+    number_set_value(sr->control_number,
+                     s->control_code);
+
     voices_reset(&sr->voices);
 }
 
@@ -106,21 +116,31 @@ void sequencer_play_draw(Sequencer* sr)
         }
 
         // If any tracks are muted/soloed, turn those indicators on.
-        active_flags |= flag_is_set(s->flags, SEQ_MUTED);
-        active_flags |= flag_is_set(s->flags, SEQ_SOLOED);
+        active_flags |= flag_is_set(s->flags, SEQ_MUTED) ? SEQ_MUTED : 0;
+        active_flags |= flag_is_set(s->flags, SEQ_SOLOED) ? SEQ_SOLOED : 0;
 
         plot_pad(play_index, color);
         play_index -= LP_PLAY_GAP;
     }
     
     
-    plot_pad(LP_RECORD_ARM, flag_is_set(active_flags, SEQ_ARMED)
-             ? number_colors[0] : off_color);
-    plot_pad(LP_TRACK_SELECT, sequence_colors[sr->active_sequence]);
-    plot_pad(LP_MUTE, flag_is_set(active_flags, SEQ_MUTED)
-        ? number_colors[1] : off_color);
-    plot_pad(LP_SOLO, flag_is_set(active_flags, SEQ_SOLOED)
-             ? number_colors[3] : off_color);
+    plot_pad(LP_RECORD_ARM,
+        flag_is_set(active_flags, SEQ_ARMED)
+             ? number_colors[0]
+             : off_color);
+    
+    plot_pad(LP_TRACK_SELECT,
+        sequence_colors[sr->active_sequence]);
+    
+    plot_pad(LP_MUTE,
+        flag_is_set(active_flags, SEQ_MUTED)
+            ? number_colors[1]
+            : off_color);
+    
+    plot_pad(LP_SOLO,
+        flag_is_set(active_flags, SEQ_SOLOED)
+             ? number_colors[3]
+             : off_color);
 }
 
 

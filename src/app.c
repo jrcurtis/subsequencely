@@ -65,17 +65,16 @@ u16 tap_tempo_timer = 1000;
 u16 tap_tempo_sum = 0;
 u8 tap_tempo_counter = 0;
 
-// Notes setup
-Slider row_offset_slider;
-Checkbox port_checkbox;
-Checkbox control_checkbox;
-Number control_number;
-
-// Sequencer
+// Data
 Sequencer sequencer;
 
-// Sequencer setup
+// UI
+Checkbox port_checkbox;
 Slider tempo_slider;
+Keyboard keyboard;
+Slider row_offset_slider;
+Checkbox control_checkbox;
+Number control_number;
 
 /*******************************************************************************
  * App functionality
@@ -240,16 +239,7 @@ void notes_mode_become_inactive()
 
 void notes_setup_become_active()
 {
-    slider_set_value(
-        &row_offset_slider,
-        sequencer_get_layout(&sequencer)->row_offset);
 
-    Sequence* s = sequencer_get_active(&sequencer);
-    checkbox_set_value(
-        &control_checkbox,
-        flag_is_set(s->flags, SEQ_RECORD_CONTROL) != 0);
-
-    number_set_value(&control_number, s->control_code);
 } 
 
 void notes_setup_become_inactive()
@@ -264,7 +254,7 @@ void notes_mode_draw()
 
 void notes_setup_draw()
 {
-    keyboard_draw(&sequencer.keyboard);
+    keyboard_draw(&keyboard);
     slider_draw(&row_offset_slider);
     checkbox_draw(&port_checkbox);
     checkbox_draw(&control_checkbox);
@@ -277,7 +267,7 @@ u8 notes_mode_handle_press(u8 index, u8 value)
 
     if (layout_handle_transpose(l, index, value))
     {
-        keyboard_update_indices(&sequencer.keyboard);
+        keyboard_update_indices(&keyboard);
     }
     else if (sequence_handle_press(
                  sequencer_get_active(&sequencer), index, value))
@@ -317,13 +307,13 @@ u8 notes_setup_handle_press(u8 index, u8 value)
     }
     else if (number_handle_press(&control_number, index, value))
     {
-        s->control_code = control_number.value;
+        s->control_code = min(control_number.value, 119);
     }
     else if (layout_handle_transpose(l, index, value))
     {
-        keyboard_update_indices(&sequencer.keyboard);
+        keyboard_update_indices(&keyboard);
     }
-    else if (keyboard_handle_press(&sequencer.keyboard, index, value)) { }
+    else if (keyboard_handle_press(&keyboard, index, value)) { }
     else
     {
         return 0;
@@ -607,7 +597,6 @@ void app_timer_event()
 void app_init()
 {
 #ifndef SEQ_DEBUG
-    sequencer_init(&sequencer);
     slider_init(
         &tempo_slider,
         HORIZONTAL, 7, slider_color,
@@ -625,6 +614,12 @@ void app_init()
     checkbox_init(&control_checkbox, coord_to_index(0, 7), 0);
 
     number_init(&control_number, 7, coord_to_index(1, 7), 0);
+
+    sequencer.keyboard = &keyboard;
+    sequencer.row_offset_slider = &row_offset_slider;
+    sequencer.control_checkbox = &control_checkbox;
+    sequencer.control_number = &control_number;
+    sequencer_init(&sequencer);
 
     set_state(NOTES_MODE, 0);
 #else

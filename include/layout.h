@@ -77,6 +77,7 @@ u8 layout_handle_transpose(Layout* l, u8 index, u8 value);
 u8 layout_handle_press(Layout* l, u8 index, u8 value, u8 midi_channel);
 
 /// Sends aftertouch for a note on the grid.
-u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel);
+u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value,
+                            u8 midi_channel, s8 control_code);
 
 #endif

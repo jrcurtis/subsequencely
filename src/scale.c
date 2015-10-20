@@ -39,7 +39,7 @@ void scale_update_offsets(Scale* s)
 
 u8 scale_contains_note(Scale* s, u8 note)
 {
-    return flag_is_set(s->notes, 1 << note) != 0;
+    return flag_is_set(s->notes, 1 << note);
 }
 
 void scale_toggle_note(Scale* s, u8 note)

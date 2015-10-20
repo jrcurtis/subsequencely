@@ -204,11 +204,21 @@ void VirtualLppApp::drawBottomPanel()
     }
     scaleSteps += to_string(12 - lastOffset);
     
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0.3, 0.3, 1));
     ImGui::Value("BPM", khz_to_bpm((float)sequencer.tempo));
+    ImGui::PopStyleColor();
     ImGui::SameLine();
+    
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.3, 0.7, 1, 1));
     ImGui::Text("Scale: %s", scaleSteps.data());
+    ImGui::PopStyleColor();
     ImGui::SameLine();
+    
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.3, 1, 0.3, 1));
     ImGui::Text("Modifiers: 0x%08x", (unsigned int)modifiers);
+    ImGui::PopStyleColor();
+    
+    ImGui::Separator();
     
     for (int seqI = 0; seqI < GRID_SIZE; seqI++)
     {
@@ -245,15 +255,24 @@ void VirtualLppApp::drawSequenceNotes(Sequence& s)
         Note& n = s.notes[stepI];
         
         ImVec4 color =
-        s.playhead == stepI ? ImVec4(0.2, 0.2, 0.2, 1)
-        : flag_is_set(n.flags, NTE_SLIDE) ? ImVec4(0, 0, 0.3, 1)
-        : n.note_number > -1 ? ImVec4(0, 0.3, 0, 1)
-        : ImVec4(0.2, 0, 0, 1);
+            s.playhead == stepI ? ImVec4(0.2, 0.2, 0.2, 1)
+            : flag_is_set(n.flags, NTE_SLIDE) ? ImVec4(0, 0, 0.3, 1)
+            : n.note_number > -1 ? ImVec4(0, 0.3, 0, 1)
+            : ImVec4(0.2, 0, 0, 1);
+        ImVec4 hoverColor = ImVec4(color.x * 1.1, color.y * 1.1, color.z * 1.1, 1);
+
         ImGui::PushStyleColor(ImGuiCol_Button, color);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, hoverColor);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, hoverColor);
         
         ImGui::SmallButton(to_string(n.note_number).data());
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip("Velocity: %d\nControl: %d", n.velocity, n.aftertouch);
+        }
         
-        ImGui::PopStyleColor();
+        ImGui::PopStyleColor(3);
+        
         ImGui::SameLine();
     }
     ImGui::Dummy(ImVec2(0, 0));
@@ -265,15 +284,15 @@ void VirtualLppApp::drawSequenceInfo(Sequence& s)
         flag_is_set(s.flags, SEQ_PLAYING)
             ? "Playing" : "Stopped");
     
-    ImGui::Value("Muted", flag_is_set(s.flags, SEQ_MUTED) != 0);
-    ImGui::Value("Soloed", flag_is_set(s.flags, SEQ_SOLOED) != 0);
-    ImGui::Value("Armed", flag_is_set(s.flags, SEQ_ARMED) != 0);
+    ImGui::Value("Muted", flag_is_set(s.flags, SEQ_MUTED));
+    ImGui::Value("Soloed", flag_is_set(s.flags, SEQ_SOLOED));
+    ImGui::Value("Armed", flag_is_set(s.flags, SEQ_ARMED));
 
     ImGui::Value("Octave", s.layout.octave);
     ImGui::Value("Root Note", s.layout.root_note);
     ImGui::Value("Channel", s.channel);
     
-    ImGui::Value("Record Control", flag_is_set(s.flags, SEQ_RECORD_CONTROL) != 0);
+    ImGui::Value("Record Control", flag_is_set(s.flags, SEQ_RECORD_CONTROL));
     ImGui::Value("Control Code", s.control_code);
 }
 
