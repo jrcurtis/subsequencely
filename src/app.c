@@ -68,6 +68,8 @@ u8 tap_tempo_counter = 0;
 // Notes setup
 Slider row_offset_slider;
 Checkbox port_checkbox;
+Checkbox control_checkbox;
+Number control_number;
 
 // Sequencer
 Sequencer sequencer;
@@ -241,6 +243,13 @@ void notes_setup_become_active()
     slider_set_value(
         &row_offset_slider,
         sequencer_get_layout(&sequencer)->row_offset);
+
+    Sequence* s = sequencer_get_active(&sequencer);
+    checkbox_set_value(
+        &control_checkbox,
+        flag_is_set(s->flags, SEQ_RECORD_CONTROL) != 0);
+
+    number_set_value(&control_number, s->control_code);
 } 
 
 void notes_setup_become_inactive()
@@ -258,6 +267,8 @@ void notes_setup_draw()
     keyboard_draw(&sequencer.keyboard);
     slider_draw(&row_offset_slider);
     checkbox_draw(&port_checkbox);
+    checkbox_draw(&control_checkbox);
+    number_draw(&control_number);
 }
 
 u8 notes_mode_handle_press(u8 index, u8 value)
@@ -268,9 +279,8 @@ u8 notes_mode_handle_press(u8 index, u8 value)
     {
         keyboard_update_indices(&sequencer.keyboard);
     }
-    else if (layout_play(
-                 l, index, value,
-                 sequencer_get_active(&sequencer)->channel))
+    else if (sequence_handle_press(
+                 sequencer_get_active(&sequencer), index, value))
     {
         if (value > 0)
         {
@@ -287,7 +297,8 @@ u8 notes_mode_handle_press(u8 index, u8 value)
 
 u8 notes_setup_handle_press(u8 index, u8 value)
 {
-    Layout* l = sequencer_get_layout(&sequencer);
+    Sequence* s = sequencer_get_active(&sequencer);
+    Layout* l = &s->layout;
 
     if (slider_handle_press(&row_offset_slider, index, value))
     {
@@ -296,6 +307,17 @@ u8 notes_setup_handle_press(u8 index, u8 value)
     else if (checkbox_handle_press(&port_checkbox, index, value))
     {
         midi_port = port_checkbox.value ? DINMIDI : USBMIDI;
+    }
+    else if (checkbox_handle_press(&control_checkbox, index, value))
+    {
+        s->flags = assign_flag(
+            s->flags,
+            SEQ_RECORD_CONTROL,
+            control_checkbox.value);
+    }
+    else if (number_handle_press(&control_number, index, value))
+    {
+        s->control_code = control_number.value;
     }
     else if (layout_handle_transpose(l, index, value))
     {
@@ -521,10 +543,16 @@ void app_aftertouch_event(u8 index, u8 value)
 #ifndef SEQ_DEBUG
     if (state == NOTES_MODE && !flag_is_set(flags, IS_SETUP))
     {
-        layout_aftertouch(
-            sequencer_get_layout(&sequencer),
-            index, value,
-            sequencer_get_active(&sequencer)->channel);
+        sequence_handle_aftertouch(
+            sequencer_get_active(&sequencer), index, value);
+    }
+    else if (state == SEQUENCER_MODE && flag_is_set(flags, IS_SETUP))
+    {
+        if (slider_handle_press(&tempo_slider, index, value))
+        {
+            sequencer.tempo = bpm_to_khz(slider_get_value(&tempo_slider));
+            slider_draw(&tempo_slider);
+        }
     }
 #else
     send_midi(
@@ -591,7 +619,12 @@ void app_init()
         HORIZONTAL, 2, slider_color,
         1, 0,
         0);
+
     checkbox_init(&port_checkbox, coord_to_index(0, 3), 0);
+
+    checkbox_init(&control_checkbox, coord_to_index(0, 7), 0);
+
+    number_init(&control_number, 7, coord_to_index(1, 7), 0);
 
     set_state(NOTES_MODE, 0);
 #else

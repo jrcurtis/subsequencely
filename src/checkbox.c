@@ -8,6 +8,11 @@ void checkbox_init(Checkbox* c, u8 pos, u8 value)
     c->value = value;
 }
 
+void checkbox_set_value(Checkbox* c, u8 value)
+{
+    c->value = value != 0;
+}
+
 void checkbox_draw(Checkbox* c)
 {
     plot_pad(c->pos, number_colors[c->value ? 2 : 0]);

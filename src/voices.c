@@ -5,6 +5,7 @@ void voices_init(Voices* vs)
 {
     vs->max_index = -1;
     vs->velocity = 0;
+    vs->aftertouch = 0;
 
     for (u8 i = 0; i < NUM_VOICES; i++)
     {
@@ -32,6 +33,7 @@ void voices_add(Voices* vs, u8 note_number, u8 velocity)
 
 void voices_remove(Voices* vs, u8 note_number)
 {
+    u8 max_aftertouch = 0;
     u8 i;
     for (i = 0; i <= vs->max_index; i++)
     {
@@ -40,11 +42,43 @@ void voices_remove(Voices* vs, u8 note_number)
             vs->max_index--;
             break;
         }
+        else
+        {
+            max_aftertouch = max(max_aftertouch, vs->voices[i].aftertouch);
+        }
     }
 
     for (; i <= vs->max_index; i++)
     {
         vs->voices[i] = vs->voices[i + 1];
+        max_aftertouch = max(max_aftertouch, vs->voices[i].aftertouch);
+    }
+
+    vs->aftertouch = max_aftertouch;
+}
+
+u8 voices_handle_aftertouch(Voices* vs, u8 note_number, u8 aftertouch)
+{
+    u8 max_aftertouch = 0;
+
+    for (u8 i = 0; i <= vs->max_index; i++)
+    {
+        if (vs->voices[i].note_number == note_number)
+        {
+            vs->voices[i].aftertouch = aftertouch;
+        }
+
+        max_aftertouch = max(max_aftertouch, vs->voices[i].aftertouch);
+    }
+
+    if (max_aftertouch != vs->aftertouch)
+    {
+        vs->aftertouch = max_aftertouch;
+        return 1;
+    }
+    else
+    {
+        return 0;
     }
 }
 
@@ -68,4 +102,6 @@ u8 voices_get_num_active(Voices* vs)
 void voices_reset(Voices* vs)
 {
     vs->max_index = -1;
+    vs->velocity = 0;
+    vs->aftertouch = 0;
 }

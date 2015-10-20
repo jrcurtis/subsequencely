@@ -6,7 +6,7 @@
  * Note functions
  ******************************************************************************/
 
-void note_play(Note* n, u8 channel)
+void note_play(Note* n, u8 channel, u8 control_code)
 {
     if (!flag_is_set(n->flags, NTE_ON))
     {
@@ -14,6 +14,13 @@ void note_play(Note* n, u8 channel)
         send_midi(
             NOTEON | channel,
             n->note_number, n->velocity);
+
+        if (n->aftertouch != -1)
+        {
+            send_midi(
+                CC | channel,
+                control_code, n->aftertouch);
+        }
     }
 }
 
@@ -35,6 +42,7 @@ void note_kill(Note* n, u8 channel)
 void sequence_init(Sequence* s, u8 channel)
 {
     s->channel = channel;
+    s->control_code = 0;
     s->playhead = 0;
     s->x = 0;
     s->y = 0;
@@ -126,7 +134,7 @@ void sequence_play_note(Sequence* s, Note* n)
         }
     }
 
-    note_play(n, s->channel);
+    note_play(n, s->channel, s->control_code);
 }
 
 void sequence_play_current_note(Sequence* s)
@@ -178,6 +186,10 @@ void sequence_handle_record(Sequence* s, u8 press)
             {
                 n->flags = set_flag(n->flags, NTE_SLIDE);
             }
+
+            n->aftertouch = flag_is_set(s->flags, SEQ_RECORD_CONTROL)
+                ? s->layout.voices->aftertouch
+                : -1;
 
             n->note_number = played_note;
             n->velocity = s->layout.voices->velocity;
@@ -273,4 +285,32 @@ void sequence_off_step(Sequence* s)
             sequence_kill_note(s, n);
         }
     }
+}
+
+/*******************************************************************************
+ * Button handling
+ ******************************************************************************/
+
+u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
+{
+    if (layout_handle_press(&s->layout, index, value, s->channel)) { }
+    else
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+u8 sequence_handle_aftertouch(Sequence* s, u8 index, u8 value)
+{
+    if (layout_handle_aftertouch(&s->layout, index, value, s->channel))
+    {
+    }
+    else
+    {
+        return 0;
+    }
+
+    return 1;
 }

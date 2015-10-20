@@ -110,15 +110,12 @@ void VirtualLppApp::mouseDown(MouseEvent event)
 {
     lock_guard<mutex> lock(lppMutex);
     lpp.mouseDown(event);
-    io.MouseDown[0] = true;
-    io.MousePos = ImVec2(event.getX(), event.getY());
 }
 
 void VirtualLppApp::mouseUp(MouseEvent event)
 {
     lock_guard<mutex> lock(lppMutex);
     lpp.mouseUp(event);
-    io.MouseDown[0] = false;
 }
 
 void VirtualLppApp::mouseDrag(MouseEvent event)
@@ -275,6 +272,9 @@ void VirtualLppApp::drawSequenceInfo(Sequence& s)
     ImGui::Value("Octave", s.layout.octave);
     ImGui::Value("Root Note", s.layout.root_note);
     ImGui::Value("Channel", s.channel);
+    
+    ImGui::Value("Record Control", flag_is_set(s.flags, SEQ_RECORD_CONTROL) != 0);
+    ImGui::Value("Control Code", s.control_code);
 }
 
 

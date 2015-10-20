@@ -74,9 +74,9 @@ void layout_light_note(Layout* l, u8 note_number, u8 velocity, u8 on);
 u8 layout_handle_transpose(Layout* l, u8 index, u8 value);
 
 /// Plays a note on the grid.
-u8 layout_play(Layout* l, u8 index, u8 value, u8 midi_channel);
+u8 layout_handle_press(Layout* l, u8 index, u8 value, u8 midi_channel);
 
 /// Sends aftertouch for a note on the grid.
-u8 layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel);
+u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel);
 
 #endif

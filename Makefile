@@ -4,7 +4,7 @@ TOOLS = tools
 
 SOURCES += src/app.c src/scale.c src/layout.c src/keyboard.c src/colors.c      \
            src/util.c src/slider.c src/sequencer.c src/voices.c src/sequence.c \
-           src/session.c src/grid.c src/checkbox.c
+           src/session.c src/grid.c src/checkbox.c src/number.c
 
 INCLUDES += -Iinclude -I
 

@@ -161,7 +161,7 @@ u8 layout_handle_transpose(Layout* l, u8 index, u8 value)
     return 1;
 }
 
-u8 layout_play(Layout* l, u8 index, u8 value, u8 midi_channel)
+u8 layout_handle_press(Layout* l, u8 index, u8 value, u8 midi_channel)
 {
     u8 x, y;
 
@@ -200,7 +200,7 @@ u8 layout_play(Layout* l, u8 index, u8 value, u8 midi_channel)
     return 1;
 }
 
-u8 layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel)
+u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel)
 {
     u8 x, y;
 
@@ -213,6 +213,13 @@ u8 layout_aftertouch(Layout* l, u8 index, u8 value, u8 midi_channel)
             send_midi(
                 POLYAFTERTOUCH | midi_channel,
                 note_number, value);
+
+            if (voices_handle_aftertouch(l->voices, note_number, value))
+            {
+                send_midi(
+                    CHANNELAFTERTOUCH | midi_channel,
+                    value, 0x00);
+            }
         }
     }
     else

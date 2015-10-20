@@ -85,7 +85,7 @@ void slider_draw(Slider* s)
         u8 diff = s->value - prev_value;
         if (diff < s->resolution)
         {
-            dimness = s->resolution - diff;
+            dimness = 5 * (s->resolution - diff) / s->resolution;
         }
 
         plot_pad_dim(coord_to_index(x, y), color, dimness);

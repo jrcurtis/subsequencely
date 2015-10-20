@@ -10,6 +10,7 @@
 #include "grid.h"
 #include "keyboard.h"
 #include "layout.h"
+#include "number.h"
 #include "scale.h"
 #include "sequence.h"
 #include "sequencer.h"

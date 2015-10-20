@@ -14,6 +14,8 @@ typedef struct
 
 void checkbox_init(Checkbox* c, u8 pos, u8 value);
 
+void checkbox_set_value(Checkbox* c, u8 value);
+
 void checkbox_draw(Checkbox* c);
 
 u8 checkbox_handle_press(Checkbox* c, u8 index, u8 value);

@@ -38,7 +38,7 @@ void sequencer_set_active(Sequencer* sr, u8 i)
     sr->active_sequence = i;
     sequence_become_active(&sr->sequences[i]);
     keyboard_init(&sr->keyboard, sequencer_get_layout(sr));
-    voices_init(&sr->voices);
+    voices_reset(&sr->voices);
 }
 
 Sequence* sequencer_get_active(Sequencer* sr)
