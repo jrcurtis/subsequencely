@@ -25,7 +25,8 @@ typedef Sequence Sequences[GRID_SIZE];
 typedef struct
 {
     // Time handling
-    u16 tempo;
+    u16 step_millis;
+    u8 clock_millis;
     u16 timer;
 
     // State
@@ -49,6 +50,8 @@ typedef struct
 } Sequencer;
 
 void sequencer_init(Sequencer* sr);
+void sequencer_set_tempo_millis(Sequencer* sr, u16 millis);
+void sequencer_set_tempo(Sequencer* sr, u16 bpm);
 void sequencer_set_octave(Sequencer* sr, u8 octave);
 void sequencer_set_active(Sequencer* sr, u8 i);
 Sequence* sequencer_get_active(Sequencer* sr);

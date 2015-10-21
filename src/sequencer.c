@@ -8,7 +8,7 @@
 
 void sequencer_init(Sequencer* sr)
 {
-    sr->tempo = bpm_to_khz(DEFAULT_TEMPO);
+    sequencer_set_tempo(sr, DEFAULT_TEMPO);
     sr->timer = 0;
     sr->active_sequence = 0;
     sr->soloed_tracks = 0;
@@ -24,6 +24,17 @@ void sequencer_init(Sequencer* sr)
     }
 
     sequencer_set_active(sr, 0);
+}
+
+void sequencer_set_tempo_millis(Sequencer* sr, u16 millis)
+{
+    sr->step_millis = millis;
+    sr->clock_millis = sr->step_millis / TICKS_PER_STEP;
+}
+
+void sequencer_set_tempo(Sequencer* sr, u16 bpm)
+{
+    sequencer_set_tempo_millis(sr, bpm_to_millis(bpm));
 }
 
 void sequencer_set_octave(Sequencer* sr, u8 octave)
@@ -252,9 +263,27 @@ void sequencer_tick(Sequencer* sr)
 {
     sr->timer++;
 
-    if (sr->timer < sr->tempo)
+    u16 channels = 0x0000;
+
+    if (sr->timer % sr->clock_millis == 0)
     {
-        if (sr->timer == sr->tempo / 2)
+        for (u8 i = 0; i < GRID_SIZE; i++)
+        {
+            Sequence* s = &sr->sequences[i];
+            u16 channel_flag = 1 << s->channel;
+
+            if (!flag_is_set(channels, channel_flag)
+                && flag_is_set(s->flags, SEQ_PLAYING))
+            {
+                channels = set_flag(channels, channel_flag);
+                send_midi(MIDITIMINGCLOCK, 0x00, 0x00);
+            }
+        }
+    }
+
+    if (sr->timer < sr->step_millis)
+    {
+        if (sr->timer == sr->step_millis / 2)
         {
             for (u8 i = 0; i < GRID_SIZE; i++)
             {
@@ -274,6 +303,7 @@ void sequencer_tick(Sequencer* sr)
         u8 audible = !flag_is_set(s->flags, SEQ_MUTED)
             && (sr->soloed_tracks == 0
                 || flag_is_set(s->flags, SEQ_SOLOED));
+
         sequence_step(s, audible);
     }
 }

@@ -205,7 +205,7 @@ void VirtualLppApp::drawBottomPanel()
     scaleSteps += to_string(12 - lastOffset);
     
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0.3, 0.3, 1));
-    ImGui::Value("BPM", khz_to_bpm((float)sequencer.tempo));
+    ImGui::Value("BPM", millis_to_bpm((float)sequencer.step_millis));
     ImGui::PopStyleColor();
     ImGui::SameLine();
     

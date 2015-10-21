@@ -112,8 +112,11 @@ u8 tap_tempo_handle_press(u8 index, u8 value)
         {
             if (tap_tempo_counter >= 3)
             {
-                sequencer.tempo = tap_tempo_sum / tap_tempo_counter
-                    / STEPS_PER_PAD;
+                sequencer_set_tempo_millis(
+                    &sequencer,
+                    tap_tempo_sum
+                    / tap_tempo_counter
+                    / STEPS_PER_PAD);
             }
         }
         else
@@ -214,7 +217,7 @@ void sequencer_setup_draw()
 {
     sequencer_play_draw(&sequencer);
 
-    slider_set_value(&tempo_slider, khz_to_bpm(sequencer.tempo));
+    slider_set_value(&tempo_slider, millis_to_bpm(sequencer.step_millis));
     slider_draw(&tempo_slider);
 }
 
@@ -233,7 +236,7 @@ u8 sequencer_setup_handle_press(u8 index, u8 value)
 {
     if (slider_handle_press(&tempo_slider, index, value))
     {
-        sequencer.tempo = bpm_to_khz(slider_get_value(&tempo_slider));
+        sequencer_set_tempo(&sequencer, slider_get_value(&tempo_slider));
     }
     else
     {
@@ -568,7 +571,7 @@ void app_aftertouch_event(u8 index, u8 value)
     {
         if (slider_handle_press(&tempo_slider, index, value))
         {
-            sequencer.tempo = bpm_to_khz(slider_get_value(&tempo_slider));
+            sequencer_set_tempo(&sequencer, slider_get_value(&tempo_slider));
             slider_draw(&tempo_slider);
         }
     }

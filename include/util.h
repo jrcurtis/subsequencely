@@ -19,6 +19,8 @@
 #define LAST_PAD  (FIRST_PAD + GRID_SIZE * ROW_SIZE - (ROW_GAP + 1))
 
 #define STEPS_PER_PAD    (4)
+#define TICKS_PER_BEAT   (24)
+#define TICKS_PER_STEP   (TICKS_PER_BEAT / STEPS_PER_PAD)
 #define SEQUENCE_LENGTH  (STEPS_PER_PAD * GRID_SIZE)
 #define MAX_ZOOM         (2)
 #define DEFAULT_TEMPO    (90)
@@ -28,8 +30,8 @@
 #define clamp(x, a, b)  (min((b), max((a), (x))))
 #define abs(a)          ((a) < 0 ? -(a) : (a))
 
-#define bpm_to_khz(b)   (60000 / (b) / STEPS_PER_PAD)
-#define khz_to_bpm(k)   (60000 / (k * STEPS_PER_PAD))
+#define bpm_to_millis(b)     (60000 / (b) / STEPS_PER_PAD)
+#define millis_to_bpm(m)     (60000 / ((m) * STEPS_PER_PAD))
 
 #define flag_is_set(v, f)    (((v) & (f)) != 0)
 #define set_flag(v, f)       ((v) | (f))
