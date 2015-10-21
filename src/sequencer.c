@@ -8,8 +8,11 @@
 
 void sequencer_init(Sequencer* sr)
 {
+    sr->swing_millis = 0;
+    sr->step_millis = 100;
     sequencer_set_tempo(sr, DEFAULT_TEMPO);
     sr->timer = 0;
+    sr->master_sequence = 0xFF;
     sr->active_sequence = 0;
     sr->soloed_tracks = 0;
     sr->flags = 0x00;
@@ -28,13 +31,22 @@ void sequencer_init(Sequencer* sr)
 
 void sequencer_set_tempo_millis(Sequencer* sr, u16 millis)
 {
+    s8 swing = 6 * sr->swing_millis / sr->step_millis;
+
     sr->step_millis = millis;
     sr->clock_millis = sr->step_millis / TICKS_PER_STEP;
+
+    sequencer_set_swing(sr, swing);
 }
 
 void sequencer_set_tempo(Sequencer* sr, u16 bpm)
 {
     sequencer_set_tempo_millis(sr, bpm_to_millis(bpm));
+}
+
+void sequencer_set_swing(Sequencer* sr, s8 swing)
+{
+    sr->swing_millis = sr->step_millis * swing / 6;
 }
 
 void sequencer_set_octave(Sequencer* sr, u8 octave)
@@ -234,6 +246,10 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
     // If the sequence is playing, stop it and reset the playhead.
     else if (flag_is_set(s->flags, SEQ_PLAYING))
     {
+        if (si == sr->master_sequence)
+        {
+            sr->master_sequence = 0xFF;
+        }
         sequence_stop(s, &s->layout);
     }
     // Otherwise, queue it to start playing on the next step.
@@ -277,11 +293,21 @@ void sequencer_tick(Sequencer* sr)
             {
                 channels = set_flag(channels, channel_flag);
                 send_midi(MIDITIMINGCLOCK, 0x00, 0x00);
+
+                if (i < sr->master_sequence) sr->master_sequence = i;
             }
         }
     }
 
-    if (sr->timer < sr->step_millis)
+    u16 step_millis = sr->step_millis;
+    if (sr->master_sequence < GRID_SIZE)
+    {
+        step_millis += sr->sequences[sr->master_sequence].playhead % 2 == 0
+            ? sr->swing_millis
+            : -sr->swing_millis;
+    }
+
+    if (sr->timer < step_millis)
     {
         if (sr->timer == sr->step_millis / 2)
         {

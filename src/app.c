@@ -70,9 +70,13 @@ Sequencer sequencer;
 
 // UI
 Checkbox port_checkbox;
+
 Slider tempo_slider;
+Slider swing_slider;
+
 Keyboard keyboard;
 Slider row_offset_slider;
+
 Checkbox control_checkbox;
 Number control_number;
 Slider control_sens_slider;
@@ -219,6 +223,8 @@ void sequencer_setup_draw()
 
     slider_set_value(&tempo_slider, millis_to_bpm(sequencer.step_millis));
     slider_draw(&tempo_slider);
+
+    slider_draw(&swing_slider);
 }
 
 u8 sequencer_mode_handle_press(u8 index, u8 value)
@@ -237,6 +243,10 @@ u8 sequencer_setup_handle_press(u8 index, u8 value)
     if (slider_handle_press(&tempo_slider, index, value))
     {
         sequencer_set_tempo(&sequencer, slider_get_value(&tempo_slider));
+    }
+    else if (slider_handle_press(&swing_slider, index, value))
+    {
+        sequencer_set_swing(&sequencer, slider_get_value(&swing_slider));
     }
     else
     {
@@ -633,6 +643,12 @@ void app_init()
         HORIZONTAL, 7, slider_color,
         15, 60,
         DEFAULT_TEMPO);
+
+    slider_init(
+        &swing_slider,
+        HORIZONTAL, 6, number_colors[3],
+        1, -4,
+        0);
 
     slider_init(
         &row_offset_slider,

@@ -21,8 +21,9 @@
                                            ))
 typedef enum
 {
-    NTE_ON = 0x01,
-    NTE_SLIDE = 0x02
+    NTE_ON = 1 << 0,
+    NTE_SLIDE = 1 << 1,
+    NTE_SKIP = 1 << 2
 } NoteFlags;
 
 typedef enum

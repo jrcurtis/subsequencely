@@ -7,7 +7,17 @@ u32 modifiers = 0x00000000;
 
 u8 index_to_pad(u8 i, u8* x, u8* y)
 {
-    if (i < FIRST_PAD || i > LAST_PAD)
+    static u8 last_i = 0xFF;
+    static u8 last_x = 0;
+    static u8 last_y = 0;
+
+    if (i == last_i)
+    {
+        *x = last_x;
+        *y = last_y;
+        return 1;
+    }
+    else if (i < FIRST_PAD || i > LAST_PAD)
     {
         return 0;
     }
@@ -21,6 +31,10 @@ u8 index_to_pad(u8 i, u8* x, u8* y)
 
     *x = mod - 1;
     *y = i / ROW_SIZE - 1;
+
+    last_i = i;
+    last_x = *x;
+    last_y = *y;
 
     return 1;
 }

@@ -209,6 +209,11 @@ void VirtualLppApp::drawBottomPanel()
     ImGui::PopStyleColor();
     ImGui::SameLine();
     
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0.7, 0.3, 1));
+    ImGui::Text("Swing: %.2f", 100.0f * sequencer.step_millis / sequencer.swing_millis);
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+    
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.3, 0.7, 1, 1));
     ImGui::Text("Scale: %s", scaleSteps.data());
     ImGui::PopStyleColor();
