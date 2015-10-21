@@ -210,7 +210,9 @@ void VirtualLppApp::drawBottomPanel()
     ImGui::SameLine();
     
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0.7, 0.3, 1));
-    ImGui::Text("Swing: %.2f", 100.0f * sequencer.step_millis / sequencer.swing_millis);
+    ImGui::Text("Swing: %.2f%%",
+                100.0f * (sequencer.swing_millis + sequencer.step_millis)
+                / (2 * sequencer.step_millis));
     ImGui::PopStyleColor();
     ImGui::SameLine();
     

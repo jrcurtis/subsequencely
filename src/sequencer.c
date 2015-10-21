@@ -83,6 +83,20 @@ Sequence* sequencer_get_active(Sequencer* sr)
     return &sr->sequences[sr->active_sequence];
 }
 
+void sequencer_find_master_sequence(Sequencer* sr)
+{
+    sr->master_sequence = 0xFF;
+
+    for (u8 i = 0; i < GRID_SIZE; i++)
+    {
+        if (flag_is_set(sr->sequences[i].flags, SEQ_PLAYING))
+        {
+            sr->master_sequence = i;
+            break;
+        }
+    }
+}
+
 Layout* sequencer_get_layout(Sequencer* sr)
 {
     return &sequencer_get_active(sr)->layout;
@@ -186,6 +200,9 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
         return 0;
     }
 
+    // Figure out which sequence goes with which play button.
+    // Play button indices get bigger going up, but tracks are layed out
+    // with 0 at the top, so flip it around.
     u8 si = GRID_SIZE - 1 - (index - LP_FIRST_PLAY) / LP_PLAY_GAP;
     Sequence* s = &sr->sequences[si];
 
@@ -237,24 +254,28 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
             sequence_kill_current_note(s);
         }
     }
-    // If the sequence has been queued, but hasn't started playing, just
-    // unqueue it.
-    else if (flag_is_set(s->flags, SEQ_QUEUED))
-    {
-        sequence_stop(s, &s->layout);
-    }
-    // If the sequence is playing, stop it and reset the playhead.
-    else if (flag_is_set(s->flags, SEQ_PLAYING))
+    // If the sequence has been queued, or started playing stop it.
+    // If we just stopped the master sequence, find a new one.
+    else if (flag_is_set(s->flags, SEQ_QUEUED)
+             || flag_is_set(s->flags, SEQ_PLAYING))
     {
         if (si == sr->master_sequence)
         {
-            sr->master_sequence = 0xFF;
+            sequencer_find_master_sequence(sr);
         }
-        sequence_stop(s, &s->layout);
+
+        sequence_stop(s);
     }
     // Otherwise, queue it to start playing on the next step.
+    // It becomes the master sequence if it's the least-numbered, playing
+    // sequence.
     else
     {
+        if (si < sr->master_sequence)
+        {
+            sr->master_sequence = si;
+        }
+
         sequence_queue(s);
     }
 
@@ -281,6 +302,9 @@ void sequencer_tick(Sequencer* sr)
 
     u16 channels = 0x0000;
 
+    // If the timer is on an even clock interval, go through each
+    // sequence and send clock for the playing ones. Keep track of which
+    // channels have been seen so double messages aren't sent.
     if (sr->timer % sr->clock_millis == 0)
     {
         for (u8 i = 0; i < GRID_SIZE; i++)
@@ -293,12 +317,13 @@ void sequencer_tick(Sequencer* sr)
             {
                 channels = set_flag(channels, channel_flag);
                 send_midi(MIDITIMINGCLOCK, 0x00, 0x00);
-
-                if (i < sr->master_sequence) sr->master_sequence = i;
             }
         }
     }
 
+    // step_millis is the number of milliseconds in a step, but if swing
+    // is on, the even numbered steps are delayed and the odd ones are
+    // rushed, so that it adds up to the same tempo over time.
     u16 step_millis = sr->step_millis;
     if (sr->master_sequence < GRID_SIZE)
     {
@@ -307,6 +332,12 @@ void sequencer_tick(Sequencer* sr)
             : -sr->swing_millis;
     }
 
+    // If the timer hasn't passed the step threshold, return early,
+    // but first check if we're halfway between steps, and give the sequence
+    // a chance to turn off notes that would otherwise not have time to
+    // fully turn off before the next note.
+    // This uses sr->step_millis instead of the swing-adjusted step_millis
+    // because otherwise a changing swing might cause it to be missed.
     if (sr->timer < step_millis)
     {
         if (sr->timer == sr->step_millis / 2)
@@ -320,6 +351,9 @@ void sequencer_tick(Sequencer* sr)
         return;
     }
 
+    // Now we're ready to actually move forward 1 step. Reset the timer and
+    // step all the sequences forward. The dirty flag is used to force a redraw
+    // in states that are dependent on sequencer state.
     sr->timer = 0;
     sr->flags = set_flag(sr->flags, SQR_DIRTY);
 

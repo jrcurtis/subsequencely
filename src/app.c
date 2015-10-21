@@ -90,47 +90,37 @@ Number channel_numbers[GRID_SIZE];
 
 u8 tap_tempo_handle_press(u8 index, u8 value)
 {
-    if (index != LP_CLICK)
+    if (index != LP_CLICK || value == 0)
     {
         return 0;
     }
 
-    if (value != 0)
-    {
-        if (tap_tempo_timer < 1000)
-        {
-            tap_tempo_sum += tap_tempo_timer;
-            tap_tempo_counter++;
-        }
-        else
-        {
-            tap_tempo_sum = 0;
-            tap_tempo_counter = 0;
-        }
+    u8 success = 0;
 
-        tap_tempo_timer = 0;
+    if (tap_tempo_timer < 1000)
+    {
+        tap_tempo_sum += tap_tempo_timer;
+        tap_tempo_counter++;
+
+        if (tap_tempo_counter >= 3)
+        {
+            sequencer_set_tempo_millis(
+                &sequencer,
+                tap_tempo_sum
+                / tap_tempo_counter
+                / STEPS_PER_PAD);
+            success = 1;
+        }
     }
     else
     {
-        if (tap_tempo_timer < 1000)
-        {
-            if (tap_tempo_counter >= 3)
-            {
-                sequencer_set_tempo_millis(
-                    &sequencer,
-                    tap_tempo_sum
-                    / tap_tempo_counter
-                    / STEPS_PER_PAD);
-            }
-        }
-        else
-        {
-            tap_tempo_sum = 0;
-            tap_tempo_counter = 0;
-        }
+        tap_tempo_sum = 0;
+        tap_tempo_counter = 0;
     }
 
-    return 0;
+    tap_tempo_timer = 0;
+
+    return success;
 }
 
 void session_mode_become_active()
@@ -294,18 +284,36 @@ void notes_setup_draw()
 
 u8 notes_mode_handle_press(u8 index, u8 value)
 {
-    Layout* l = sequencer_get_layout(&sequencer);
+    Sequence* s = sequencer_get_active(&sequencer);
+    Layout* l = &s->layout;;
 
     if (layout_handle_transpose(l, index, value))
     {
         keyboard_update_indices(&keyboard);
     }
-    else if (sequence_handle_press(
-                 sequencer_get_active(&sequencer), index, value))
+    else if (sequence_handle_press(s, index, value))
     {
         if (value > 0)
         {
             sequencer_handle_record(&sequencer);
+        }
+
+        if (value > 0
+            && !flag_is_set(s->flags, SEQ_PLAYING)
+            && modifier_held(LP_CLICK))
+        {
+            u8 beat = tap_tempo_counter % GRID_SIZE;
+            Note* n = &s->notes[beat * STEPS_PER_PAD];
+            n->note_number = voices_get_newest(l->voices);
+            n->velocity = l->voices->velocity;
+            n->aftertouch = -1;
+            n->flags = 0x00;
+
+            u8 tempo_set = tap_tempo_handle_press(LP_CLICK, 0x7F);
+            if (tempo_set && beat == GRID_SIZE - 1)
+            {
+                sequence_queue_at(s, SEQUENCE_LENGTH - STEPS_PER_PAD);
+            }
         }
     }
     else

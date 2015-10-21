@@ -165,7 +165,7 @@ void sequence_queue_at(Sequence* s, u8 step)
     }
 }
 
-void sequence_stop(Sequence* s, Layout* l)
+void sequence_stop(Sequence* s)
 {
     s->flags = clear_flag(s->flags, SEQ_QUEUED);
     s->flags = clear_flag(s->flags, SEQ_PLAYING);
