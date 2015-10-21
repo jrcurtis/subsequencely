@@ -32,11 +32,12 @@ typedef enum
     SEQ_MUTED = 1 << 1,
     SEQ_SOLOED = 1 << 2,
     SEQ_ARMED = 1 << 3,
-    SEQ_QUEUED = 1 << 4,
-    SEQ_BEAT_QUEUED = 1 << 5,
-    SEQ_ACTIVE = 1 << 6,
-    SEQ_LINKED = 1 << 7,
-    SEQ_RECORD_CONTROL = 1 << 8
+    SEQ_REVERSED = 1 << 4,
+    SEQ_QUEUED = 1 << 5,
+    SEQ_BEAT_QUEUED = 1 << 6,
+    SEQ_ACTIVE = 1 << 7,
+    SEQ_LINKED = 1 << 8,
+    SEQ_RECORD_CONTROL = 1 << 9
 } SequenceFlags;
 
 typedef struct
@@ -65,6 +66,10 @@ typedef struct Sequence_
 } Sequence;
 
 void sequence_init(Sequence* s, u8 channel);
+
+void sequence_clear_note(Sequence* s, u8 i);
+
+void sequence_clear_notes(Sequence* s);
 
 void sequence_become_active(Sequence* s);
 

@@ -55,18 +55,53 @@ void sequence_init(Sequence* s, u8 channel)
     s->zoom = 0;
     s->flags = 0x00;
 
+    sequence_clear_notes(s);
+}
+
+void sequence_clear_note(Sequence* s, u8 i)
+{
+    note_kill(&s->notes[i], s->channel);
+    s->notes[i].note_number = -1;
+    s->notes[i].velocity = 0;
+    s->notes[i].aftertouch = -1;
+    s->notes[i].flags = 0x00;
+}
+
+void sequence_clear_notes(Sequence* s)
+{
     for (u8 i = 0; i < SEQUENCE_LENGTH; i++)
     {
-        s->notes[i].note_number = -1;
-        s->notes[i].velocity = 0;
-        s->notes[i].aftertouch = -1;
-        s->notes[i].flags = 0x00;
+        sequence_clear_note(s, i);
     }
 }
 
 u8 sequence_get_next_playhead(Sequence* s)
 {
-    return (s->playhead + 1) % SEQUENCE_LENGTH;
+    s8 direction = flag_is_set(s->flags, SEQ_REVERSED) ? -1 : 1;
+    u8 next_playhead = s->playhead;
+
+    for (u8 i = 0; i < SEQUENCE_LENGTH; i++)
+    {
+        if (next_playhead == 0 && direction < 0)
+        {
+            next_playhead = SEQUENCE_LENGTH - 1;
+        }
+        else if (next_playhead == SEQUENCE_LENGTH - 1 && direction > 0)
+        {
+            next_playhead = 0;
+        }
+        else
+        {
+            next_playhead += direction;
+        }
+
+        if (!flag_is_set(s->notes[next_playhead].flags, NTE_SKIP))
+        {
+            return next_playhead;
+        }
+    }
+
+    return s->playhead;
 }
 
 void sequence_become_active(Sequence* s)
@@ -173,6 +208,11 @@ void sequence_stop(Sequence* s)
     s->playhead = 0;
 }
 
+void sequence_reverse(Sequence* s)
+{
+    s->flags = toggle_flag(s->flags, SEQ_REVERSED);
+}
+
 void sequence_handle_record(Sequence* s, u8 press)
 {
     if (flag_is_set(s->flags, SEQ_ARMED)
@@ -231,7 +271,13 @@ void sequence_step(Sequence* s, u8 audible)
         Note* n = &s->notes[s->playhead];
         Note* next_n = &s->notes[next_playhead];
 
-        if (!audible)
+        // If delete is held while the sequence plays, the playhead becomes an
+        // erase head.
+        if (modifier_held(LP_DELETE))
+        {
+            sequence_clear_note(s, s->playhead);
+        }
+        else if (!audible)
         {
             // Play nothing
         }
@@ -298,7 +344,29 @@ void sequence_off_step(Sequence* s)
 
 u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
 {
-    if (layout_handle_press(&s->layout, index, value, s->channel)) { }
+    if (layout_handle_press(&s->layout, index, value, s->channel))
+    {
+        return 1;
+    }
+    else if (value == 0)
+    {
+        return 0;
+    }
+    else if (index == LP_DELETE)
+    {
+        if (modifier_held(LP_SHIFT))
+        {
+            sequence_clear_notes(s);
+        }
+        else
+        {
+            sequence_clear_note(s, s->playhead);
+        }
+    }
+    else if (index == LP_UNDO)
+    {
+        sequence_reverse(s);
+    }
     else
     {
         return 0;
@@ -310,8 +378,7 @@ u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
 u8 sequence_handle_aftertouch(Sequence* s, u8 index, u8 value)
 {
     if (flag_is_set(s->flags, SEQ_RECORD_CONTROL)
-        && layout_handle_aftertouch(
-            &s->layout, index, value, s))
+        && layout_handle_aftertouch(&s->layout, index, value, s))
     {
 
     }
