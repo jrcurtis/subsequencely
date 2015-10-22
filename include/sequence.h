@@ -76,9 +76,11 @@ void sequence_kill_current_note(Sequence* s);
 
 void sequence_play_current_note(Sequence* s);
 
-void sequence_clear_note(Sequence* s, u8 i);
+void sequence_clear_note(Sequence* s, u8 step);
 
 void sequence_clear_notes(Sequence* s);
+
+void sequence_set_skip(Sequence* s, u8 step, u8 skip);
 
 void sequence_queue(Sequence* s, u8 beat);
 

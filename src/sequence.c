@@ -173,13 +173,13 @@ void sequence_play_current_note(Sequence* s)
     sequence_play_note(s, &s->notes[s->playhead]);
 }
 
-void sequence_clear_note(Sequence* s, u8 i)
+void sequence_clear_note(Sequence* s, u8 step)
 {
-    sequence_kill_note(s, &s->notes[i]);
-    s->notes[i].note_number = -1;
-    s->notes[i].velocity = 0;
-    s->notes[i].aftertouch = -1;
-    s->notes[i].flags = 0x00;
+    sequence_kill_note(s, &s->notes[step]);
+    s->notes[step].note_number = -1;
+    s->notes[step].velocity = 0;
+    s->notes[step].aftertouch = -1;
+    s->notes[step].flags = 0x00;
 }
 
 void sequence_clear_notes(Sequence* s)
@@ -188,6 +188,12 @@ void sequence_clear_notes(Sequence* s)
     {
         sequence_clear_note(s, i);
     }
+}
+
+void sequence_set_skip(Sequence* s, u8 step, u8 skip)
+{
+    Note* n = &s->notes[step];
+    n->flags = assign_flag(n->flags, NTE_SKIP, skip);
 }
 
 void sequence_queue(Sequence* s, u8 beat)
