@@ -58,6 +58,7 @@ typedef struct Sequence_
     u16 flags;
 
     u8 playhead;
+    s8 jump_step;
     u8 zoom;
     u8 x;
     u8 y;
@@ -67,10 +68,6 @@ typedef struct Sequence_
 
 void sequence_init(Sequence* s, u8 channel);
 
-void sequence_clear_note(Sequence* s, u8 i);
-
-void sequence_clear_notes(Sequence* s);
-
 void sequence_become_active(Sequence* s);
 
 void sequence_become_inactive(Sequence* s);
@@ -79,11 +76,21 @@ void sequence_kill_current_note(Sequence* s);
 
 void sequence_play_current_note(Sequence* s);
 
-void sequence_queue(Sequence* s);
+void sequence_clear_note(Sequence* s, u8 i);
 
-void sequence_queue_at(Sequence* s, u8 step);
+void sequence_clear_notes(Sequence* s);
+
+void sequence_queue(Sequence* s, u8 beat);
+
+void sequence_queue_at(Sequence* s, u8 step, u8 beat);
+
+void sequence_jump_to(Sequence* s, u8 step);
+
+void sequence_queue_or_jump(Sequence* s, u8 step, u8 beat);
 
 void sequence_stop(Sequence* s);
+
+void sequence_reverse(Sequence* s);
 
 void sequence_handle_record(Sequence* s, u8 press);
 

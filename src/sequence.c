@@ -50,6 +50,7 @@ void sequence_init(Sequence* s, u8 channel)
     s->control_div = 1;
     s->control_offset = 0;
     s->playhead = 0;
+    s->jump_step = -1;
     s->x = 0;
     s->y = 0;
     s->zoom = 0;
@@ -58,25 +59,13 @@ void sequence_init(Sequence* s, u8 channel)
     sequence_clear_notes(s);
 }
 
-void sequence_clear_note(Sequence* s, u8 i)
-{
-    note_kill(&s->notes[i], s->channel);
-    s->notes[i].note_number = -1;
-    s->notes[i].velocity = 0;
-    s->notes[i].aftertouch = -1;
-    s->notes[i].flags = 0x00;
-}
-
-void sequence_clear_notes(Sequence* s)
-{
-    for (u8 i = 0; i < SEQUENCE_LENGTH; i++)
-    {
-        sequence_clear_note(s, i);
-    }
-}
-
 u8 sequence_get_next_playhead(Sequence* s)
 {
+    if (s->jump_step >= 0)
+    {
+        return s->jump_step;
+    }
+
     s8 direction = flag_is_set(s->flags, SEQ_REVERSED) ? -1 : 1;
     u8 next_playhead = s->playhead;
 
@@ -184,28 +173,74 @@ void sequence_play_current_note(Sequence* s)
     sequence_play_note(s, &s->notes[s->playhead]);
 }
 
-void sequence_queue(Sequence* s)
+void sequence_clear_note(Sequence* s, u8 i)
 {
-    s->flags = set_flag(s->flags, SEQ_QUEUED);
+    sequence_kill_note(s, &s->notes[i]);
+    s->notes[i].note_number = -1;
+    s->notes[i].velocity = 0;
+    s->notes[i].aftertouch = -1;
+    s->notes[i].flags = 0x00;
 }
 
-void sequence_queue_at(Sequence* s, u8 step)
+void sequence_clear_notes(Sequence* s)
 {
-    if (step < SEQUENCE_LENGTH)
+    for (u8 i = 0; i < SEQUENCE_LENGTH; i++)
     {
-        sequence_kill_current_note(s);
-        s->playhead = step;
-        s->flags = clear_flag(s->flags, SEQ_PLAYING);
+        sequence_clear_note(s, i);
+    }
+}
+
+void sequence_queue(Sequence* s, u8 beat)
+{
+    sequence_queue_at(s, s->playhead, beat);
+}
+
+void sequence_queue_at(Sequence* s, u8 step, u8 beat)
+{
+    step = clamp(step, 0, SEQUENCE_LENGTH);
+    
+    sequence_kill_current_note(s);
+    s->flags = clear_flag(s->flags, SEQ_PLAYING);
+    s->playhead = step;
+
+    if (beat)
+    {
+        s->flags = set_flag(s->flags, SEQ_BEAT_QUEUED);
+        s->flags = clear_flag(s->flags, SEQ_QUEUED);
+    }
+    else
+    {
         s->flags = set_flag(s->flags, SEQ_QUEUED);
+        s->flags = clear_flag(s->flags, SEQ_BEAT_QUEUED);
+    }
+}
+
+void sequence_jump_to(Sequence* s, u8 step)
+{
+    step = clamp(step, 0, SEQUENCE_LENGTH);
+    s->jump_step = step;
+}
+
+void sequence_queue_or_jump(Sequence* s, u8 step, u8 beat)
+{
+    if (flag_is_set(s->flags, SEQ_PLAYING))
+    {
+        sequence_jump_to(s, step);
+    }
+    else
+    {
+        sequence_queue_at(s, step, beat);
     }
 }
 
 void sequence_stop(Sequence* s)
 {
     s->flags = clear_flag(s->flags, SEQ_QUEUED);
+    s->flags = clear_flag(s->flags, SEQ_BEAT_QUEUED);
     s->flags = clear_flag(s->flags, SEQ_PLAYING);
     sequence_kill_current_note(s);
     s->playhead = 0;
+    s->jump_step = -1;
 }
 
 void sequence_reverse(Sequence* s)
@@ -268,12 +303,16 @@ void sequence_step(Sequence* s, u8 audible)
     else
     {
         u8 next_playhead = sequence_get_next_playhead(s);
+        s->jump_step = -1;
+
         Note* n = &s->notes[s->playhead];
         Note* next_n = &s->notes[next_playhead];
 
         // If delete is held while the sequence plays, the playhead becomes an
         // erase head.
-        if (modifier_held(LP_DELETE))
+        if (lp_state == NOTES_MODE
+            && flag_is_set(s->flags, SEQ_ACTIVE)
+            && modifier_held(LP_DELETE))
         {
             sequence_clear_note(s, s->playhead);
         }

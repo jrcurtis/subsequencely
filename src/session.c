@@ -21,20 +21,22 @@ void session_draw(Sequencer* sr)
 u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
 {
     u8 x, y;
-    if (!index_to_pad(index, &x, &y))
+    if (value == 0 || !index_to_pad(index, &x, &y))
     {
         return 0;
     }
 
     u8 seq_i = row_to_seq(y);
+    Sequence* s = &sr->sequences[seq_i];
+    u8 shift = modifier_held(LP_SHIFT);
 
-    if (modifier_held(LP_SHIFT))
+    if (modifier_held(LP_UNDO))
     {
-        
+        sequence_reverse(s);
     }
     else
     {
-        sequence_queue_at(&sr->sequences[seq_i], x * STEPS_PER_PAD);
+        sequence_queue_or_jump(s, x * STEPS_PER_PAD, shift);
     }
 
     return 1;

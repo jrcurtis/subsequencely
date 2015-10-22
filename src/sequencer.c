@@ -276,7 +276,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
             sr->master_sequence = si;
         }
 
-        sequence_queue(s);
+        sequence_queue(s, modifier_held(LP_SHIFT));
     }
 
     return 1;

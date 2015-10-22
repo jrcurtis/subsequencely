@@ -37,19 +37,6 @@
 #include "app.h"
 #include "seq.h"
 
-typedef enum
-{
-    SESSION_MODE,
-    NOTES_MODE,
-    SEQUENCER_MODE,
-    NUM_MODES
-} State;
-
-typedef enum
-{
-    IS_SETUP = 0x01
-} Flags;
-
 
 /*******************************************************************************
  * Global data
@@ -59,8 +46,8 @@ typedef enum
 u8 midi_port = USBMIDI;
 
 // Program state
-State state = NUM_MODES;
-u8 flags = 0;
+LpState lp_state = NUM_MODES;
+u8 lp_flags = 0;
 u16 tap_tempo_timer = 1000;
 u16 tap_tempo_sum = 0;
 u8 tap_tempo_counter = 0;
@@ -312,7 +299,7 @@ u8 notes_mode_handle_press(u8 index, u8 value)
             u8 tempo_set = tap_tempo_handle_press(LP_CLICK, 0x7F);
             if (tempo_set && beat == GRID_SIZE - 1)
             {
-                sequence_queue_at(s, SEQUENCE_LENGTH - STEPS_PER_PAD + 1);
+                sequence_queue_at(s, SEQUENCE_LENGTH - STEPS_PER_PAD + 1, 0);
             }
         }
     }
@@ -374,14 +361,14 @@ u8 notes_setup_handle_press(u8 index, u8 value)
  * State management
  ******************************************************************************/
 
-void set_state(State st, u8 setup)
+void set_state(LpState st, u8 setup)
 {
-    if (state == st && flag_is_set(flags, IS_SETUP) == setup)
+    if (lp_state == st && flag_is_set(lp_flags, IS_SETUP) == setup)
     {
         return;
     }
 
-    if (state == SESSION_MODE)
+    if (lp_state == SESSION_MODE)
     {
         if (setup)
         {
@@ -392,7 +379,7 @@ void set_state(State st, u8 setup)
             session_mode_become_inactive();
         }
     }
-    else if (state == NOTES_MODE)
+    else if (lp_state == NOTES_MODE)
     {
         if (setup)
         {
@@ -403,7 +390,7 @@ void set_state(State st, u8 setup)
             notes_mode_become_inactive();
         }
     }
-    else if (state == SEQUENCER_MODE)
+    else if (lp_state == SEQUENCER_MODE)
     {
         if (setup)
         {
@@ -471,8 +458,8 @@ void set_state(State st, u8 setup)
 
     sequencer_play_draw(&sequencer);
 
-    state = st;
-    flags = assign_flag(flags, IS_SETUP, setup);
+    lp_state = st;
+    lp_flags = assign_flag(lp_flags, IS_SETUP, setup);
 }
 
 /*******************************************************************************
@@ -498,23 +485,23 @@ void app_surface_event(u8 type, u8 index, u8 value)
     }
     else if (type == TYPESETUP && value > 0)
     {
-        set_state(state, !flag_is_set(flags, IS_SETUP));
+        set_state(lp_state, !flag_is_set(lp_flags, IS_SETUP));
     }
     else if (sequencer_handle_play(&sequencer, index, value)) { }
     else if (tap_tempo_handle_press(index, value)) { }
-    else if (!flag_is_set(flags, IS_SETUP))
+    else if (!flag_is_set(lp_flags, IS_SETUP))
     {
-        if (state == SESSION_MODE)
+        if (lp_state == SESSION_MODE)
         {
             session_mode_handle_press(index, value);
             session_mode_draw();
         }
-        else if (state == NOTES_MODE)
+        else if (lp_state == NOTES_MODE)
         {
             notes_mode_handle_press(index, value);
             notes_mode_draw();
         }
-        else if (state == SEQUENCER_MODE)
+        else if (lp_state == SEQUENCER_MODE)
         {
             sequencer_mode_handle_press(index, value);
             sequencer_mode_draw();
@@ -522,17 +509,17 @@ void app_surface_event(u8 type, u8 index, u8 value)
     }
     else
     {
-        if (state == SESSION_MODE)
+        if (lp_state == SESSION_MODE)
         {
             session_setup_handle_press(index, value);
             session_setup_draw();
         }
-        else if (state == NOTES_MODE)
+        else if (lp_state == NOTES_MODE)
         {
             notes_setup_handle_press(index, value);
             notes_setup_draw();
         }
-        else if (state == SEQUENCER_MODE)
+        else if (lp_state == SEQUENCER_MODE)
         {
             sequencer_setup_handle_press(index, value);
             sequencer_setup_draw();
@@ -578,14 +565,14 @@ void app_sysex_event(u8 port, u8 * data, u16 count)
 void app_aftertouch_event(u8 index, u8 value)
 {
 #ifndef SEQ_DEBUG
-    u8 setup = flag_is_set(flags, IS_SETUP);
+    u8 setup = flag_is_set(lp_flags, IS_SETUP);
 
-    if (state == NOTES_MODE && !setup)
+    if (lp_state == NOTES_MODE && !setup)
     {
         sequence_handle_aftertouch(
             sequencer_get_active(&sequencer), index, value);
     }
-    else if (state == SEQUENCER_MODE && setup)
+    else if (lp_state == SEQUENCER_MODE && setup)
     {
         if (slider_handle_press(&tempo_slider, index, value))
         {
@@ -620,19 +607,19 @@ void app_timer_event()
     sequencer_tick(&sequencer);
     tap_tempo_timer++;
 
-    if (!flag_is_set(flags, IS_SETUP)
+    if (!flag_is_set(lp_flags, IS_SETUP)
         && flag_is_set(sequencer.flags, SQR_DIRTY))
     {
         sequencer.flags = clear_flag(sequencer.flags, SQR_DIRTY);
-        if (state == SEQUENCER_MODE)
+        if (lp_state == SEQUENCER_MODE)
         {
             sequencer_mode_draw();
         }
-        else if (state == SESSION_MODE)
+        else if (lp_state == SESSION_MODE)
         {
             session_mode_draw();
         }
-        else if (state == NOTES_MODE)
+        else if (lp_state == NOTES_MODE)
         {
             notes_mode_draw();
         }
