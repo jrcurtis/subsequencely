@@ -71,7 +71,8 @@ void sequencer_set_active(Sequencer* sr, u8 i)
     number_set_value(sr->control_number,
                      s->control_code);
     slider_set_value(sr->control_sens_slider,
-                     8 - s->control_div);
+                     CC_SENS_RESOLUTION * GRID_SIZE
+                     - s->control_div);
     slider_set_value(sr->control_offset_slider,
                      s->control_offset);
 

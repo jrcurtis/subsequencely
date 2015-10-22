@@ -53,7 +53,7 @@ u8 slider_handle_press(Slider* s, u8 index, u8 value)
     // The harder you press, the further away from 0 the value should be,
     // so if there's a negative offset and the pad that was pressed is on
     // the negative side of 0, then reverse the velocity.
-    if (s->value + s->offset < 0)
+    if (s->value + s->offset + s->resolution <= 0)
     {
         value = 127 - value;
     }
@@ -62,7 +62,7 @@ u8 slider_handle_press(Slider* s, u8 index, u8 value)
     // so figure out what fraction of them are filled and make sure at least
     // one is filled, so that the value doesn't creep into the range of the
     // previous pad.
-    s->value += max(1, s->resolution * value / 127);
+    s->value += clamp(s->resolution * value / 100, 1, s->resolution);
 
     return 1;
 }
@@ -89,7 +89,7 @@ void slider_draw(Slider* s)
     // that 0 is in and the one the value lies in are filled.
     u8 range_start = 0;
     u8 range_end = 0;
-    u8 zero_point = -s->offset / s->resolution - 1;
+    u8 zero_point = max(0, (-s->offset - 1) / s->resolution);
     u8 value_point = (s->value - 1) / s->resolution;
 
     if (s->offset >= 0)

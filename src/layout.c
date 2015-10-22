@@ -221,7 +221,10 @@ u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, struct Sequence_* s)
                 send_midi(
                     CC | s->channel,
                     s->control_code,
-                    value / s->control_div + s->control_offset);
+                    cc_div(value,
+                           s->control_sgn,
+                           s->control_div,
+                           s->control_offset));
             }
         }
     }

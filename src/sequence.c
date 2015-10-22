@@ -24,7 +24,10 @@ void note_control(Note* n, Sequence* s)
         send_midi(
             CC | s->channel,
             s->control_code,
-            n->aftertouch / s->control_div + s->control_offset);
+            cc_div(n->aftertouch,
+                   s->control_sgn,
+                   s->control_div,
+                   s->control_offset));
     }
 }
 
@@ -48,6 +51,7 @@ void sequence_init(Sequence* s, u8 channel)
     s->channel = channel;
     s->control_code = 0;
     s->control_div = 1;
+    s->control_sgn = 1;
     s->control_offset = 0;
     s->playhead = 0;
     s->jump_step = -1;

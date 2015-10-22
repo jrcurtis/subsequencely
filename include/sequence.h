@@ -54,7 +54,8 @@ typedef struct Sequence_
     u8 channel;
     u8 control_code;
     u8 control_div;
-    u8 control_offset;
+    s8 control_sgn;
+    s8 control_offset;
     u16 flags;
 
     u8 playhead;

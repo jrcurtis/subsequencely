@@ -337,7 +337,19 @@ u8 notes_setup_handle_press(u8 index, u8 value)
     }
     else if (slider_handle_press(&control_sens_slider, index, value))
     {
-        s->control_div = 8 - slider_get_value(&control_sens_slider);
+        s->control_div = CC_SENS_RESOLUTION * GRID_SIZE
+            - slider_get_value(&control_sens_slider);
+
+        if (modifier_held(LP_SHIFT))
+        {
+            s->control_sgn = -1;
+            control_sens_slider.color = CC_DIV_NEG_COLOR;
+        }
+        else
+        {
+            s->control_sgn = 1;
+            control_sens_slider.color = CC_DIV_POS_COLOR;
+        }
     }
     else if (slider_handle_press(&control_offset_slider, index, value))
     {
@@ -659,13 +671,13 @@ void app_init()
 
     slider_init(
         &control_sens_slider,
-        HORIZONTAL, 6, sequence_colors[7],
-        1, -1,
-        7);
+        HORIZONTAL, 6, CC_DIV_POS_COLOR,
+        CC_SENS_RESOLUTION, -1,
+        CC_SENS_RESOLUTION * GRID_SIZE - 1);
 
     slider_init(
         &control_offset_slider,
-        HORIZONTAL, 5, sequence_colors[6],
+        HORIZONTAL, 5, sequence_colors[2],
         16, -1,
         0);
 
