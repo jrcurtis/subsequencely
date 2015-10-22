@@ -1,4 +1,5 @@
 BUILDDIR = build
+RSRCDIR = resources
 
 TOOLS = tools
 
@@ -37,6 +38,7 @@ LDSCRIPT = stm32_flash.ld
 LDFLAGS += -T$(LDSCRIPT) -u _start -u _Minimum_Stack_Size  -mcpu=cortex-m3 -mthumb -specs=nano.specs -specs=nosys.specs -nostdlib -Wl,-static  -g3 -N -nostartfiles -Wl,--gc-sections
 
 all: $(SYX)
+	cp $(SYX) $(RSRCDIR)/$(notdir $(SYX))
 
 debug: CFLAGS += -DSEQ_DEBUG
 debug: $(SYX)
