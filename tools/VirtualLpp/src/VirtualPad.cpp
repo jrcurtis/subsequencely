@@ -71,7 +71,7 @@ void VirtualPad::draw(float x, float y, float w, float h)
     gl::translate(x, y);
     gl::scale(w * sizeScale, h * sizeScale, 1);
     prog->uniform("uColor", color.get(ColorModel::CM_RGB));
-    prog->uniform("uBrightness", brightness);
+    
     if (isButton)
     {
         circleBatch->draw();
@@ -80,6 +80,7 @@ void VirtualPad::draw(float x, float y, float w, float h)
     {
         rectBatch->draw();
     }
+    
     gl::popModelMatrix();
     
     if (isButton)

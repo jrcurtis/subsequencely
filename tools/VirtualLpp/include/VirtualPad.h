@@ -31,14 +31,7 @@ public:
     void draw(float x, float y, float w, float h);
     
     Color getColor() { return color; }
-    void setColor(Color c)
-    {
-        vec3 v = c;
-        float m = compMax(v);
-        brightness = compAdd(v) / 3;
-        float scale = m == 0 ? 0 : 1.0 / m;
-        color = scale == 0 ? defaultColor : scale * c;
-    }
+    void setColor(Color c) { color = c; }
     
     void press(u8 v);
     

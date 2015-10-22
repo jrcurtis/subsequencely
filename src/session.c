@@ -30,9 +30,33 @@ u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
     Sequence* s = &sr->sequences[seq_i];
     u8 shift = modifier_held(LP_SHIFT);
 
-    if (modifier_held(LP_UNDO))
+    if (modifier_held(LP_CLICK))
+    {
+        
+    }
+    else if (modifier_held(LP_UNDO))
     {
         sequence_reverse(s);
+    }
+    else if (modifier_held(LP_DELETE))
+    {
+        u8 step = x * STEPS_PER_PAD;
+        for (u8 i = 0; i < STEPS_PER_PAD; i++)
+        {
+            sequence_clear_note(s, step + i);
+        }
+    }
+    else if (modifier_held(LP_QUANTISE))
+    {
+        
+    }
+    else if (modifier_held(LP_DUPLICATE))
+    {
+        
+    }
+    else if (modifier_held(LP_DOUBLE))
+    {
+        
     }
     else
     {
