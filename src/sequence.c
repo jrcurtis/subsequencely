@@ -57,6 +57,7 @@ void sequence_init(Sequence* s, u8 channel, Note* notes)
 
     s->playhead = 0;
     s->jump_step = -1;
+    s->clock_div = 1;
 
     s->x = 0;
     s->y = 0;

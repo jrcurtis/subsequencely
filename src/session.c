@@ -4,40 +4,15 @@
 
 void session_draw(Sequencer* sr)
 {
-    s8 y = GRID_SIZE - 1;
-    u8 seq_i = row_to_seq(y);
-    u8 linked_seq_i = 0;
-    Sequence* s = &sr->sequences[seq_i];
-    Sequence* linked_seq = &s[linked_seq_i];
+    u8 seq_i;
+    u8 linked_seq_i;
+    Sequence* s;
+    Sequence* linked_seq;
 
-    while (y >= 0)
+    for (s8 y = GRID_SIZE - 1; y >= 0; y--)
     {
-        for (u8 x = 0; x < GRID_SIZE; x++)
-        {
-            u8 step = x * STEPS_PER_PAD + linked_seq_i * SEQUENCE_LENGTH;
-            Note* n = sequence_get_note(s, step);
-            u8 skip = flag_is_set(n->flags, NTE_SKIP);
-            u8 index = coord_to_index(x, y);
-
-            if (skip)
-            {
-                plot_pad(index, off_color);
-            }
-            else
-            {
-                u8 linked_playhead = s->playhead - linked_seq_i * SEQUENCE_LENGTH;
-                u8 dimness = 5 * (linked_playhead / STEPS_PER_PAD != x);
-                plot_pad_dim(index, sequence_colors[seq_i], dimness);
-            }
-        }
-
-        y--;
-        if (y < 0)
-        {
-            break;
-        }
-
-        if (flag_is_set(linked_seq->flags, SEQ_LINKED_TO))
+        if (y < GRID_SIZE - 1
+            && flag_is_set(linked_seq->flags, SEQ_LINKED_TO))
         {
             linked_seq_i++;
             linked_seq = &s[linked_seq_i];
@@ -48,6 +23,30 @@ void session_draw(Sequencer* sr)
             linked_seq_i = 0;
             s = &sr->sequences[seq_i];
             linked_seq = &s[linked_seq_i];
+        }
+
+        for (u8 x = 0; x < GRID_SIZE; x++)
+        {
+            u8 step = x * STEPS_PER_PAD + linked_seq_i * SEQUENCE_LENGTH;
+            Note* n = sequence_get_note(s, step);
+            u8 skip = flag_is_set(n->flags, NTE_SKIP);
+            u8 index = coord_to_index(x, y);
+
+            if (modifier_held(LP_CLICK)
+                && x == linked_seq->clock_div - 1)
+            {
+                plot_pad(index, on_color);
+            }
+            else if (skip)
+            {
+                plot_pad(index, off_color);
+            }
+            else
+            {
+                u8 linked_playhead = s->playhead - linked_seq_i * SEQUENCE_LENGTH;
+                u8 dimness = 5 * (linked_playhead / STEPS_PER_PAD != x);
+                plot_pad_dim(index, sequence_colors[seq_i], dimness);
+            }
         }
     }
 }
@@ -68,7 +67,7 @@ u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
 
     if (modifier_held(LP_CLICK))
     {
-        
+        s->clock_div = x + 1;
     }
     else if (modifier_held(LP_UNDO))
     {

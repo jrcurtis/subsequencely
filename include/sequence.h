@@ -34,7 +34,7 @@ typedef enum
     SEQ_ARMED          = 1 << 3,  // Sequence will record played notes
     SEQ_REVERSED       = 1 << 4,  // Playhead advances backwards
     SEQ_QUEUED         = 1 << 5,  // Sequence should start playing next step
-    SEQ_BEAT_QUEUED    = 1 << 6,  // Only unqueue if on beat
+    SEQ_BEAT_QUEUED    = 1 << 6,  // Only start if on beat (combined with ^^)
     SEQ_ACTIVE         = 1 << 7,  // The currently selected sequence
     SEQ_LINKED         = 1 << 8,  // Playhead is controlled by other sequence
     SEQ_LINKED_TO      = 1 << 9,  // This sequence has other ones linked to it
@@ -51,6 +51,7 @@ typedef struct
 
 typedef struct Sequence_
 {
+    u16 flags;
     Layout layout;
     u8 channel;
 
@@ -59,10 +60,9 @@ typedef struct Sequence_
     s8 control_sgn;
     s8 control_offset;
 
-    u16 flags;
-
     u8 playhead;
     s8 jump_step;
+    u8 clock_div;
 
     u8 zoom;
     u8 x;

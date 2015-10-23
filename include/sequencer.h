@@ -26,13 +26,13 @@ typedef Note NoteBank[GRID_SIZE * SEQUENCE_LENGTH];
 typedef struct
 {
     // Time handling
-    u16 step_millis;
+    u8 step_millis;
     u8 clock_millis;
     s8 swing_millis;
     u16 timer;
-    u8 master_sequence;
 
     // State
+    u8 master_sequence;
     u8 active_sequence;
     u8 soloed_tracks;
     u8 flags;
@@ -50,6 +50,7 @@ typedef struct
     Voices voices;
     PadNotes pad_notes;
     NoteBank note_bank;
+    NoteBank note_storage;
     Sequences sequences;
 } Sequencer;
 

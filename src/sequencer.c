@@ -339,7 +339,7 @@ void sequencer_tick(Sequencer* sr)
     // fully turn off before the next note.
     // This uses sr->step_millis instead of the swing-adjusted step_millis
     // because otherwise a changing swing might cause it to be missed.
-    if (sr->timer < step_millis)
+    if (sr->timer % sr->step_millis != 0)
     {
         if (sr->timer == sr->step_millis / 2)
         {
@@ -352,12 +352,19 @@ void sequencer_tick(Sequencer* sr)
         return;
     }
 
-    // Now we're ready to actually move forward 1 step. Reset the timer and
-    // step all the sequences forward. The dirty flag is used to force a redraw
-    // in states that are dependent on sequencer state.
-    sr->timer = 0;
+    // Now we're ready to actually move forward 1 step. The timer is only reset
+    // every 8 steps because it is used to implement clock division. The dirty
+    // flag is used to force a redraw in states that are dependent on sequencer
+    // state.
+    u8 clock_step = sr->timer / sr->step_millis;
+    if (clock_step >= GRID_SIZE)
+    {
+        sr->timer = 0;
+    }
     sr->flags = set_flag(sr->flags, SQR_DIRTY);
 
+    // Tick the master sequence first so that all subsequent sequences can
+    // be told if they're on beat or not.
     u8 master_offset = (sr->master_sequence < GRID_SIZE)
         ? sr->master_sequence : 0;
     u8 on_beat = 1;
@@ -370,7 +377,10 @@ void sequencer_tick(Sequencer* sr)
             && (sr->soloed_tracks == 0
                 || flag_is_set(s->flags, SEQ_SOLOED));
 
-        sequence_step(s, audible, on_beat);
+        if (s->clock_div == 1 || clock_step % s->clock_div == 0)
+        {
+            sequence_step(s, audible, on_beat);
+        }
 
         if (i == 0)
         {
