@@ -22,7 +22,7 @@ void sequencer_init(Sequencer* sr)
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
         Sequence* s = &sr->sequences[i];
-        sequence_init(s, i);
+        sequence_init(s, i, sr->note_bank + i * SEQUENCE_LENGTH);
         layout_init(&s->layout, &sr->scale, &sr->pad_notes, &sr->voices);
     }
 

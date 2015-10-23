@@ -302,6 +302,8 @@ void VirtualLppApp::drawSequenceInfo(Sequence& s)
     ImGui::Value("Muted", flag_is_set(s.flags, SEQ_MUTED));
     ImGui::Value("Soloed", flag_is_set(s.flags, SEQ_SOLOED));
     ImGui::Value("Armed", flag_is_set(s.flags, SEQ_ARMED));
+    ImGui::Value("Linked To", flag_is_set(s.flags, SEQ_LINKED_TO));
+    ImGui::Value("Linked", flag_is_set(s.flags, SEQ_LINKED));
 
     ImGui::Value("Octave", s.layout.octave);
     ImGui::Value("Root Note", s.layout.root_note);

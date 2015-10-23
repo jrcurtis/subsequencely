@@ -21,6 +21,7 @@ typedef enum
 } SequencerFlags;
 
 typedef Sequence Sequences[GRID_SIZE];
+typedef Note NoteBank[GRID_SIZE * SEQUENCE_LENGTH];
 
 typedef struct
 {
@@ -48,6 +49,7 @@ typedef struct
     Scale scale;
     Voices voices;
     PadNotes pad_notes;
+    NoteBank note_bank;
     Sequences sequences;
 } Sequencer;
 

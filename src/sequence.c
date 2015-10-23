@@ -46,21 +46,42 @@ void note_kill(Note* n, u8 channel)
  * Sequence functions
  ******************************************************************************/
 
-void sequence_init(Sequence* s, u8 channel)
+void sequence_init(Sequence* s, u8 channel, Note* notes)
 {
     s->channel = channel;
+
     s->control_code = 0;
     s->control_div = 1;
     s->control_sgn = 1;
     s->control_offset = 0;
+
     s->playhead = 0;
     s->jump_step = -1;
+
     s->x = 0;
     s->y = 0;
     s->zoom = 0;
     s->flags = 0x00;
 
+    s->notes = notes;
     sequence_clear_notes(s);
+}
+
+Note* sequence_get_note(Sequence* s, u8 playhead)
+{
+    return &s->notes[playhead];
+}
+
+u8 sequence_get_last_linked(Sequence* s)
+{
+    u8 linked_sequence = 1;
+
+    while (flag_is_set(s[linked_sequence].flags, SEQ_LINKED_TO))
+    {
+        linked_sequence++;
+    }
+
+    return linked_sequence;
 }
 
 u8 sequence_get_next_playhead(Sequence* s)
@@ -72,23 +93,54 @@ u8 sequence_get_next_playhead(Sequence* s)
 
     s8 direction = flag_is_set(s->flags, SEQ_REVERSED) ? -1 : 1;
     u8 next_playhead = s->playhead;
+    u8 is_linked_to = flag_is_set(s->flags, SEQ_LINKED_TO);
 
-    for (u8 i = 0; i < SEQUENCE_LENGTH; i++)
+    u8 last_seq_i = sequence_get_last_linked(s);
+
+    // Check at most the number of notes in all the sequences linked to this
+    // one, and if none of them are valid, just return the same playhead we're
+    // already on.
+    for (u8 i = 0; i < (last_seq_i + 1) * SEQUENCE_LENGTH; i++)
     {
+        u8 linked_seq_i = next_playhead / SEQUENCE_LENGTH;
+        u8 linked_playhead = next_playhead % SEQUENCE_LENGTH;
+        Sequence* linked_seq = &s[linked_seq_i];
+
+        // If we're at the beginning, wrap around
         if (next_playhead == 0 && direction < 0)
         {
-            next_playhead = SEQUENCE_LENGTH - 1;
+            // To the back of the most distant linked sequence
+            if (is_linked_to)
+            {
+                next_playhead = last_seq_i * SEQUENCE_LENGTH
+                    + SEQUENCE_LENGTH - 1;
+            }
+            // Or our own back
+            else
+            {
+                next_playhead = SEQUENCE_LENGTH - 1;
+            }
         }
-        else if (next_playhead == SEQUENCE_LENGTH - 1 && direction > 0)
+        // If we're at the end of the current sequence either go to the next,
+        // or wrap around.
+        else if (linked_playhead == SEQUENCE_LENGTH - 1 && direction > 0)
         {
-            next_playhead = 0;
+            if (flag_is_set(linked_seq->flags, SEQ_LINKED_TO))
+            {
+                next_playhead += 1;
+            }
+            else
+            {
+                next_playhead = 0;
+            }
         }
         else
         {
             next_playhead += direction;
         }
 
-        if (!flag_is_set(s->notes[next_playhead].flags, NTE_SKIP))
+        Note* n = sequence_get_note(s, next_playhead);
+        if (!flag_is_set(n->flags, NTE_SKIP))
         {
             return next_playhead;
         }
@@ -146,7 +198,7 @@ void sequence_kill_note(Sequence* s, Note* n)
 
 void sequence_kill_current_note(Sequence* s)
 {
-    sequence_kill_note(s, &s->notes[s->playhead]);
+    sequence_kill_note(s, sequence_get_note(s, s->playhead));
 }
 
 void sequence_play_note(Sequence* s, Note* n)
@@ -174,16 +226,17 @@ void sequence_play_note(Sequence* s, Note* n)
 
 void sequence_play_current_note(Sequence* s)
 {
-    sequence_play_note(s, &s->notes[s->playhead]);
+    sequence_play_note(s, sequence_get_note(s, s->playhead));
 }
 
 void sequence_clear_note(Sequence* s, u8 step)
 {
-    sequence_kill_note(s, &s->notes[step]);
-    s->notes[step].note_number = -1;
-    s->notes[step].velocity = 0;
-    s->notes[step].aftertouch = -1;
-    s->notes[step].flags = 0x00;
+    Note* n = sequence_get_note(s, step);
+    sequence_kill_note(s, n);
+    n->note_number = -1;
+    n->velocity = 0;
+    n->aftertouch = -1;
+    n->flags = 0x00;
 }
 
 void sequence_clear_notes(Sequence* s)
@@ -196,8 +249,19 @@ void sequence_clear_notes(Sequence* s)
 
 void sequence_set_skip(Sequence* s, u8 step, u8 skip)
 {
-    Note* n = &s->notes[step];
+    Note* n = sequence_get_note(s, step);
     n->flags = assign_flag(n->flags, NTE_SKIP, skip);
+}
+
+void sequence_toggle_linked_to(Sequence* s)
+{
+    s->flags = toggle_flag(s->flags, SEQ_LINKED_TO);
+}
+
+void sequence_toggle_linked(Sequence* s)
+{
+    sequence_stop(s);
+    s->flags = toggle_flag(s->flags, SEQ_LINKED);
 }
 
 void sequence_queue(Sequence* s, u8 is_beat)
@@ -207,8 +271,12 @@ void sequence_queue(Sequence* s, u8 is_beat)
 
 void sequence_queue_at(Sequence* s, u8 step, u8 is_beat)
 {
-    step = clamp(step, 0, SEQUENCE_LENGTH);
-    
+    if (flag_is_set(s->flags, SEQ_LINKED))
+    {
+        sequence_queue_at(s - 1, step + SEQUENCE_LENGTH, is_beat);
+        return;
+    }
+
     sequence_kill_current_note(s);
     s->flags = clear_flag(s->flags, SEQ_PLAYING);
     s->flags = assign_flag(s->flags, SEQ_BEAT_QUEUED, is_beat);
@@ -218,7 +286,12 @@ void sequence_queue_at(Sequence* s, u8 step, u8 is_beat)
 
 void sequence_jump_to(Sequence* s, u8 step)
 {
-    step = clamp(step, 0, SEQUENCE_LENGTH);
+    if (flag_is_set(s->flags, SEQ_LINKED))
+    {
+        sequence_jump_to(s - 1, step + SEQUENCE_LENGTH);
+        return;
+    }
+
     s->jump_step = step;
 }
 
@@ -254,7 +327,7 @@ void sequence_handle_record(Sequence* s, u8 press)
     if (flag_is_set(s->flags, SEQ_ARMED)
         && flag_is_set(s->flags, SEQ_PLAYING))
     {
-        Note* n = &s->notes[s->playhead];
+        Note* n = sequence_get_note(s, s->playhead);
         s8 played_note = voices_get_newest(s->layout.voices);
 
         if (played_note > -1)
@@ -312,8 +385,8 @@ void sequence_step(Sequence* s, u8 audible, u8 is_beat)
         u8 next_playhead = sequence_get_next_playhead(s);
         s->jump_step = -1;
 
-        Note* n = &s->notes[s->playhead];
-        Note* next_n = &s->notes[next_playhead];
+        Note* n = sequence_get_note(s, s->playhead);
+        Note* next_n = sequence_get_note(s, next_playhead);
 
         // If delete is held while the sequence plays, the playhead becomes an
         // erase head.
@@ -373,8 +446,8 @@ void sequence_off_step(Sequence* s)
     if (flag_is_set(s->flags, SEQ_PLAYING))
     {
         u8 next_playhead = sequence_get_next_playhead(s);
-        Note* n = &s->notes[s->playhead];
-        Note* next_n = &s->notes[next_playhead];
+        Note* n = sequence_get_note(s, s->playhead);
+        Note* next_n = sequence_get_note(s, next_playhead);
 
         if (flag_is_set(n->flags, NTE_ON)
             && !flag_is_set(next_n->flags, NTE_SLIDE))

@@ -28,16 +28,17 @@ typedef enum
 
 typedef enum
 {
-    SEQ_PLAYING = 1 << 0,
-    SEQ_MUTED = 1 << 1,
-    SEQ_SOLOED = 1 << 2,
-    SEQ_ARMED = 1 << 3,
-    SEQ_REVERSED = 1 << 4,
-    SEQ_QUEUED = 1 << 5,
-    SEQ_BEAT_QUEUED = 1 << 6,
-    SEQ_ACTIVE = 1 << 7,
-    SEQ_LINKED = 1 << 8,
-    SEQ_RECORD_CONTROL = 1 << 9
+    SEQ_PLAYING        = 1 << 0,  // Sequence is currently playing
+    SEQ_MUTED          = 1 << 1,  // Sequence should not make sound
+    SEQ_SOLOED         = 1 << 2,  // Other sequences should not make sound
+    SEQ_ARMED          = 1 << 3,  // Sequence will record played notes
+    SEQ_REVERSED       = 1 << 4,  // Playhead advances backwards
+    SEQ_QUEUED         = 1 << 5,  // Sequence should start playing next step
+    SEQ_BEAT_QUEUED    = 1 << 6,  // Only unqueue if on beat
+    SEQ_ACTIVE         = 1 << 7,  // The currently selected sequence
+    SEQ_LINKED         = 1 << 8,  // Playhead is controlled by other sequence
+    SEQ_LINKED_TO      = 1 << 9,  // This sequence has other ones linked to it
+    SEQ_RECORD_CONTROL = 1 << 10  // Should record aftertouch values
 } SequenceFlags;
 
 typedef struct
@@ -52,22 +53,27 @@ typedef struct Sequence_
 {
     Layout layout;
     u8 channel;
+
     u8 control_code;
     u8 control_div;
     s8 control_sgn;
     s8 control_offset;
+
     u16 flags;
 
     u8 playhead;
     s8 jump_step;
+
     u8 zoom;
     u8 x;
     u8 y;
 
-    Note notes[SEQUENCE_LENGTH];
+    Note* notes;
 } Sequence;
 
-void sequence_init(Sequence* s, u8 channel);
+void sequence_init(Sequence* s, u8 channel, Note* notes);
+
+Note* sequence_get_note(Sequence* s, u8 playhead);
 
 void sequence_become_active(Sequence* s);
 
@@ -82,6 +88,10 @@ void sequence_clear_note(Sequence* s, u8 step);
 void sequence_clear_notes(Sequence* s);
 
 void sequence_set_skip(Sequence* s, u8 step, u8 skip);
+
+void sequence_toggle_linked_to(Sequence* s);
+
+void sequence_toggle_linked(Sequence* s);
 
 void sequence_queue(Sequence* s, u8 is_beat);
 

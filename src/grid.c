@@ -18,7 +18,7 @@ void grid_draw(Sequencer* sr)
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
             u8 seq_x = grid_to_sequence_x(s, x);
-            Note* n = &s->notes[seq_x];
+            Note* n = sequence_get_note(s, seq_x);
             
             if (n->note_number == note_number)
             {
@@ -142,7 +142,7 @@ u8 grid_handle_press(Sequencer* sr, u8 index, u8 value)
     {
         Sequence* s = sequencer_get_active(sr);
         u8 seq_x = grid_to_sequence_x(s, x);
-        Note* n = &s->notes[seq_x];
+        Note* n = sequence_get_note(s, seq_x);
 
         u8 note_number = grid_to_sequence_y(s, y);
 

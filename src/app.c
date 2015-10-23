@@ -290,7 +290,7 @@ u8 notes_mode_handle_press(u8 index, u8 value)
             && modifier_held(LP_CLICK))
         {
             u8 beat = tap_tempo_counter % GRID_SIZE;
-            Note* n = &s->notes[beat * STEPS_PER_PAD];
+            Note* n = sequence_get_note(s, beat * STEPS_PER_PAD);
             n->note_number = voices_get_newest(l->voices);
             n->velocity = l->voices->velocity;
             n->aftertouch = -1;

@@ -4,15 +4,19 @@
 
 void session_draw(Sequencer* sr)
 {
-    for (u8 y = 0; y < GRID_SIZE; y++)
-    {
-        u8 seq_i = row_to_seq(y);
-        Sequence* s = &sr->sequences[seq_i];
+    s8 y = GRID_SIZE - 1;
+    u8 seq_i = row_to_seq(y);
+    u8 linked_seq_i = 0;
+    Sequence* s = &sr->sequences[seq_i];
+    Sequence* linked_seq = &s[linked_seq_i];
 
+    while (y >= 0)
+    {
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
-            u8 step = x * STEPS_PER_PAD;
-            u8 skip = flag_is_set(s->notes[step].flags, NTE_SKIP);
+            u8 step = x * STEPS_PER_PAD + linked_seq_i * SEQUENCE_LENGTH;
+            Note* n = sequence_get_note(s, step);
+            u8 skip = flag_is_set(n->flags, NTE_SKIP);
             u8 index = coord_to_index(x, y);
 
             if (skip)
@@ -21,9 +25,29 @@ void session_draw(Sequencer* sr)
             }
             else
             {
-                u8 dimness = 5 * (s->playhead / STEPS_PER_PAD != x);
+                u8 linked_playhead = s->playhead - linked_seq_i * SEQUENCE_LENGTH;
+                u8 dimness = 5 * (linked_playhead / STEPS_PER_PAD != x);
                 plot_pad_dim(index, sequence_colors[seq_i], dimness);
             }
+        }
+
+        y--;
+        if (y < 0)
+        {
+            break;
+        }
+
+        if (flag_is_set(linked_seq->flags, SEQ_LINKED_TO))
+        {
+            linked_seq_i++;
+            linked_seq = &s[linked_seq_i];
+        }
+        else
+        {
+            seq_i = row_to_seq(y);
+            linked_seq_i = 0;
+            s = &sr->sequences[seq_i];
+            linked_seq = &s[linked_seq_i];
         }
     }
 }
@@ -59,7 +83,8 @@ u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
     }
     else if (modifier_held(LP_QUANTISE))
     {
-        u8 skip = !flag_is_set(s->notes[step].flags, NTE_SKIP);
+        Note* n = sequence_get_note(s, step);
+        u8 skip = !flag_is_set(n->flags, NTE_SKIP);
         for (u8 i = 0; i < STEPS_PER_PAD; i++)
         {
             sequence_set_skip(s, step + i, skip);
@@ -71,7 +96,12 @@ u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
     }
     else if (modifier_held(LP_DOUBLE))
     {
-        
+        if (seq_i < GRID_SIZE - 1)
+        {
+            Sequence* linked_s = &sr->sequences[seq_i + 1];
+            sequence_toggle_linked_to(s);
+            sequence_toggle_linked(linked_s);
+        }
     }
     else
     {
