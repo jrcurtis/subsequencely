@@ -200,29 +200,20 @@ void sequence_set_skip(Sequence* s, u8 step, u8 skip)
     n->flags = assign_flag(n->flags, NTE_SKIP, skip);
 }
 
-void sequence_queue(Sequence* s, u8 beat)
+void sequence_queue(Sequence* s, u8 is_beat)
 {
-    sequence_queue_at(s, s->playhead, beat);
+    sequence_queue_at(s, s->playhead, is_beat);
 }
 
-void sequence_queue_at(Sequence* s, u8 step, u8 beat)
+void sequence_queue_at(Sequence* s, u8 step, u8 is_beat)
 {
     step = clamp(step, 0, SEQUENCE_LENGTH);
     
     sequence_kill_current_note(s);
     s->flags = clear_flag(s->flags, SEQ_PLAYING);
+    s->flags = assign_flag(s->flags, SEQ_BEAT_QUEUED, is_beat);
+    s->flags = set_flag(s->flags, SEQ_QUEUED);
     s->playhead = step;
-
-    if (beat)
-    {
-        s->flags = set_flag(s->flags, SEQ_BEAT_QUEUED);
-        s->flags = clear_flag(s->flags, SEQ_QUEUED);
-    }
-    else
-    {
-        s->flags = set_flag(s->flags, SEQ_QUEUED);
-        s->flags = clear_flag(s->flags, SEQ_BEAT_QUEUED);
-    }
 }
 
 void sequence_jump_to(Sequence* s, u8 step)
@@ -231,7 +222,7 @@ void sequence_jump_to(Sequence* s, u8 step)
     s->jump_step = step;
 }
 
-void sequence_queue_or_jump(Sequence* s, u8 step, u8 beat)
+void sequence_queue_or_jump(Sequence* s, u8 step, u8 is_beat)
 {
     if (flag_is_set(s->flags, SEQ_PLAYING))
     {
@@ -239,7 +230,7 @@ void sequence_queue_or_jump(Sequence* s, u8 step, u8 beat)
     }
     else
     {
-        sequence_queue_at(s, step, beat);
+        sequence_queue_at(s, step, is_beat);
     }
 }
 
@@ -289,7 +280,7 @@ void sequence_handle_record(Sequence* s, u8 press)
     }
 }
 
-void sequence_step(Sequence* s, u8 audible)
+void sequence_step(Sequence* s, u8 audible, u8 is_beat)
 {
     // If this sequence is not playing and not about to start playing
     // skip it.
@@ -299,13 +290,19 @@ void sequence_step(Sequence* s, u8 audible)
         return;
     }
     // If it's about to start playing, switch it to playing.
+    // If not on beat, only play if sequence isn't beat queued.
     else if (flag_is_set(s->flags, SEQ_QUEUED))
     {
-        s->flags = clear_flag(s->flags, SEQ_QUEUED);
-        s->flags = set_flag(s->flags, SEQ_PLAYING);
-        if (audible)
+        if (is_beat || !flag_is_set(s->flags, SEQ_BEAT_QUEUED))
         {
-            sequence_play_current_note(s);
+            s->flags = clear_flag(s->flags, SEQ_QUEUED);
+            s->flags = clear_flag(s->flags, SEQ_BEAT_QUEUED);
+            s->flags = set_flag(s->flags, SEQ_PLAYING);
+
+            if (audible)
+            {
+                sequence_play_current_note(s);
+            }
         }
     }
     // Otherwise find the next note, and if it is a slide note, play it

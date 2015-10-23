@@ -241,6 +241,8 @@ void VirtualLppApp::drawSidePanel()
     ImGui::SetNextWindowSize(sidePanelSize);
     ImGui::Begin("side panel", NULL, windowFlags);
     
+    ImGui::Text("Master Sequence: %d", sequencer.master_sequence + 1);
+    
     for (int i = 0; i < GRID_SIZE; i++)
     {
         if (ImGui::TreeNode(sequenceNames[i].data()))
@@ -275,7 +277,13 @@ void VirtualLppApp::drawSequenceNotes(Sequence& s)
         ImGui::SmallButton(to_string(n.note_number).data());
         if (ImGui::IsItemHovered())
         {
-            ImGui::SetTooltip("Velocity: %d\nControl: %d", n.velocity, n.aftertouch);
+            ImGui::SetTooltip(
+                "Velocity: %d\n"
+                "Control: %d\n"
+                "Skip: %s",
+                n.velocity,
+                n.aftertouch,
+                flag_is_set(n.flags, NTE_SKIP) ? "true" : "false");
         }
         
         ImGui::PopStyleColor(3);

@@ -260,12 +260,12 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
     else if (flag_is_set(s->flags, SEQ_QUEUED)
              || flag_is_set(s->flags, SEQ_PLAYING))
     {
+        sequence_stop(s);
+
         if (si == sr->master_sequence)
         {
             sequencer_find_master_sequence(sr);
         }
-
-        sequence_stop(s);
     }
     // Otherwise, queue it to start playing on the next step.
     // It becomes the master sequence if it's the least-numbered, playing
@@ -358,13 +358,23 @@ void sequencer_tick(Sequencer* sr)
     sr->timer = 0;
     sr->flags = set_flag(sr->flags, SQR_DIRTY);
 
+    u8 master_offset = (sr->master_sequence < GRID_SIZE)
+        ? sr->master_sequence : 0;
+    u8 on_beat = 1;
+
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
-        Sequence* s = &sr->sequences[i];
+        Sequence* s = &sr->sequences[(i + master_offset) % GRID_SIZE];
+
         u8 audible = !flag_is_set(s->flags, SEQ_MUTED)
             && (sr->soloed_tracks == 0
                 || flag_is_set(s->flags, SEQ_SOLOED));
 
-        sequence_step(s, audible);
+        sequence_step(s, audible, on_beat);
+
+        if (i == 0)
+        {
+            on_beat = s->playhead % STEPS_PER_PAD == 0;
+        }
     }
 }

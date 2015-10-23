@@ -83,13 +83,13 @@ void sequence_clear_notes(Sequence* s);
 
 void sequence_set_skip(Sequence* s, u8 step, u8 skip);
 
-void sequence_queue(Sequence* s, u8 beat);
+void sequence_queue(Sequence* s, u8 is_beat);
 
-void sequence_queue_at(Sequence* s, u8 step, u8 beat);
+void sequence_queue_at(Sequence* s, u8 step, u8 is_beat);
 
 void sequence_jump_to(Sequence* s, u8 step);
 
-void sequence_queue_or_jump(Sequence* s, u8 step, u8 beat);
+void sequence_queue_or_jump(Sequence* s, u8 step, u8 is_beat);
 
 void sequence_stop(Sequence* s);
 
@@ -101,7 +101,7 @@ u8 sequence_handle_press(Sequence* s, u8 index, u8 value);
 
 u8 sequence_handle_aftertouch(Sequence* s, u8 index, u8 value);
 
-void sequence_step(Sequence* s, u8 audible);
+void sequence_step(Sequence* s, u8 audible, u8 is_beat);
 
 void sequence_off_step(Sequence* s);
 
