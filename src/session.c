@@ -6,11 +6,14 @@ void session_draw(Sequencer* sr)
 {
     u8 seq_i;
     u8 linked_seq_i;
+    u8 row_seq_i;
     Sequence* s;
     Sequence* linked_seq;
 
     for (s8 y = GRID_SIZE - 1; y >= 0; y--)
     {
+        row_seq_i = row_to_seq(y);
+
         if (y < GRID_SIZE - 1
             && flag_is_set(linked_seq->flags, SEQ_LINKED_TO))
         {
@@ -19,11 +22,15 @@ void session_draw(Sequencer* sr)
         }
         else
         {
-            seq_i = row_to_seq(y);
+            seq_i = row_seq_i;
             linked_seq_i = 0;
             s = &sr->sequences[seq_i];
             linked_seq = &s[linked_seq_i];
         }
+
+        u8 copy_blink = modifier_held(LP_DUPLICATE)
+            && sr->copied_sequence == row_seq_i
+            && linked_seq->playhead % 2 == 0;
 
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
@@ -32,7 +39,11 @@ void session_draw(Sequencer* sr)
             u8 skip = flag_is_set(n->flags, NTE_SKIP);
             u8 index = coord_to_index(x, y);
 
-            if (modifier_held(LP_CLICK)
+            if (copy_blink)
+            {
+                plot_pad(index, on_color);
+            }
+            else if (modifier_held(LP_CLICK)
                 && x == linked_seq->clock_div - 1)
             {
                 plot_pad(index, on_color);
@@ -54,6 +65,13 @@ void session_draw(Sequencer* sr)
 
 u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
 {
+    // When duplicate is pressed or released, reset the clipboard.
+    if (index == LP_DUPLICATE)
+    {
+        sequencer_copy(sr, -1);
+        return 1;
+    }
+
     u8 x, y;
     if (value == 0 || !index_to_pad(index, &x, &y))
     {
@@ -91,7 +109,14 @@ u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
     }
     else if (modifier_held(LP_DUPLICATE))
     {
-        
+        if (sr->copied_sequence == -1)
+        {
+            sequencer_copy(sr, seq_i);
+        }
+        else
+        {
+            sequencer_paste(sr, seq_i);
+        }
     }
     else if (modifier_held(LP_DOUBLE))
     {

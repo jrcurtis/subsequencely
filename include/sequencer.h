@@ -34,7 +34,8 @@ typedef struct
     // State
     u8 master_sequence;
     u8 active_sequence;
-    u8 soloed_tracks;
+    u8 soloed_sequences;
+    s8 copied_sequence;
     u8 flags;
 
     // UI widgets
@@ -55,12 +56,18 @@ typedef struct
 } Sequencer;
 
 void sequencer_init(Sequencer* sr);
+
 void sequencer_set_tempo_millis(Sequencer* sr, u16 millis);
 void sequencer_set_tempo(Sequencer* sr, u16 bpm);
 void sequencer_set_swing(Sequencer* sr, s8 swing);
 void sequencer_set_octave(Sequencer* sr, u8 octave);
 void sequencer_set_active(Sequencer* sr, u8 i);
+
+void sequencer_copy(Sequencer* sr, u8 i);
+void sequencer_paste(Sequencer* sr, u8 i);
+
 Sequence* sequencer_get_active(Sequencer* sr);
+Sequence* sequence_get_master(Sequencer* sr);
 Layout* sequencer_get_layout(Sequencer* sr);
 
 void sequencer_play_draw(Sequencer* sr);

@@ -1,4 +1,6 @@
 
+#include <string.h>
+
 #include "sequencer.h"
 
 
@@ -12,9 +14,11 @@ void sequencer_init(Sequencer* sr)
     sr->step_millis = 100;
     sequencer_set_tempo(sr, DEFAULT_TEMPO);
     sr->timer = 0;
+
     sr->master_sequence = 0xFF;
     sr->active_sequence = 0;
-    sr->soloed_tracks = 0;
+    sr->soloed_sequences = 0;
+    sr->copied_sequence = -1;
     sr->flags = 0x00;
 
     scale_init(&sr->scale);
@@ -98,9 +102,38 @@ void sequencer_find_master_sequence(Sequencer* sr)
     }
 }
 
+Sequence* sequence_get_master(Sequencer* sr)
+{
+    if (sr->master_sequence < GRID_SIZE)
+    {
+        return &sr->sequences[sr->master_sequence];
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
 Layout* sequencer_get_layout(Sequencer* sr)
 {
     return &sequencer_get_active(sr)->layout;
+}
+
+void sequencer_copy(Sequencer* sr, u8 i)
+{
+    sr->copied_sequence = i;
+}
+
+void sequencer_paste(Sequencer* sr, u8 i)
+{
+    if (sr->copied_sequence < 0)
+    {
+        return;
+    }
+
+    Note* from = sr->note_bank + sr->copied_sequence * SEQUENCE_LENGTH;
+    Note* to = sr->note_bank + i * SEQUENCE_LENGTH;
+    memcpy(to, from, sizeof(Note) * SEQUENCE_LENGTH);
 }
 
 /*******************************************************************************
@@ -228,13 +261,13 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
     else if (modifier_held(LP_SOLO))
     {
         s->flags = toggle_flag(s->flags, SEQ_SOLOED);
-        sr->soloed_tracks += flag_is_set(s->flags, SEQ_SOLOED) ? 1 : -1;
+        sr->soloed_sequences += flag_is_set(s->flags, SEQ_SOLOED) ? 1 : -1;
 
         // If this sequence has become soloed, and it is the only soloed
         // sequence, any other playing sequence must be killed.
         if (flag_is_set(s->flags, SEQ_SOLOED))
         {
-            if (sr->soloed_tracks == 1)
+            if (sr->soloed_sequences == 1)
             {
                 for (u8 i = 0; i < GRID_SIZE; i++)
                 {
@@ -250,7 +283,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
         }
         // If this sequence is unsoloed, but other tracks are still soloed,
         // then this sequence essentially becomes muted, so kill it.
-        else if (sr->soloed_tracks > 0)
+        else if (sr->soloed_sequences > 0)
         {
             sequence_kill_current_note(s);
         }
@@ -377,7 +410,7 @@ void sequencer_tick(Sequencer* sr)
         Sequence* s = &sr->sequences[(i + master_offset) % GRID_SIZE];
 
         u8 audible = !flag_is_set(s->flags, SEQ_MUTED)
-            && (sr->soloed_tracks == 0
+            && (sr->soloed_sequences == 0
                 || flag_is_set(s->flags, SEQ_SOLOED));
 
         if (s->clock_div == 1 || clock_step % s->clock_div == 0)
