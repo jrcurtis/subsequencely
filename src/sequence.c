@@ -323,34 +323,42 @@ void sequence_reverse(Sequence* s)
     s->flags = toggle_flag(s->flags, SEQ_REVERSED);
 }
 
-void sequence_handle_record(Sequence* s, u8 press)
+void sequence_handle_record(Sequence* s, u8 press, u8 quantize_ahead)
 {
-    if (flag_is_set(s->flags, SEQ_ARMED)
-        && flag_is_set(s->flags, SEQ_PLAYING))
+    if (!flag_is_set(s->flags, SEQ_ARMED)
+        || !flag_is_set(s->flags, SEQ_PLAYING))
     {
-        Note* n = sequence_get_note(s, s->playhead);
-        s8 played_note = voices_get_newest(s->layout.voices);
+        return;
+    }
 
-        if (played_note > -1)
+    Note* current_n = sequence_get_note(s, s->playhead);
+    Note* record_n = quantize_ahead
+        ? sequence_get_note(s, sequence_get_next_playhead(s))
+        : current_n;
+    s8 played_note = voices_get_newest(s->layout.voices);
+
+    if (played_note > -1)
+    {
+        if (press)
         {
-            if (press)
-            {
-                sequence_kill_note(s, n);
-                u8 slide = voices_get_num_active(s->layout.voices) > 1;
-                n->flags = assign_flag(n->flags, NTE_SLIDE, slide);
-            }
-            else
-            {
-                n->flags = set_flag(n->flags, NTE_SLIDE);
-            }
+            sequence_kill_note(s, current_n);
+            u8 slide = voices_get_num_active(s->layout.voices) > 1;
+            record_n->flags = assign_flag(record_n->flags, NTE_SLIDE, slide);
 
-            n->aftertouch = flag_is_set(s->flags, SEQ_RECORD_CONTROL)
-                ? s->layout.voices->aftertouch
-                : -1;
-
-            n->note_number = played_note;
-            n->velocity = s->layout.voices->velocity;
+            s->flags = assign_flag(
+                s->flags, SEQ_DID_RECORD_AHEAD, quantize_ahead);
         }
+        else
+        {
+            current_n->flags = set_flag(current_n->flags, NTE_SLIDE);
+        }
+
+        record_n->aftertouch = flag_is_set(s->flags, SEQ_RECORD_CONTROL)
+            ? s->layout.voices->aftertouch
+            : -1;
+
+        record_n->note_number = played_note;
+        record_n->velocity = s->layout.voices->velocity;
     }
 }
 
@@ -397,9 +405,13 @@ void sequence_step(Sequence* s, u8 audible, u8 is_beat)
         {
             sequence_clear_note(s, s->playhead);
         }
-        else if (!audible)
+        else if (!audible
+                 || flag_is_set(s->flags, SEQ_DID_RECORD_AHEAD))
         {
-            // Play nothing
+            // Obviously if the sequence is muted or whatever don't play
+            // anything, but also, if the last recorded note was quantized
+            // a step ahead, then it was already heard when it was played
+            // and doesn't need to be played again.
         }
         else if (flag_is_set(n->flags, NTE_ON))
         {
@@ -438,8 +450,13 @@ void sequence_step(Sequence* s, u8 audible, u8 is_beat)
         s->playhead = next_playhead;
     }
     
-    // Handle the recording of notes that are still held down.
-    sequence_handle_record(s, 0);
+    // Handle the recording of held notes, but only if those held notes
+    // weren't just recorded as pressed notes right before this.
+    if (!flag_is_set(s->flags, SEQ_DID_RECORD_AHEAD))
+    {
+        sequence_handle_record(s, 0, 0);
+    }
+    s->flags = clear_flag(s->flags, SEQ_DID_RECORD_AHEAD);
 }
 
 void sequence_off_step(Sequence* s)

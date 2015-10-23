@@ -38,7 +38,8 @@ typedef enum
     SEQ_ACTIVE         = 1 << 7,  // The currently selected sequence
     SEQ_LINKED         = 1 << 8,  // Playhead is controlled by other sequence
     SEQ_LINKED_TO      = 1 << 9,  // This sequence has other ones linked to it
-    SEQ_RECORD_CONTROL = 1 << 10  // Should record aftertouch values
+    SEQ_RECORD_CONTROL = 1 << 10, // Should record aftertouch values
+    SEQ_DID_RECORD_AHEAD = 1 << 11 // Was the last note quantized forwards?
 } SequenceFlags;
 
 typedef struct
@@ -105,7 +106,7 @@ void sequence_stop(Sequence* s);
 
 void sequence_reverse(Sequence* s);
 
-void sequence_handle_record(Sequence* s, u8 press);
+void sequence_handle_record(Sequence* s, u8 press, u8 quantize_ahead);
 
 u8 sequence_handle_press(Sequence* s, u8 index, u8 value);
 
