@@ -48,7 +48,17 @@
 
 u8 index_to_pad(u8 i, u8* x, u8* y);
 
+// Row indices get bigger going up, but tracks are layed out with 0 at the top,
+// so flip it around.
 #define row_to_seq(y)           (GRID_SIZE - y - 1)
+
+// Figure out which sequence goes with which play button. -1 on error.
+#define index_to_play(i)        (((i) < LP_FIRST_PLAY                          \
+                                 || (i) > LP_LAST_PLAY                         \
+                                 || ((i) - LP_FIRST_PLAY) % LP_PLAY_GAP != 0)  \
+                                 ? -1                                          \
+                                 : row_to_seq(((i) - LP_FIRST_PLAY)            \
+                                              / LP_PLAY_GAP))
 
 #define plot_pad(i, c)          (hal_plot_led(                                 \
                                      TYPEPAD, (i),                             \

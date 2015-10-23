@@ -72,6 +72,8 @@ typedef struct Sequence_
     Note* notes;
 } Sequence;
 
+void note_init(Note* n);
+
 void sequence_init(Sequence* s, u8 channel, Note* notes);
 
 Note* sequence_get_note(Sequence* s, u8 playhead);

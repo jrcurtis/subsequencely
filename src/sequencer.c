@@ -30,6 +30,11 @@ void sequencer_init(Sequencer* sr)
         layout_init(&s->layout, &sr->scale, &sr->pad_notes, &sr->voices);
     }
 
+    for (u16 i = 0; i <= SEQUENCE_LENGTH * GRID_SIZE; i++)
+    {
+        note_init(&sr->note_storage[i]);
+    }
+
     sequencer_set_active(sr, 0);
 }
 
@@ -131,8 +136,16 @@ void sequencer_paste(Sequencer* sr, u8 i)
         return;
     }
 
-    Note* from = sr->note_bank + sr->copied_sequence * SEQUENCE_LENGTH;
-    Note* to = sr->note_bank + i * SEQUENCE_LENGTH;
+    Note* from = (sr->copied_sequence < GRID_SIZE)
+        ? sr->note_bank
+        : sr->note_storage;
+    from += (sr->copied_sequence % GRID_SIZE) * SEQUENCE_LENGTH;
+
+    Note* to = (i < GRID_SIZE)
+        ? sr->note_bank
+        : sr->note_storage;
+    to += (i % GRID_SIZE) * SEQUENCE_LENGTH;
+
     memcpy(to, from, sizeof(Note) * SEQUENCE_LENGTH);
 }
 
@@ -227,17 +240,13 @@ void sequencer_play_draw(Sequencer* sr)
 
 u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
 {
-    if (value == 0
-        || index < LP_FIRST_PLAY || index > LP_LAST_PLAY
-        || (index - LP_FIRST_PLAY) % LP_PLAY_GAP != 0)
+    s8 si = index_to_play(index);
+
+    if (value == 0 || si == -1)
     {
         return 0;
     }
 
-    // Figure out which sequence goes with which play button.
-    // Play button indices get bigger going up, but tracks are layed out
-    // with 0 at the top, so flip it around.
-    u8 si = GRID_SIZE - 1 - (index - LP_FIRST_PLAY) / LP_PLAY_GAP;
     Sequence* s = &sr->sequences[si];
 
     if (modifier_held(LP_RECORD_ARM))

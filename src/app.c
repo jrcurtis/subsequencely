@@ -483,6 +483,10 @@ void app_surface_event(u8 type, u8 index, u8 value)
 #ifndef SEQ_DEBUG
     modifier_index_assign(index, value > 0);
 
+    // The play buttons are active all the time, but they are drawn first
+    // in case any mode needs to overwrite them with specific info.
+    sequencer_play_draw(&sequencer);
+
     if (index == LP_SESSION && value > 0)
     {
         set_state(SESSION_MODE, 0);
@@ -537,8 +541,6 @@ void app_surface_event(u8 type, u8 index, u8 value)
             sequencer_setup_draw();
         }
     }
-
-    sequencer_play_draw(&sequencer);
 #else
     send_midi(
         value > 0 ? NOTEON : NOTEOFF,

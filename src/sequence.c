@@ -6,6 +6,14 @@
  * Note functions
  ******************************************************************************/
 
+void note_init(Note* n)
+{
+    n->note_number = -1;
+    n->velocity = 0;
+    n->aftertouch = -1;
+    n->flags = 0x00;
+}
+
 void note_play(Note* n, u8 channel)
 {
     if (!flag_is_set(n->flags, NTE_ON))
@@ -234,10 +242,7 @@ void sequence_clear_note(Sequence* s, u8 step)
 {
     Note* n = sequence_get_note(s, step);
     sequence_kill_note(s, n);
-    n->note_number = -1;
-    n->velocity = 0;
-    n->aftertouch = -1;
-    n->flags = 0x00;
+    note_init(n);
 }
 
 void sequence_clear_notes(Sequence* s)
