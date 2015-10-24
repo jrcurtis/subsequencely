@@ -248,9 +248,21 @@ void sequence_clear_note(Sequence* s, u8 step)
 
 void sequence_clear_notes(Sequence* s)
 {
-    for (u8 i = 0; i < SEQUENCE_LENGTH; i++)
+    while (1)
     {
-        sequence_clear_note(s, i);
+        for (u8 i = 0; i < SEQUENCE_LENGTH; i++)
+        {
+            sequence_clear_note(s, i);
+        }
+
+        if (flag_is_set(s->flags, SEQ_LINKED_TO))
+        {
+            s++;
+        }
+        else
+        {
+            break;
+        }
     }
 }
 
