@@ -6,32 +6,32 @@
 #include "util.h"
 #include "colors.h"
 
-/// Represents an onscreen fader that can be either horizontal or vertical.
-/// Currently spans the entire length of the grid and can only be set to 8
-/// discrete values, but could be updated to interpolate between them.
+/// Represents an onscreen fader that increases horizontally left to right.
+/// Currently spans the entire length of the grid and can be set to
+/// higher resolution to represent more than 8 values.
 typedef struct
 {
     /// The number of divisions per pad. If this is 1, the slider ranges from
-    /// 1 to 8. If it's 3, the range is 1 to 24. The different subdivisions
+    /// 0 to 7. If it's 3, the range is 0 to 23. The different subdivisions
     /// are set by the velocity of the slider press.
     u8 resolution;
 
     /// An offset that is added to the slider value when accessed through the
     /// accessors.
-    s16 offset;
+    s8 offset;
 
     /// The currently held value.
-    s16 value;
+    s8 value;
 } Slider;
 
 /// Initalizes the slider's state.
-void slider_init(Slider* s, u8 resolution, s16 offset, s16 value);
+void slider_init(Slider* s, u8 resolution, s8 offset, s8 value);
 
 /// Sets the value, subtracting the slider offset to keep the value normalized.
-void slider_set_value(Slider* s, s16 value);
+void slider_set_value(Slider* s, s8 value);
 
 /// Gets the value of the slider + offset.
-s16 slider_get_value(Slider* s);
+s8 slider_get_value(Slider* s);
 
 /// Checks whether index is a valid pad for this slider, and updates the value
 /// if so.

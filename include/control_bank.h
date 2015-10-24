@@ -21,12 +21,12 @@ typedef struct
 
     // User controls
     Slider sliders[GRID_SIZE];
-    Checkbox checkboxes[GRID_SIZE * GRID_SIZE];
+    Checkbox checkboxes[GRID_SIZE];
 
     // Setup controls
     Number control_numbers[GRID_SIZE];
     Number channel_numbers[GRID_SIZE];
-    Checkbox checkbox_checkboxes[GRID_SIZE];
+    Checkbox checkbox_checkbox;
     Checkbox bipolar_checkboxes[GRID_SIZE];
 } ControlBank;
 

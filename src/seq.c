@@ -173,7 +173,9 @@ void sequencer_setup_draw()
 {
     sequencer_play_draw(&lp_sequencer);
 
-    slider_set_value(&lp_tempo_slider, millis_to_bpm(lp_sequencer.step_millis));
+    slider_set_value(
+        &lp_tempo_slider,
+        millis_to_bpm(lp_sequencer.step_millis) / TEMPO_MUL);
     slider_draw(&lp_tempo_slider, TEMPO_POS, TEMPO_COLOR);
     slider_draw(&lp_swing_slider, SWING_POS, SWING_COLOR);
 }
@@ -193,7 +195,9 @@ u8 sequencer_setup_handle_press(u8 index, u8 value)
 {
     if (slider_handle_press(&lp_tempo_slider, index, value, TEMPO_POS))
     {
-        sequencer_set_tempo(&lp_sequencer, slider_get_value(&lp_tempo_slider));
+        sequencer_set_tempo(
+            &lp_sequencer,
+            TEMPO_MUL * slider_get_value(&lp_tempo_slider));
     }
     else if (slider_handle_press(&lp_swing_slider, index, value, SWING_POS))
     {
@@ -301,7 +305,7 @@ u8 notes_setup_handle_press(u8 index, u8 value)
 
     if (slider_handle_press(&lp_row_offset_slider, index, value, ROW_OFFSET_POS))
     {
-        layout_set_row_offset(l, lp_row_offset_slider.value);
+        layout_set_row_offset(l, lp_row_offset_slider.value + 1);
     }
     else if (checkbox_handle_press(
                  lp_port_checkbox, index, value, PORT_CHECKBOX_POS))

@@ -1,19 +1,19 @@
 
 #include "slider.h"
 
-void slider_init(Slider* s, u8 resolution, s16 offset, s16 value)
+void slider_init(Slider* s, u8 resolution, s8 offset, s8 value)
 {
     s->resolution = resolution;
     s->offset = offset;
     s->value = value - offset;
 }
 
-void slider_set_value(Slider* s, s16 value)
+void slider_set_value(Slider* s, s8 value)
 {
     s->value = value - s->offset;
 }
 
-s16 slider_get_value(Slider* s)
+s8 slider_get_value(Slider* s)
 {
     return s->value + s->offset;
 }
@@ -29,7 +29,7 @@ u8 slider_handle_press(Slider* s, u8 index, u8 value, u8 pos)
     // All the pads before the one that was pressed are filled up, so find
     // their value, then find how much of the pressed pad is filled up based
     // on how hard it was pressed.
-    s->value = x * s->resolution;
+    s->value = x * s->resolution - 1;
 
     // The harder you press, the further away from 0 the value should be,
     // so if there's a negative offset and the pad that was pressed is on
@@ -57,8 +57,8 @@ void slider_draw(Slider* s, u8 pos, const u8* color)
     // that 0 is in and the one the value lies in are filled.
     u8 range_start = 0;
     u8 range_end = 0;
-    u8 zero_point = max(0, (-s->offset - 1) / s->resolution);
-    u8 value_point = (s->value - 1) / s->resolution;
+    u8 zero_point = max(0, -s->offset / s->resolution);
+    u8 value_point = s->value / s->resolution;
 
     if (s->offset >= 0)
     {
@@ -75,7 +75,7 @@ void slider_draw(Slider* s, u8 pos, const u8* color)
         range_end = value_point;
     }
 
-    u8 prev_value = 0;
+    s8 prev_value = -1;
 
     for (x = 0; x < GRID_SIZE; x++)
     {

@@ -180,7 +180,10 @@ void app_aftertouch_event(u8 index, u8 value)
     {
         if (slider_handle_press(&lp_tempo_slider, index, value, TEMPO_POS))
         {
-            sequencer_set_tempo(&lp_sequencer, slider_get_value(&lp_tempo_slider));
+            sequencer_set_tempo(
+                &lp_sequencer,
+                TEMPO_MUL * slider_get_value(&lp_tempo_slider));
+            
             slider_draw(&lp_tempo_slider, TEMPO_POS, TEMPO_COLOR);
         }
     }
@@ -244,27 +247,27 @@ void app_init()
 #ifndef SEQ_DEBUG
     slider_init(
         &lp_tempo_slider,
-        15, 60,
-        DEFAULT_TEMPO);
+        TEMPO_RESOLUTION, 60 / TEMPO_MUL + 1,
+        DEFAULT_TEMPO / TEMPO_MUL);
 
     slider_init(
         &lp_swing_slider,
-        1, -4,
+        1, -3,
         0);
 
     slider_init(
         &lp_row_offset_slider,
-        1, 0,
+        1, 1,
         0);
 
     slider_init(
         &lp_control_sens_slider,
-        CC_SENS_RESOLUTION, -1,
+        CC_SENS_RESOLUTION, 0,
         CC_SENS_RESOLUTION * GRID_SIZE - 1);
 
     slider_init(
         &lp_control_offset_slider,
-        16, -1,
+        16, 0,
         0);
 
     sequencer_init(&lp_sequencer);

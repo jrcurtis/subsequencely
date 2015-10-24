@@ -278,10 +278,10 @@ void sequence_queue(Sequence* s, u8 is_beat)
 
 void sequence_queue_at(Sequence* s, u8 step, u8 is_beat)
 {
-    if (flag_is_set(s->flags, SEQ_LINKED))
+    while (flag_is_set(s->flags, SEQ_LINKED))
     {
-        sequence_queue_at(s - 1, step + SEQUENCE_LENGTH, is_beat);
-        return;
+        s--;
+        step += SEQUENCE_LENGTH;
     }
 
     sequence_kill_current_note(s);
@@ -293,10 +293,10 @@ void sequence_queue_at(Sequence* s, u8 step, u8 is_beat)
 
 void sequence_jump_to(Sequence* s, u8 step)
 {
-    if (flag_is_set(s->flags, SEQ_LINKED))
+    while (flag_is_set(s->flags, SEQ_LINKED))
     {
-        sequence_jump_to(s - 1, step + SEQUENCE_LENGTH);
-        return;
+        s--;
+        step += SEQUENCE_LENGTH;
     }
 
     s->jump_step = step;

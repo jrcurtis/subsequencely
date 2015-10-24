@@ -18,11 +18,15 @@
 #define CHANNEL_BITS               (4)
 #define CHANNEL_X                  (4)
 
+#define CHECKBOX_ROW               (7)
+#define CHECKBOX_ROW_INDEX         (81)
 #define CHECKBOX_CHECKBOX_X        (0)
 #define BIPOLAR_CHECKBOX_X         (2)
 
 #define TEMPO_POS                  (7)
 #define TEMPO_COLOR                (sequence_colors[3])
+#define TEMPO_RESOLUTION           (5)
+#define TEMPO_MUL                  (3)
 
 #define SWING_POS                  (6)
 #define SWING_COLOR                (sequence_colors[5])
