@@ -46,6 +46,7 @@ typedef enum
     SESSION_MODE,
     NOTES_MODE,
     SEQUENCER_MODE,
+    USER_MODE,
     NUM_MODES
 } LpState;
 

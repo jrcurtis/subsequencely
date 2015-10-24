@@ -7,6 +7,7 @@
 #include "buttons.h"
 #include "checkbox.h"
 #include "colors.h"
+#include "control_bank.h"
 #include "grid.h"
 #include "keyboard.h"
 #include "layout.h"

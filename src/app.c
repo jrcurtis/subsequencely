@@ -71,6 +71,8 @@ Slider control_offset_slider;
 
 Number channel_numbers[GRID_SIZE];
 
+ControlBank user_control_bank;
+
 /*******************************************************************************
  * App functionality
  ******************************************************************************/
@@ -368,6 +370,58 @@ u8 notes_setup_handle_press(u8 index, u8 value)
     return 1;
 }
 
+void user_mode_become_active()
+{
+    
+}
+
+void user_mode_become_inactive()
+{
+    
+}
+
+void user_setup_become_active()
+{
+    
+} 
+
+void user_setup_become_inactive()
+{
+    
+}
+
+void user_mode_draw()
+{
+    control_bank_draw(&user_control_bank);
+}
+
+void user_setup_draw()
+{
+    control_bank_setup_draw(&user_control_bank);
+}
+
+u8 user_mode_handle_press(u8 index, u8 value)
+{
+    if (control_bank_handle_press(&user_control_bank, index, value, 0)) { }
+    else
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+u8 user_setup_handle_press(u8 index, u8 value)
+{
+    if (control_bank_setup_handle_press(&user_control_bank, index, value)) { }
+    else
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
 
 /*******************************************************************************
  * State management
@@ -382,7 +436,7 @@ void set_state(LpState st, u8 setup)
 
     if (lp_state == SESSION_MODE)
     {
-        if (setup)
+        if (flag_is_set(lp_flags, IS_SETUP))
         {
             session_setup_become_inactive();
         }
@@ -393,7 +447,7 @@ void set_state(LpState st, u8 setup)
     }
     else if (lp_state == NOTES_MODE)
     {
-        if (setup)
+        if (flag_is_set(lp_flags, IS_SETUP))
         {
             notes_setup_become_inactive();
         }
@@ -404,13 +458,24 @@ void set_state(LpState st, u8 setup)
     }
     else if (lp_state == SEQUENCER_MODE)
     {
-        if (setup)
+        if (flag_is_set(lp_flags, IS_SETUP))
         {
             sequencer_setup_become_inactive();
         }
         else
         {
             sequencer_mode_become_inactive();
+        }
+    }
+    else if (lp_state == USER_MODE)
+    {
+        if (flag_is_set(lp_flags, IS_SETUP))
+        {
+            user_setup_become_inactive();
+        }
+        else
+        {
+            user_mode_become_inactive();
         }
     }
 
@@ -467,6 +532,23 @@ void set_state(LpState st, u8 setup)
             sequencer_mode_draw();
         }
     }
+    else if (st == USER_MODE)
+    {
+        plot_pad(LP_USER, number_colors[USER_MODE]);
+
+        if (setup)
+        {
+            user_setup_become_active();
+            plot_setup(on_color);
+            user_setup_draw();
+        }
+        else
+        {
+            user_mode_become_active();
+            plot_setup(number_colors[USER_MODE]);
+            user_mode_draw();
+        }
+    }
 
     sequencer_play_draw(&sequencer);
 
@@ -487,17 +569,33 @@ void app_surface_event(u8 type, u8 index, u8 value)
     // in case any mode needs to overwrite them with specific info.
     sequencer_play_draw(&sequencer);
 
-    if (index == LP_SESSION && value > 0)
+    if (index == LP_SESSION)
     {
-        set_state(SESSION_MODE, 0);
+        if (value > 0)
+        {
+            set_state(SESSION_MODE, 0);
+        }
     }
-    else if (index == LP_NOTE && value > 0)
+    else if (index == LP_NOTE)
     {
-        set_state(NOTES_MODE, 0);
+        if (value > 0)
+        {
+            set_state(NOTES_MODE, 0);
+        }
     }
-    else if (index == LP_DEVICE && value > 0)
+    else if (index == LP_DEVICE)
     {
-        set_state(SEQUENCER_MODE, 0);
+        if (value > 0)
+        {
+            set_state(SEQUENCER_MODE, 0);
+        }
+    }
+    else if (index == LP_USER)
+    {
+        if (value > 0)
+        {
+            set_state(USER_MODE, 0);
+        }
     }
     else if (type == TYPESETUP && value > 0)
     {
@@ -522,6 +620,11 @@ void app_surface_event(u8 type, u8 index, u8 value)
             sequencer_mode_handle_press(index, value);
             sequencer_mode_draw();
         }
+        else if (lp_state == USER_MODE)
+        {
+            user_mode_handle_press(index, value);
+            user_mode_draw();
+        }
     }
     else
     {
@@ -539,6 +642,11 @@ void app_surface_event(u8 type, u8 index, u8 value)
         {
             sequencer_setup_handle_press(index, value);
             sequencer_setup_draw();
+        }
+        else if (lp_state == USER_MODE)
+        {
+            user_setup_handle_press(index, value);
+            user_setup_draw();
         }
     }
 #else
@@ -593,6 +701,11 @@ void app_aftertouch_event(u8 index, u8 value)
             sequencer_set_tempo(&sequencer, slider_get_value(&tempo_slider));
             slider_draw(&tempo_slider);
         }
+    }
+    else if (lp_state == USER_MODE && !setup)
+    {
+        control_bank_handle_press(&user_control_bank, index, value, 1);
+        control_bank_draw(&user_control_bank);
     }
 #else
     send_midi(
@@ -697,6 +810,8 @@ void app_init()
             &channel_numbers[i],
             4, coord_to_index(4, row_to_seq(i)), i);
     }
+
+    control_bank_init(&user_control_bank);
 
     set_state(NOTES_MODE, 0);
 #else

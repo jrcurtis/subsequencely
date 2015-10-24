@@ -51,15 +51,16 @@ void clear_pad_leds()
 {
     u8 index = FIRST_PAD;
 
-    for (u8 x = 0; index <= LAST_PAD; x++)
+    for (u8 i = 0; i < GRID_SIZE * GRID_SIZE; i++)
     {
-        hal_plot_led(TYPEPAD, index, 0x00, 0x00, 0x00);
-
-        if (x == GRID_SIZE)
+        if (i > 0 && i % GRID_SIZE == 0)
         {
-            x = 0;
             index += ROW_GAP;
         }
+        
+        hal_plot_led(TYPEPAD, index, 0x00, 0x00, 0x00);
+
+        index++;
     }
 }
 
