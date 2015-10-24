@@ -1,12 +1,8 @@
 
 #include "slider.h"
 
-void slider_init(Slider* s, Orientation orientation, u8 position,
-                 const u8* color, u8 resolution, s16 offset, s16 value)
+void slider_init(Slider* s, u8 resolution, s16 offset, s16 value)
 {
-    s->orientation = orientation;
-    s->position = position;
-    s->color = color;
     s->resolution = resolution;
     s->offset = offset;
     s->value = value - offset;
@@ -22,25 +18,10 @@ s16 slider_get_value(Slider* s)
     return s->value + s->offset;
 }
 
-u8 slider_handle_press(Slider* s, u8 index, u8 value)
+u8 slider_handle_press(Slider* s, u8 index, u8 value, u8 pos)
 {
     u8 x, y;
-    if (value == 0 || !index_to_pad(index, &x, &y))
-    {
-        return 0;
-    }
-
-    u8 pad;
-
-    if (s->orientation == VERTICAL && s->position == x)
-    {
-        pad = y;
-    }
-    else if (s->orientation == HORIZONTAL && s->position == y)
-    {
-        pad = x;
-    }
-    else
+    if (value == 0 || !index_to_pad(index, &x, &y) || y != pos)
     {
         return 0;
     }
@@ -48,7 +29,7 @@ u8 slider_handle_press(Slider* s, u8 index, u8 value)
     // All the pads before the one that was pressed are filled up, so find
     // their value, then find how much of the pressed pad is filled up based
     // on how hard it was pressed.
-    s->value = pad * s->resolution;
+    s->value = x * s->resolution;
 
     // The harder you press, the further away from 0 the value should be,
     // so if there's a negative offset and the pad that was pressed is on
@@ -67,22 +48,9 @@ u8 slider_handle_press(Slider* s, u8 index, u8 value)
     return 1;
 }
 
-void slider_draw(Slider* s)
+void slider_draw(Slider* s, u8 pos, const u8* color)
 {
     u8 x = 0;
-    u8 y = 0;
-    u8* coord;
-
-    if (s->orientation == VERTICAL)
-    {
-        x = s->position;
-        coord = &y;
-    }
-    else
-    {
-        y = s->position;
-        coord = &x;
-    }
 
     // For positive offset (unipolar) sliders, all the pads before the value
     // are filled, but for negative offsets, only the pads between the one
@@ -109,17 +77,17 @@ void slider_draw(Slider* s)
 
     u8 prev_value = 0;
 
-    for (*coord = 0; *coord < GRID_SIZE; (*coord)++)
+    for (x = 0; x < GRID_SIZE; x++)
     {
-        const u8* color = off_color;
-        if (*coord >= range_start
-            && *coord <= range_end)
+        const u8* pad_color = off_color;
+        if (x >= range_start
+            && x <= range_end)
         {
-            color = s->color;
+            pad_color = color;
         }
 
         u8 dimness = 0;
-        if (*coord == value_point)
+        if (x == value_point)
         {
             // Figure out how much of the resolution of this pad is filled.
             // Reverse the direction for negative values just like in
@@ -135,7 +103,7 @@ void slider_draw(Slider* s)
             dimness = 5 * (s->resolution - pad_value) / s->resolution;
         }
 
-        plot_pad_dim(coord_to_index(x, y), color, dimness);
+        plot_pad_dim(coord_to_index(x, pos), pad_color, dimness);
 
         prev_value += s->resolution;
     }

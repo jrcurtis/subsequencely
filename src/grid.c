@@ -1,17 +1,19 @@
 
+#include "data.h"
+
 #include "grid.h"
 
 void grid_draw(Sequencer* sr)
 {
     Sequence* s = sequencer_get_active(sr);
-    u8 scale_deg = s->y % s->layout.scale->num_notes;
-    u8 octave = s->y / s->layout.scale->num_notes;
+    u8 scale_deg = s->y % lp_scale.num_notes;
+    u8 octave = s->y / lp_scale.num_notes;
     u8 index = FIRST_PAD;
     u8 zoom = zoom_to_sequence_x(s);
 
     for (u8 y = 0; y < GRID_SIZE; y++)
     {
-        u8 note_number = s->layout.scale->offsets[scale_deg]
+        u8 note_number = lp_scale.offsets[scale_deg]
             + s->layout.root_note
             + NUM_NOTES * octave;
 
@@ -43,7 +45,7 @@ void grid_draw(Sequencer* sr)
         }
 
         scale_deg++;
-        if (scale_deg >= s->layout.scale->num_notes)
+        if (scale_deg >= lp_scale.num_notes)
         {
             scale_deg = 0;
             octave++;

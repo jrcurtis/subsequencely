@@ -1,0 +1,65 @@
+
+#ifndef DATA_H
+#define DATA_H
+
+#include "app.h"
+#include "control_bank.h"
+#include "keyboard.h"
+#include "scale.h"
+#include "sequence.h"
+#include "sequencer.h"
+#include "slider.h"
+
+typedef enum
+{
+    LP_SESSION_MODE,
+    LP_NOTES_MODE,
+    LP_SEQUENCER_MODE,
+    LP_USER_MODE,
+    LP_NUM_MODES
+} LpState;
+
+typedef enum
+{
+    LP_IS_SETUP = 0x01
+} LpFlags;
+
+/*******************************************************************************
+ * Global data
+ ******************************************************************************/
+
+// Global settings
+extern u8 lp_midi_port;
+
+// Program state
+extern LpState lp_state;
+extern u8 lp_flags;
+extern u16 lp_tap_tempo_timer;
+extern u16 lp_tap_tempo_sum;
+extern u8 lp_tap_tempo_counter;
+
+// Data
+extern Scale lp_scale;
+extern Voices lp_voices;
+extern PadNotes lp_pad_notes;
+extern NoteBank lp_note_bank;
+//extern NoteBank lp_note_storage;
+extern u8 lp_lit_pads[GRID_SIZE];
+extern Sequencer lp_sequencer;
+
+// UI
+extern Checkbox lp_port_checkbox;
+
+extern Slider lp_tempo_slider;
+extern Slider lp_swing_slider;
+
+extern Keyboard lp_keyboard;
+extern Slider lp_row_offset_slider;
+
+extern Checkbox lp_control_checkbox;
+extern Slider lp_control_sens_slider;
+extern Slider lp_control_offset_slider;
+
+extern ControlBank lp_user_control_bank;
+
+#endif

@@ -7,17 +7,17 @@
 
 #define zoom_to_sequence_x(sr)        (1 << (MAX_ZOOM - (sr)->zoom))
 
-#define grid_to_sequence_x(sr, gx)    (((gx) + (s)->x)                  \
+#define grid_to_sequence_x(s, gx)     (((gx) + (s)->x)                  \
                                        * (1 << (MAX_ZOOM - (s)->zoom)))
 
-#define grid_to_sequence_y(s, gy)     ((s)->layout.scale->offsets[      \
+#define grid_to_sequence_y(s, gy)     (lp_scale.offsets[                \
                                            ((gy) + (s)->y)              \
-                                           % (s)->layout.scale->num_notes \
+                                           % lp_scale.num_notes         \
                                            ]                            \
                                        + (s)->layout.root_note          \
                                        + NUM_NOTES * (                  \
                                            ((gy) + (s)->y)              \
-                                           / (s)->layout.scale->num_notes \
+                                           / lp_scale.num_notes         \
                                            ))
 typedef enum
 {
@@ -46,9 +46,10 @@ typedef struct
 {
     s8 note_number;
     s8 velocity;
-    s8 aftertouch;
     u8 flags;
 } Note;
+
+typedef Note NoteBank[GRID_SIZE * SEQUENCE_LENGTH];
 
 typedef struct Sequence_
 {

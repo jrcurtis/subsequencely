@@ -33,9 +33,6 @@
 #define bpm_to_millis(b)     (60000 / (b) / STEPS_PER_PAD)
 #define millis_to_bpm(m)     (60000 / ((m) * STEPS_PER_PAD))
 
-#define CC_DIV_POS_COLOR           (sequence_colors[6])
-#define CC_DIV_NEG_COLOR           (sequence_colors[7])
-#define CC_SENS_RESOLUTION         (2)
 #define cc_div(cc, sgn, div, off)  (clamp((sgn) * 4 * (cc) / (3 + (div)) + (off), 0, 127))
 
 #define flag_is_set(v, f)    (((v) & (f)) != 0)
@@ -74,11 +71,10 @@ u8 index_to_pad(u8 i, u8* x, u8* y);
                                      TYPESETUP, 0,                             \
                                      (c)[0], (c)[1], (c)[2]))
 
-extern u8 midi_port;
-#define send_midi(s, d1, d2)    (hal_send_midi(midi_port, (s), (d1), (d2)))
+#define send_midi(s, d1, d2)    (hal_send_midi(lp_midi_port, (s), (d1), (d2)))
 
-extern u32 modifiers;
-#define modifier_held(m)        (flag_is_set(modifiers, m##_FLAG))
+extern u32 lp_modifiers;
+#define modifier_held(m)        (flag_is_set(lp_modifiers, m##_FLAG))
 void modifier_index_assign(u8 index, u8 value);
 
 void clear_leds();

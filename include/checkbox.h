@@ -6,18 +6,16 @@
 #include "colors.h"
 #include "util.h"
 
-typedef struct
-{
-    u8 pos;
-    u8 value;
-} Checkbox;
+typedef u8 Checkbox;
 
-void checkbox_init(Checkbox* c, u8 pos, u8 value);
+#define CHECKBOX_ON_COLOR                    (number_colors[2])
+#define CHECKBOX_OFF_COLOR                   (number_colors[0])
+#define checkbox_draw(c, i)                  (plot_pad((i), ((c)                \
+                                                       ? CHECKBOX_ON_COLOR     \
+                                                       : CHECKBOX_OFF_COLOR)))
 
-void checkbox_set_value(Checkbox* c, u8 value);
-
-void checkbox_draw(Checkbox* c);
-
-u8 checkbox_handle_press(Checkbox* c, u8 index, u8 value);
+#define checkbox_handle_press(c, i, v, p)    (((i) == (p) && (v) > 0)          \
+                                              ? (((c) = !(c)) || 1)            \
+                                              : 0)
 
 #endif

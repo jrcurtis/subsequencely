@@ -3,7 +3,7 @@
 
 #include "buttons.h"
 
-u32 modifiers = 0x00000000;
+u32 lp_modifiers = 0x00000000;
 
 u8 index_to_pad(u8 i, u8* x, u8* y)
 {
@@ -89,5 +89,5 @@ void modifier_index_assign(u8 index, u8 value)
         return;
     }
 
-    modifiers = assign_flag(modifiers, flag, value);
+    lp_modifiers = assign_flag(lp_modifiers, flag, value);
 }

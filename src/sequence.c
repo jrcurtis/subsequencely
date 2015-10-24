@@ -1,4 +1,6 @@
 
+#include "data.h"
+
 #include "sequence.h"
 
 
@@ -10,7 +12,6 @@ void note_init(Note* n)
 {
     n->note_number = -1;
     n->velocity = 0;
-    n->aftertouch = -1;
     n->flags = 0x00;
 }
 
@@ -27,12 +28,12 @@ void note_play(Note* n, u8 channel)
 
 void note_control(Note* n, Sequence* s)
 {
-    if (n->aftertouch != -1)
+    if (n->velocity != -1)
     {
         send_midi(
             CC | s->channel,
             s->control_code,
-            cc_div(n->aftertouch,
+            cc_div(n->velocity,
                    s->control_sgn,
                    s->control_div,
                    s->control_offset));
@@ -186,7 +187,7 @@ void sequence_kill_note(Sequence* s, Note* n)
             // played, then don't send a note off, but do mark the note as being
             // off, as it is the layout's responsibility to send the off
             // message.
-            if (voices_get_newest(s->layout.voices) == n->note_number)
+            if (voices_get_newest(&lp_voices) == n->note_number)
             {
                 n->flags = clear_flag(n->flags, NTE_ON);
                 return;
@@ -220,7 +221,7 @@ void sequence_play_note(Sequence* s, Note* n)
     // override the sequence, so don't turn them on or light them up.
     else if (flag_is_set(s->flags, SEQ_ACTIVE))
     {
-        if (voices_get_newest(s->layout.voices) != -1)
+        if (voices_get_newest(&lp_voices) != -1)
         {
             return;
         }
@@ -340,30 +341,32 @@ void sequence_handle_record(Sequence* s, u8 press, u8 quantize_ahead)
     Note* record_n = quantize_ahead
         ? sequence_get_note(s, sequence_get_next_playhead(s))
         : current_n;
-    s8 played_note = voices_get_newest(s->layout.voices);
+    s8 played_note = voices_get_newest(&lp_voices);
 
     if (played_note > -1)
     {
         if (press)
         {
             sequence_kill_note(s, current_n);
-            u8 slide = voices_get_num_active(s->layout.voices) > 1;
+
+            u8 slide = voices_get_num_active(&lp_voices) > 1;
             record_n->flags = assign_flag(record_n->flags, NTE_SLIDE, slide);
 
             s->flags = assign_flag(
                 s->flags, SEQ_DID_RECORD_AHEAD, quantize_ahead);
+
+            record_n->velocity = lp_voices.velocity;
         }
         else
         {
             current_n->flags = set_flag(current_n->flags, NTE_SLIDE);
+
+            record_n->velocity = flag_is_set(s->flags, SEQ_RECORD_CONTROL)
+                ? lp_voices.aftertouch
+                : -1;
         }
 
-        record_n->aftertouch = flag_is_set(s->flags, SEQ_RECORD_CONTROL)
-            ? s->layout.voices->aftertouch
-            : -1;
-
         record_n->note_number = played_note;
-        record_n->velocity = s->layout.voices->velocity;
     }
 }
 
@@ -404,7 +407,7 @@ void sequence_step(Sequence* s, u8 audible, u8 is_beat)
 
         // If delete is held while the sequence plays, the playhead becomes an
         // erase head.
-        if (lp_state == NOTES_MODE
+        if (lp_state == LP_NOTES_MODE
             && flag_is_set(s->flags, SEQ_ACTIVE)
             && modifier_held(LP_DELETE))
         {

@@ -1,6 +1,8 @@
 
 #include <string.h>
 
+#include "data.h"
+
 #include "sequencer.h"
 
 
@@ -21,19 +23,19 @@ void sequencer_init(Sequencer* sr)
     sr->copied_sequence = -1;
     sr->flags = 0x00;
 
-    scale_init(&sr->scale);
+    scale_init(&lp_scale);
 
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
         Sequence* s = &sr->sequences[i];
-        sequence_init(s, i, sr->note_bank + i * SEQUENCE_LENGTH);
-        layout_init(&s->layout, &sr->scale, &sr->pad_notes, &sr->voices);
+        sequence_init(s, i, lp_note_bank + i * SEQUENCE_LENGTH);
+        layout_init(&s->layout);
     }
 
-    for (u16 i = 0; i <= SEQUENCE_LENGTH * GRID_SIZE; i++)
-    {
-        note_init(&sr->note_storage[i]);
-    }
+    // for (u16 i = 0; i <= SEQUENCE_LENGTH * GRID_SIZE; i++)
+    // {
+    //     note_init(&sr->note_storage[i]);
+    // }
 
     sequencer_set_active(sr, 0);
 }
@@ -61,7 +63,7 @@ void sequencer_set_swing(Sequencer* sr, s8 swing)
 void sequencer_set_octave(Sequencer* sr, u8 octave)
 {
     Sequence* s = sequencer_get_active(sr);
-    s->y = octave * s->layout.scale->num_notes;
+    s->y = octave * lp_scale.num_notes;
 }
 
 void sequencer_set_active(Sequencer* sr, u8 i)
@@ -72,20 +74,17 @@ void sequencer_set_active(Sequencer* sr, u8 i)
     Sequence* s = &sr->sequences[i];
     sequence_become_active(s);
 
-    keyboard_init(sr->keyboard, &s->layout);
-    slider_set_value(sr->row_offset_slider,
+    keyboard_init(&lp_keyboard, &s->layout);
+    slider_set_value(&lp_row_offset_slider,
                      s->layout.row_offset);
-    checkbox_set_value(sr->control_checkbox,
-                       flag_is_set(s->flags, SEQ_RECORD_CONTROL));
-    number_set_value(sr->control_number,
-                     s->control_code);
-    slider_set_value(sr->control_sens_slider,
+    lp_control_checkbox = flag_is_set(s->flags, SEQ_RECORD_CONTROL);
+    slider_set_value(&lp_control_sens_slider,
                      CC_SENS_RESOLUTION * GRID_SIZE
                      - s->control_div);
-    slider_set_value(sr->control_offset_slider,
+    slider_set_value(&lp_control_offset_slider,
                      s->control_offset);
 
-    voices_reset(&sr->voices);
+    voices_reset(&lp_voices);
 }
 
 Sequence* sequencer_get_active(Sequencer* sr)
@@ -136,15 +135,17 @@ void sequencer_paste(Sequencer* sr, u8 i)
         return;
     }
 
-    Note* from = (sr->copied_sequence < GRID_SIZE)
-        ? sr->note_bank
-        : sr->note_storage;
-    from += (sr->copied_sequence % GRID_SIZE) * SEQUENCE_LENGTH;
+    // Note* from = (sr->copied_sequence < GRID_SIZE)
+    //     ? lp_note_bank
+    //     : lp_note_storage;
+    // from += (sr->copied_sequence % GRID_SIZE) * SEQUENCE_LENGTH;
+    Note* from = lp_note_bank + sr->copied_sequence * SEQUENCE_LENGTH;
 
-    Note* to = (i < GRID_SIZE)
-        ? sr->note_bank
-        : sr->note_storage;
-    to += (i % GRID_SIZE) * SEQUENCE_LENGTH;
+    // Note* to = (i < GRID_SIZE)
+    //     ? lp_note_bank
+    //     : lp_note_storage;
+    // to += (i % GRID_SIZE) * SEQUENCE_LENGTH;
+    Note* to = lp_note_bank + i * SEQUENCE_LENGTH;
 
     memcpy(to, from, sizeof(Note) * SEQUENCE_LENGTH);
 }

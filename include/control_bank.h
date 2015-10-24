@@ -5,6 +5,7 @@
 #include "app.h"
 #include "buttons.h"
 #include "checkbox.h"
+#include "interface.h"
 #include "number.h"
 #include "slider.h"
 #include "util.h"
@@ -34,6 +35,8 @@ void control_bank_init(ControlBank* cb);
 void control_bank_draw(ControlBank* cb);
 
 void control_bank_setup_draw(ControlBank* cb);
+
+void control_bank_draw_slider(ControlBank* cb, u8 index);
 
 u8 control_bank_handle_press(
     ControlBank* cb, u8 index, u8 value, u8 aftertouch);

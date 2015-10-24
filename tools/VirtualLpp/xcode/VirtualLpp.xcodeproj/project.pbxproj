@@ -18,6 +18,7 @@
 		00B9955B1B128DF400A5C623 /* IOSurface.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B995591B128DF400A5C623 /* IOSurface.framework */; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
 		8C27CEB61BDAF25800F415F5 /* control_bank.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C27CEB51BDAF25800F415F5 /* control_bank.c */; settings = {ASSET_TAGS = (); }; };
+		8C27CEB91BDB555000F415F5 /* seq.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C27CEB81BDB555000F415F5 /* seq.c */; settings = {ASSET_TAGS = (); }; };
 		8C2CC7A41BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C2CC7A21BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp */; settings = {ASSET_TAGS = (); }; };
 		8C42764F1BD2021100422293 /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4276471BD2021100422293 /* imgui_demo.cpp */; settings = {ASSET_TAGS = (); }; };
 		8C4276501BD2021100422293 /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4276481BD2021100422293 /* imgui_draw.cpp */; settings = {ASSET_TAGS = (); }; };
@@ -37,7 +38,6 @@
 		8C51F9B11BD5A3280032CE68 /* grid.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9AE1BD5A3280032CE68 /* grid.c */; settings = {ASSET_TAGS = (); }; };
 		8C51F9B21BD5A3280032CE68 /* sequence.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9AF1BD5A3280032CE68 /* sequence.c */; settings = {ASSET_TAGS = (); }; };
 		8C51F9B31BD5A3280032CE68 /* session.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9B01BD5A3280032CE68 /* session.c */; settings = {ASSET_TAGS = (); }; };
-		8C51F9B61BD5D7720032CE68 /* checkbox.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9B51BD5D7720032CE68 /* checkbox.c */; settings = {ASSET_TAGS = (); }; };
 		8C51F9B81BD6361F0032CE68 /* number.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9B71BD6361F0032CE68 /* number.c */; settings = {ASSET_TAGS = (); }; };
 		8C64BB3F1BCEEBD800E0D655 /* VirtualPad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C64BB3E1BCEEBD800E0D655 /* VirtualPad.cpp */; settings = {ASSET_TAGS = (); }; };
 		8CAC381E1BD2FFE300BBDB05 /* shaders in Resources */ = {isa = PBXBuildFile; fileRef = 8CAC381D1BD2FFE300BBDB05 /* shaders */; settings = {ASSET_TAGS = (); }; };
@@ -68,6 +68,9 @@
 		63433217FDB540E9A4DD1DDC /* VirtualLppApp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = VirtualLppApp.cpp; path = ../src/VirtualLppApp.cpp; sourceTree = "<group>"; };
 		8C27CEB41BDAF24900F415F5 /* control_bank.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = control_bank.h; path = ../../../include/control_bank.h; sourceTree = "<group>"; };
 		8C27CEB51BDAF25800F415F5 /* control_bank.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = control_bank.c; path = ../../../src/control_bank.c; sourceTree = "<group>"; };
+		8C27CEB71BDB26E000F415F5 /* interface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface.h; path = ../../../include/interface.h; sourceTree = "<group>"; };
+		8C27CEB81BDB555000F415F5 /* seq.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = seq.c; path = ../../../src/seq.c; sourceTree = "<group>"; };
+		8C27CEBA1BDB57D400F415F5 /* data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = data.h; path = ../../../include/data.h; sourceTree = "<group>"; };
 		8C2CC7A21BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_impl_cinder_gl3.cpp; path = ../imgui/imgui_impl_cinder_gl3.cpp; sourceTree = "<group>"; };
 		8C2CC7A31BD39108008EDAA0 /* imgui_impl_cinder_gl3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui_impl_cinder_gl3.h; path = ../imgui/imgui_impl_cinder_gl3.h; sourceTree = "<group>"; };
 		8C4276461BD2021100422293 /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imconfig.h; path = ../imgui/imconfig.h; sourceTree = "<group>"; };
@@ -111,7 +114,6 @@
 		8C51F9AF1BD5A3280032CE68 /* sequence.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = sequence.c; path = ../../../src/sequence.c; sourceTree = "<group>"; };
 		8C51F9B01BD5A3280032CE68 /* session.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = session.c; path = ../../../src/session.c; sourceTree = "<group>"; };
 		8C51F9B41BD5D7650032CE68 /* checkbox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = checkbox.h; path = ../../../include/checkbox.h; sourceTree = "<group>"; };
-		8C51F9B51BD5D7720032CE68 /* checkbox.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = checkbox.c; path = ../../../src/checkbox.c; sourceTree = "<group>"; };
 		8C51F9B71BD6361F0032CE68 /* number.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = number.c; path = ../../../src/number.c; sourceTree = "<group>"; };
 		8C51F9B91BD636300032CE68 /* number.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = number.h; path = ../../../include/number.h; sourceTree = "<group>"; };
 		8C64BB3D1BCEEB4300E0D655 /* VirtualPad.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; name = VirtualPad.h; path = ../include/VirtualPad.h; sourceTree = "<group>"; };
@@ -156,9 +158,9 @@
 		080E96DDFE201D6D7F000001 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				8C27CEB81BDB555000F415F5 /* seq.c */,
 				8C27CEB51BDAF25800F415F5 /* control_bank.c */,
 				8C51F9B71BD6361F0032CE68 /* number.c */,
-				8C51F9B51BD5D7720032CE68 /* checkbox.c */,
 				8C51F9AE1BD5A3280032CE68 /* grid.c */,
 				8C51F9AF1BD5A3280032CE68 /* sequence.c */,
 				8C51F9B01BD5A3280032CE68 /* session.c */,
@@ -232,6 +234,8 @@
 		29B97315FDCFA39411CA2CEA /* Headers */ = {
 			isa = PBXGroup;
 			children = (
+				8C27CEBA1BDB57D400F415F5 /* data.h */,
+				8C27CEB71BDB26E000F415F5 /* interface.h */,
 				8C27CEB41BDAF24900F415F5 /* control_bank.h */,
 				8C51F9B91BD636300032CE68 /* number.h */,
 				8C51F9B41BD5D7650032CE68 /* checkbox.h */,
@@ -380,12 +384,12 @@
 				8CC751761BD0F08C005CD976 /* voices.c in Sources */,
 				8C4FBD251BCE04560030F8F9 /* layout.c in Sources */,
 				8C64BB3F1BCEEBD800E0D655 /* VirtualPad.cpp in Sources */,
-				8C51F9B61BD5D7720032CE68 /* checkbox.c in Sources */,
 				8C27CEB61BDAF25800F415F5 /* control_bank.c in Sources */,
 				8C4FBD221BCE04560030F8F9 /* app.c in Sources */,
 				8C4FBD241BCE04560030F8F9 /* keyboard.c in Sources */,
 				8C51F9B11BD5A3280032CE68 /* grid.c in Sources */,
 				8C4276501BD2021100422293 /* imgui_draw.cpp in Sources */,
+				8C27CEB91BDB555000F415F5 /* seq.c in Sources */,
 				8C4FBD261BCE04560030F8F9 /* scale.c in Sources */,
 				8C4FBD231BCE04560030F8F9 /* colors.c in Sources */,
 				8C51F9B81BD6361F0032CE68 /* number.c in Sources */,

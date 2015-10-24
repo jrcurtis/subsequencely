@@ -1,4 +1,6 @@
 
+#include "data.h"
+
 #include "keyboard.h"
 
 const u8 diatonic_notes[NUM_NOTES] = {1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1};
@@ -93,7 +95,7 @@ void keyboard_draw(Keyboard* k)
         }
 
         s8 deg = (note + NUM_NOTES - k->layout->root_note) % NUM_NOTES;
-        u8 is_in_scale = scale_contains_note(k->layout->scale, deg);
+        u8 is_in_scale = scale_contains_note(&lp_scale, deg);
         u8 dimness = !is_in_scale * 4;
         plot_pad_dim(i + FIRST_KEYBOARD_PAD, color, dimness);
     }

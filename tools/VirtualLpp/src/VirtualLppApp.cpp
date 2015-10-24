@@ -23,8 +23,6 @@ using namespace std::chrono;
 
 using namespace glm;
 
-extern Sequencer sequencer;
-
 const int defaultSize = 800;
 
 const ImGuiWindowFlags windowFlags =
@@ -196,23 +194,23 @@ void VirtualLppApp::drawBottomPanel()
     
     string scaleSteps = "";
     int lastOffset = 0;
-    for (int i = 1; i < sequencer.scale.num_notes; i++)
+    for (int i = 1; i < lp_scale.num_notes; i++)
     {
-        scaleSteps += to_string(sequencer.scale.offsets[i] - lastOffset);
-        lastOffset = sequencer.scale.offsets[i];
+        scaleSteps += to_string(lp_scale.offsets[i] - lastOffset);
+        lastOffset = lp_scale.offsets[i];
         scaleSteps += ", ";
     }
     scaleSteps += to_string(12 - lastOffset);
     
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0.3, 0.3, 1));
-    ImGui::Value("BPM", millis_to_bpm((float)sequencer.step_millis));
+    ImGui::Value("BPM", millis_to_bpm((float)lp_sequencer.step_millis));
     ImGui::PopStyleColor();
     ImGui::SameLine();
     
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0.7, 0.3, 1));
     ImGui::Text("Swing: %.2f%%",
-                100.0f * (sequencer.swing_millis + sequencer.step_millis)
-                / (2 * sequencer.step_millis));
+                100.0f * (lp_sequencer.swing_millis + lp_sequencer.step_millis)
+                / (2 * lp_sequencer.step_millis));
     ImGui::PopStyleColor();
     ImGui::SameLine();
     
@@ -222,14 +220,14 @@ void VirtualLppApp::drawBottomPanel()
     ImGui::SameLine();
     
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.3, 1, 0.3, 1));
-    ImGui::Text("Modifiers: 0x%08x", (unsigned int)modifiers);
+    ImGui::Text("Modifiers: 0x%08x", (unsigned int)lp_modifiers);
     ImGui::PopStyleColor();
     
     ImGui::Separator();
     
     for (int seqI = 0; seqI < GRID_SIZE; seqI++)
     {
-        drawSequenceNotes(sequencer.sequences[seqI]);
+        drawSequenceNotes(lp_sequencer.sequences[seqI]);
     }
     
     ImGui::End();
@@ -241,14 +239,14 @@ void VirtualLppApp::drawSidePanel()
     ImGui::SetNextWindowSize(sidePanelSize);
     ImGui::Begin("side panel", NULL, windowFlags);
     
-    ImGui::Text("Master Sequence: %d", sequencer.master_sequence + 1);
+    ImGui::Text("Master Sequence: %d", lp_sequencer.master_sequence + 1);
     
     for (int i = 0; i < GRID_SIZE; i++)
     {
         if (ImGui::TreeNode(sequenceNames[i].data()))
         {
             ImGui::BeginGroup();
-            drawSequenceInfo(sequencer.sequences[i]);
+            drawSequenceInfo(lp_sequencer.sequences[i]);
             ImGui::EndGroup();
             ImGui::TreePop();
         }
@@ -279,10 +277,8 @@ void VirtualLppApp::drawSequenceNotes(Sequence& s)
         {
             ImGui::SetTooltip(
                 "Velocity: %d\n"
-                "Control: %d\n"
                 "Skip: %s",
                 n.velocity,
-                n.aftertouch,
                 flag_is_set(n.flags, NTE_SKIP) ? "true" : "false");
         }
         

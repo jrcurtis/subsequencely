@@ -1,13 +1,11 @@
 
+#include "data.h"
 #include "sequence.h"
 
 #include "layout.h"
 
-void layout_init(Layout* l, Scale* s, PadNotes* pn, Voices* vs)
+void layout_init(Layout* l)
 {
-    l->scale = s;
-    l->pad_notes = pn;
-    l->voices = vs;
     l->root_note = 0;
     l->octave = 2;
     l->row_offset = 5;
@@ -26,7 +24,7 @@ void layout_become_inactive(Layout* l)
 {
     for (int i = 0; i < GRID_SIZE; i++)
     {
-        l->lit_pads[i] = 0x00;
+        lp_lit_pads[i] = 0x00;
     }
 }
 
@@ -42,22 +40,22 @@ void layout_assign_pads(Layout* l)
 
     for (u8 y = 0; y < GRID_SIZE; y++)
     {
-        l->lit_pads[y] = 0x00;
+        lp_lit_pads[y] = 0x00;
 
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
             u8 scale_deg = start_scale_deg + x;
-            octave = l->octave + scale_deg / l->scale->num_notes;
+            octave = l->octave + scale_deg / lp_scale.num_notes;
 
-            if (scale_deg >= l->scale->num_notes)
+            if (scale_deg >= lp_scale.num_notes)
             {
-                scale_deg = scale_deg % l->scale->num_notes;
+                scale_deg = scale_deg % lp_scale.num_notes;
             }
 
             u8 note_number = l->root_note + octave * NUM_NOTES;
-            note_number += l->scale->offsets[scale_deg];
+            note_number += lp_scale.offsets[scale_deg];
 
-            (*l->pad_notes)[y][x] = note_number;
+            lp_pad_notes[y][x] = note_number;
         }
 
         start_scale_deg += l->row_offset;
@@ -66,7 +64,7 @@ void layout_assign_pads(Layout* l)
 
 void layout_toggle_note(Layout* l, u8 note)
 {
-    scale_toggle_note(l->scale, note);
+    scale_toggle_note(&lp_scale, note);
     layout_assign_pads(l);
 }
 
@@ -94,19 +92,19 @@ void layout_light_note(Layout* l, u8 note_number, u8 velocity, u8 on)
 
     for (u8 y = 0; y < GRID_SIZE; y++)
     {
-        if ((*l->pad_notes)[y][GRID_SIZE - 1] < note_number)
+        if (lp_pad_notes[y][GRID_SIZE - 1] < note_number)
         {
             index += GRID_SIZE + ROW_GAP;
             continue;
         }
-        else if ((*l->pad_notes)[y][0] > note_number)
+        else if (lp_pad_notes[y][0] > note_number)
         {
             break;
         }
 
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
-            if ((*l->pad_notes)[y][x] != note_number)
+            if (lp_pad_notes[y][x] != note_number)
             {
                 index++;
                 continue;
@@ -114,11 +112,11 @@ void layout_light_note(Layout* l, u8 note_number, u8 velocity, u8 on)
 
             if (on)
             {
-                l->lit_pads[y] |= 1 << x;
+                lp_lit_pads[y] |= 1 << x;
             }
             else
             {
-                l->lit_pads[y] &= ~(1 << x);
+                lp_lit_pads[y] &= ~(1 << x);
             }
 
             index++;
@@ -169,7 +167,7 @@ u8 layout_handle_press(Layout* l, u8 index, u8 value, u8 midi_channel)
 
     if (index_to_pad(index, &x, &y))
     {
-        u8 note_number = (*l->pad_notes)[y][x];
+        u8 note_number = lp_pad_notes[y][x];
 
         if (note_number <= MAX_NOTE)
         {
@@ -178,12 +176,12 @@ u8 layout_handle_press(Layout* l, u8 index, u8 value, u8 midi_channel)
             if (value > 0)
             {
                 midi_message = NOTEON;
-                voices_add(l->voices, note_number, value);
+                voices_add(&lp_voices, note_number, value);
             }
             else
             {
                 midi_message = NOTEOFF;
-                voices_remove(l->voices, note_number);
+                voices_remove(&lp_voices, note_number);
             }
 
             send_midi(
@@ -208,7 +206,7 @@ u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, struct Sequence_* s)
 
     if (index_to_pad(index, &x, &y))
     {
-        u8 note_number = (*l->pad_notes)[y][x];
+        u8 note_number = lp_pad_notes[y][x];
 
         if (note_number <= MAX_NOTE)
         {
@@ -216,7 +214,7 @@ u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, struct Sequence_* s)
                 POLYAFTERTOUCH | s->channel,
                 note_number, value);
 
-            if (voices_handle_aftertouch(l->voices, note_number, value))
+            if (voices_handle_aftertouch(&lp_voices, note_number, value))
             {
                 send_midi(
                     CC | s->channel,
@@ -250,11 +248,11 @@ void layout_draw(Layout* l)
         {
             const u8* color = off_color;
 
-            if (l->lit_pads[y] & (1 << x))
+            if (lp_lit_pads[y] & (1 << x))
             {
                 color = on_color;
             }
-            else if (layout_is_root_note(l, (*l->pad_notes)[y][x]))
+            else if (layout_is_root_note(l, lp_pad_notes[y][x]))
             {
                 color = root_note_color;
             }

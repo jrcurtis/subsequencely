@@ -6,6 +6,7 @@
 #include "buttons.h"
 #include "checkbox.h"
 #include "colors.h"
+#include "interface.h"
 #include "keyboard.h"
 #include "layout.h"
 #include "number.h"
@@ -21,7 +22,6 @@ typedef enum
 } SequencerFlags;
 
 typedef Sequence Sequences[GRID_SIZE];
-typedef Note NoteBank[GRID_SIZE * SEQUENCE_LENGTH];
 
 typedef struct
 {
@@ -38,20 +38,7 @@ typedef struct
     s8 copied_sequence;
     u8 flags;
 
-    // UI widgets
-    Keyboard* keyboard;
-    Slider* row_offset_slider;
-    Checkbox* control_checkbox;
-    Number* control_number;
-    Slider* control_sens_slider;
-    Slider* control_offset_slider;
-
     // Data
-    Scale scale;
-    Voices voices;
-    PadNotes pad_notes;
-    NoteBank note_bank;
-    NoteBank note_storage;
     Sequences sequences;
 } Sequencer;
 
