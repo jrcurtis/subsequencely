@@ -28,6 +28,8 @@
 #define TEMPO_RESOLUTION           (5)
 #define TEMPO_MUL                  (3)
 #define BLINK_CHECKBOX_POS         (61)
+#define CLOCK_CHECKBOX_POS         (68)
+#define PORT_CHECKBOX_POS          (41)
 
 #define SWING_POS                  (6)
 #define SWING_COLOR                (sequence_colors[5])
@@ -35,9 +37,8 @@
 #define ROW_OFFSET_POS             (2)
 #define ROW_OFFSET_COLOR           (number_colors[2])
 
-#define PORT_CHECKBOX_POS          (41)
-#define CLOCK_CHECKBOX_POS         (43)
 #define DRUM_CHECKBOX_POS          (45)
+#define MULTICHANNEL_CHECKBOX_POS  (47)
 #define CONTROL_CHECKBOX_POS       (81)
 
 #endif

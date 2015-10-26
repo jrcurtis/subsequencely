@@ -185,6 +185,8 @@ void sequencer_setup_draw()
     slider_draw(&lp_swing_slider, SWING_POS, SWING_COLOR);
     checkbox_draw(lp_flags, LP_TEMPO_BLINK, BLINK_CHECKBOX_POS);
     checkbox_draw(lp_flags, LP_POSITION_BLINK, BLINK_CHECKBOX_POS + 1);
+    checkbox_draw(lp_flags, LP_PORT_CHECKBOX, PORT_CHECKBOX_POS);
+    checkbox_draw(lp_flags, LP_SEND_CLOCK, CLOCK_CHECKBOX_POS);
 }
 
 u8 sequencer_mode_handle_press(u8 index, u8 value)
@@ -230,6 +232,25 @@ u8 sequencer_setup_handle_press(u8 index, u8 value)
             sequencer_blink_clear(&lp_sequencer, 0, 1);
         }
     }
+    // Test for the port checkbox before actually handling the press so that
+    // all notes on the current port can be turned off first.
+    else if (index == PORT_CHECKBOX_POS)
+    {
+        sequencer_kill_current_notes(&lp_sequencer);
+
+        checkbox_handle_press(
+            lp_flags, LP_PORT_CHECKBOX,
+            index, value, PORT_CHECKBOX_POS);
+
+        lp_midi_port = flag_is_set(lp_flags, LP_PORT_CHECKBOX)
+            ? DINMIDI : USBMIDI;
+    }
+    else if (checkbox_handle_press(
+                 lp_flags, LP_SEND_CLOCK,
+                 index, value, CLOCK_CHECKBOX_POS))
+    {
+        
+    }
     else
     {
         return 0;
@@ -270,10 +291,9 @@ void notes_setup_draw()
 
     keyboard_draw(&lp_keyboard);
     slider_draw(&lp_row_offset_slider, ROW_OFFSET_POS, ROW_OFFSET_COLOR);
-    checkbox_draw(lp_flags, LP_PORT_CHECKBOX, PORT_CHECKBOX_POS);
     checkbox_draw(s->flags, SEQ_RECORD_CONTROL, CONTROL_CHECKBOX_POS);
-    checkbox_draw(s->flags, SEQ_SEND_CLOCK, CLOCK_CHECKBOX_POS);
     checkbox_draw(l->row_offset, LYT_DRUMS, DRUM_CHECKBOX_POS);
+    checkbox_draw(s->flags, SEQ_DRUM_MULTICHANNEL, MULTICHANNEL_CHECKBOX_POS);
     number_draw(s->control_code,
                 CC_POS, CC_BITS, CC_COLOR);
     
@@ -341,19 +361,6 @@ u8 notes_setup_handle_press(u8 index, u8 value)
     {
         layout_set_row_offset(l, lp_row_offset_slider.value + 1);
     }
-    // Test for the port checkbox before actually handling the press so that
-    // all notes on the current port can be turned off first.
-    else if (index == PORT_CHECKBOX_POS)
-    {
-        sequencer_kill_current_notes(&lp_sequencer);
-
-        checkbox_handle_press(
-            lp_flags, LP_PORT_CHECKBOX,
-            index, value, PORT_CHECKBOX_POS);
-
-        lp_midi_port = flag_is_set(lp_flags, LP_PORT_CHECKBOX)
-            ? DINMIDI : USBMIDI;
-    }
     else if (checkbox_handle_press(
                  s->flags, SEQ_RECORD_CONTROL,
                  index, value, CONTROL_CHECKBOX_POS))
@@ -361,16 +368,18 @@ u8 notes_setup_handle_press(u8 index, u8 value)
 
     }
     else if (checkbox_handle_press(
-                 s->flags, SEQ_SEND_CLOCK,
-                 index, value, CLOCK_CHECKBOX_POS))
-    {
-        
-    }
-    else if (checkbox_handle_press(
                  l->row_offset, LYT_DRUMS,
                  index, value, DRUM_CHECKBOX_POS))
     {
         layout_set_drums(l);
+    }
+    else if (index == MULTICHANNEL_CHECKBOX_POS)
+    {
+        sequence_kill_current_note(s);
+
+        checkbox_handle_press(
+            s->flags, SEQ_DRUM_MULTICHANNEL,
+            index, value, MULTICHANNEL_CHECKBOX_POS);
     }
     else if (number_handle_press(
                  &s->control_code, index, value,

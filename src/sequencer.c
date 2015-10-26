@@ -433,28 +433,12 @@ void sequencer_tick(Sequencer* sr)
     sr->step_timer++;
     sr->clock_timer++;
 
-    u16 channels = 0x0000;
-
-    // If the timer is on an even clock interval, go through each
-    // sequence and send clock for the playing ones. Keep track of which
-    // channels have been seen so double messages aren't sent.
-    if (sr->clock_timer >= sr->clock_millis)
+    // If the timer is on a clock interval, and clock is enabled, send clock.
+    if (flag_is_set(lp_flags, LP_SEND_CLOCK)
+        && sr->clock_timer >= sr->clock_millis)
     {
         sr->clock_timer = 0;
-        
-        for (u8 i = 0; i < GRID_SIZE; i++)
-        {
-            Sequence* s = &sr->sequences[i];
-            u16 channel_flag = 1 << s->channel;
-
-            if (!flag_is_set(channels, channel_flag)
-                && flag_is_set(s->flags, SEQ_SEND_CLOCK)
-                && flag_is_set(s->flags, SEQ_PLAYING))
-            {
-                channels = set_flag(channels, channel_flag);
-                send_midi(MIDITIMINGCLOCK, 0x00, 0x00);
-            }
-        }
+        send_midi(MIDITIMINGCLOCK, 0x00, 0x00);
     }
 
     // If the timer hasn't passed the step threshold, return early, but first

@@ -31,7 +31,7 @@ void note_control(Note* n, Sequence* s)
     if (n->velocity != -1)
     {
         send_midi(
-            CC | s->channel,
+            CC | sequence_get_channel(s, n->note_number),
             s->control_code,
             cc_div(n->velocity,
                    s->control_sgn,
@@ -80,6 +80,18 @@ void sequence_init(Sequence* s, u8 channel, Note* notes)
 Note* sequence_get_note(Sequence* s, u8 playhead)
 {
     return &s->notes[playhead];
+}
+
+u8 sequence_get_channel(Sequence* s, u8 note_number)
+{
+    if (flag_is_set(s->flags, SEQ_DRUM_MULTICHANNEL))
+    {
+        return s->channel + note_number % NUM_NOTES;
+    }
+    else
+    {
+        return s->channel;
+    }
 }
 
 u8 sequence_get_last_linked(Sequence* s)
@@ -203,7 +215,7 @@ void sequence_kill_note(Sequence* s, Note* n)
         }
     }
 
-    note_kill(n, s->channel);
+    note_kill(n, sequence_get_channel(s, n->note_number));
 }
 
 void sequence_kill_current_note(Sequence* s)
@@ -231,7 +243,7 @@ void sequence_play_note(Sequence* s, Note* n)
         }
     }
 
-    note_play(n, s->channel);
+    note_play(n, sequence_get_channel(s, n->note_number));
 }
 
 void sequence_play_current_note(Sequence* s)
@@ -523,7 +535,10 @@ void sequence_off_step(Sequence* s)
 
 u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
 {
-    if (layout_handle_press(&s->layout, index, value, s->channel))
+    u8 note_number = layout_get_note_number(&s->layout, index);
+    u8 channel = sequence_get_channel(s, note_number);
+
+    if (layout_handle_press(&s->layout, index, value, channel))
     {
         return 1;
     }
@@ -556,10 +571,20 @@ u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
 
 u8 sequence_handle_aftertouch(Sequence* s, u8 index, u8 value)
 {
-    if (flag_is_set(s->flags, SEQ_RECORD_CONTROL)
-        && layout_handle_aftertouch(&s->layout, index, value, s))
+    if (flag_is_set(s->flags, SEQ_RECORD_CONTROL))
     {
+        value = cc_div(
+            value,
+            s->control_sgn,
+            s->control_div,
+            s->control_offset);
 
+        u8 note_number = layout_get_note_number(&s->layout, index);
+
+        layout_handle_aftertouch(
+            &s->layout, index, value,
+            sequence_get_channel(s, note_number),
+            s->control_code);
     }
     else
     {

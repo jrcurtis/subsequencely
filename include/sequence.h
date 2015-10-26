@@ -40,8 +40,7 @@ typedef enum
     SEQ_LINKED_TO      = 1 << 9,  // This sequence has other ones linked to it
     SEQ_RECORD_CONTROL = 1 << 10, // Should record aftertouch values
     SEQ_DID_RECORD_AHEAD = 1 << 11, // Was the last note quantized forwards?
-    SEQ_SEND_CLOCK     = 1 << 12, // Should this sequence send midi clock?
-    SEQ_DRUM_MULTICHANNEL = 1 << 13 // Send each note on its own channel
+    SEQ_DRUM_MULTICHANNEL = 1 << 12 // Send each note on its own channel
 } SequenceFlags;
 
 typedef struct
@@ -80,6 +79,8 @@ void note_init(Note* n);
 void sequence_init(Sequence* s, u8 channel, Note* notes);
 
 Note* sequence_get_note(Sequence* s, u8 playhead);
+
+u8 sequence_get_channel(Sequence* s, u8 note_number);
 
 void sequence_become_active(Sequence* s);
 

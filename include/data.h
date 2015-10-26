@@ -25,7 +25,8 @@ typedef enum
     LP_PORT_CHECKBOX  = 1 << 1,
     LP_TEMPO_BLINK    = 1 << 2,
     LP_POSITION_BLINK = 1 << 3,
-    LP_SQR_DIRTY      = 1 << 4
+    LP_SQR_DIRTY      = 1 << 4,
+    LP_SEND_CLOCK     = 1 << 5
 } LpFlags;
 
 /*******************************************************************************

@@ -1,6 +1,5 @@
 
 #include "data.h"
-#include "sequence.h"
 
 #include "layout.h"
 
@@ -36,6 +35,17 @@ void layout_set_drums(Layout* l)
 u8 layout_is_root_note(Layout* l, u8 note_number)
 {
     return ((s8)note_number - l->root_note) % NUM_NOTES == 0;
+}
+
+u8 layout_get_note_number(Layout* l, u8 index)
+{
+    u8 x, y;
+    if (!index_to_pad(index, &x, &y))
+    {
+        return 0xFF;
+    }
+
+    return lp_pad_notes[y][x];
 }
 
 void layout_assign_pads(Layout* l)
@@ -240,7 +250,7 @@ u8 layout_handle_transpose(Layout* l, u8 index, u8 value)
     return 1;
 }
 
-u8 layout_handle_press(Layout* l, u8 index, u8 value, u8 midi_channel)
+u8 layout_handle_press(Layout* l, u8 index, u8 value, u8 channel)
 {
     u8 x, y;
 
@@ -264,7 +274,7 @@ u8 layout_handle_press(Layout* l, u8 index, u8 value, u8 midi_channel)
             }
 
             send_midi(
-                midi_message | midi_channel,
+                midi_message | channel,
                 note_number, value);
 
             layout_light_note(l, note_number, value, value > 0);
@@ -279,7 +289,7 @@ u8 layout_handle_press(Layout* l, u8 index, u8 value, u8 midi_channel)
     return 1;
 }
 
-u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, struct Sequence_* s)
+u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, u8 channel, u8 cc)
 {
     u8 x, y;
 
@@ -290,18 +300,12 @@ u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, struct Sequence_* s)
         if (note_number <= MAX_NOTE)
         {
             send_midi(
-                POLYAFTERTOUCH | s->channel,
+                POLYAFTERTOUCH | channel,
                 note_number, value);
 
             if (voices_handle_aftertouch(&lp_voices, note_number, value))
             {
-                send_midi(
-                    CC | s->channel,
-                    s->control_code,
-                    cc_div(value,
-                           s->control_sgn,
-                           s->control_div,
-                           s->control_offset));
+                send_midi(CC | channel, cc, value);
             }
         }
     }

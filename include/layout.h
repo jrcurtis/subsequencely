@@ -9,9 +9,6 @@
 #include "voices.h"
 #include "util.h"
 
-// Forward declaration to avoid circular dependency
-struct Sequence_;
-
 typedef enum
 {
     /// Indicates the layout should be 4x4 drum pad style. This flag lives in
@@ -46,6 +43,8 @@ void layout_init(Layout* l);
 
 /// True if the midi note number is the same or an octave of the root note.
 u8 layout_is_root_note(Layout* l, u8 note_number);
+
+u8 layout_get_note_number(Layout* l, u8 index);
 
 /// Calculate which pads play which notes.
 void layout_assign_pads(Layout* l);
@@ -84,9 +83,9 @@ void layout_light_drums(Layout* l, u8 note_number, u8 velocity, u8 on);
 u8 layout_handle_transpose(Layout* l, u8 index, u8 value);
 
 /// Plays a note on the grid.
-u8 layout_handle_press(Layout* l, u8 index, u8 value, u8 midi_channel);
+u8 layout_handle_press(Layout* l, u8 index, u8 value, u8 channel);
 
 /// Sends aftertouch for a note on the grid.
-u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, struct Sequence_* s);
+u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, u8 channel, u8 cc);
 
 #endif
