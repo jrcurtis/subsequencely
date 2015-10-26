@@ -39,7 +39,8 @@ typedef enum
     SEQ_LINKED         = 1 << 8,  // Playhead is controlled by other sequence
     SEQ_LINKED_TO      = 1 << 9,  // This sequence has other ones linked to it
     SEQ_RECORD_CONTROL = 1 << 10, // Should record aftertouch values
-    SEQ_DID_RECORD_AHEAD = 1 << 11 // Was the last note quantized forwards?
+    SEQ_DID_RECORD_AHEAD = 1 << 11, // Was the last note quantized forwards?
+    SEQ_SEND_CLOCK     = 1 << 12
 } SequenceFlags;
 
 typedef struct

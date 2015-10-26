@@ -274,6 +274,7 @@ void notes_setup_draw()
     slider_draw(&lp_row_offset_slider, ROW_OFFSET_POS, ROW_OFFSET_COLOR);
     checkbox_draw(lp_flags, LP_PORT_CHECKBOX, PORT_CHECKBOX_POS);
     checkbox_draw(s->flags, SEQ_RECORD_CONTROL, CONTROL_CHECKBOX_POS);
+    checkbox_draw(s->flags, SEQ_SEND_CLOCK, CLOCK_CHECKBOX_POS);
     number_draw(s->control_code,
                 CC_POS, CC_BITS, CC_COLOR);
     
@@ -359,6 +360,12 @@ u8 notes_setup_handle_press(u8 index, u8 value)
                  index, value, CONTROL_CHECKBOX_POS))
     {
 
+    }
+    else if (checkbox_handle_press(
+                 s->flags, SEQ_SEND_CLOCK,
+                 index, value, CLOCK_CHECKBOX_POS))
+    {
+        
     }
     else if (number_handle_press(
                  &s->control_code, index, value,

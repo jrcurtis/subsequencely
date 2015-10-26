@@ -426,6 +426,7 @@ void sequencer_tick(Sequencer* sr)
             u16 channel_flag = 1 << s->channel;
 
             if (!flag_is_set(channels, channel_flag)
+                && flag_is_set(s->flags, SEQ_SEND_CLOCK)
                 && flag_is_set(s->flags, SEQ_PLAYING))
             {
                 channels = set_flag(channels, channel_flag);

@@ -36,7 +36,7 @@
 #define ROW_OFFSET_COLOR           (number_colors[2])
 
 #define PORT_CHECKBOX_POS          (41)
+#define CLOCK_CHECKBOX_POS         (43)
 #define CONTROL_CHECKBOX_POS       (81)
-
 
 #endif
