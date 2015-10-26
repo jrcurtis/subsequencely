@@ -21,7 +21,11 @@ typedef enum
 
 typedef enum
 {
-    LP_IS_SETUP = 0x01
+    LP_IS_SETUP       = 1 << 0,
+    LP_PORT_CHECKBOX  = 1 << 1,
+    LP_TEMPO_BLINK    = 1 << 2,
+    LP_POSITION_BLINK = 1 << 3,
+    LP_SQR_DIRTY      = 1 << 4
 } LpFlags;
 
 /*******************************************************************************
@@ -48,15 +52,12 @@ extern u8 lp_lit_pads[GRID_SIZE];
 extern Sequencer lp_sequencer;
 
 // UI
-extern Checkbox lp_port_checkbox;
-
 extern Slider lp_tempo_slider;
 extern Slider lp_swing_slider;
 
 extern Keyboard lp_keyboard;
 extern Slider lp_row_offset_slider;
 
-extern Checkbox lp_control_checkbox;
 extern Slider lp_control_sens_slider;
 extern Slider lp_control_offset_slider;
 

@@ -16,11 +16,6 @@
 #include "voices.h"
 #include "util.h"
 
-typedef enum
-{
-    SQR_DIRTY = 0x01
-} SequencerFlags;
-
 typedef Sequence Sequences[GRID_SIZE];
 
 typedef struct
@@ -29,14 +24,16 @@ typedef struct
     u8 step_millis;
     u8 clock_millis;
     s8 swing_millis;
-    u16 timer;
+    u8 swung_step_millis;
+    u8 step_timer;
+    u8 step_counter;
+    u8 clock_timer;
 
     // State
     u8 master_sequence;
     u8 active_sequence;
     u8 soloed_sequences;
     s8 copied_sequence;
-    u8 flags;
 
     // Data
     Sequences sequences;
@@ -49,6 +46,7 @@ void sequencer_set_tempo(Sequencer* sr, u16 bpm);
 void sequencer_set_swing(Sequencer* sr, s8 swing);
 void sequencer_set_octave(Sequencer* sr, u8 octave);
 void sequencer_set_active(Sequencer* sr, u8 i);
+void sequencer_kill_current_notes(Sequencer* sr);
 
 void sequencer_copy(Sequencer* sr, u8 i);
 void sequencer_paste(Sequencer* sr, u8 i);
@@ -58,6 +56,7 @@ Sequence* sequence_get_master(Sequencer* sr);
 Layout* sequencer_get_layout(Sequencer* sr);
 
 void sequencer_play_draw(Sequencer* sr);
+void sequencer_blink_draw(Sequencer* sr, u8 blink, u8 position, u8 off);
 
 u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value);
 u8 sequencer_handle_record(Sequencer* sr);

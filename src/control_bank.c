@@ -6,8 +6,8 @@
 void control_bank_init(ControlBank* cb)
 {
     cb->flags = 0x00;
-
-    u8 index = FIRST_PAD;
+    cb->checkboxes = 0x00;
+    cb->bipolar_checkboxes = 0x00;
 
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
@@ -15,26 +15,25 @@ void control_bank_init(ControlBank* cb)
                     128 / GRID_SIZE, -1,
                     0);
 
-        cb->checkboxes[i] = 0;
+        
         cb->control_numbers[i] = i + 1;
         cb->channel_numbers[i] = 0;
-        cb->bipolar_checkboxes[i] = 0;
-
-        index += ROW_SIZE;
     }
-
-    cb->checkbox_checkbox = 0;
 }
 
 void control_bank_draw(ControlBank* cb)
 {
     for (u8 y = 0; y < GRID_SIZE; y++)
     {
-        if (cb->checkbox_checkbox && y == CHECKBOX_ROW)
+        if (flag_is_set(cb->flags, CBK_SHOW_CHECKBOXES)
+            && y == CHECKBOX_ROW)
         {
             for (u8 x = 0; x < GRID_SIZE; x++)
             {
-                checkbox_draw(cb->checkboxes[x], CHECKBOX_ROW_INDEX + x);
+                checkbox_draw(
+                    cb->checkboxes,
+                    1 << x,
+                    CHECKBOX_ROW_INDEX + x);
             }
         }
         else
@@ -46,7 +45,9 @@ void control_bank_draw(ControlBank* cb)
 
 void control_bank_setup_draw(ControlBank* cb)
 {
-    checkbox_draw(cb->checkbox_checkbox, CHECKBOX_ROW_INDEX);
+    checkbox_draw(cb->flags,
+                  CBK_SHOW_CHECKBOXES,
+                  CHECKBOX_ROW_INDEX);
 
     if (flag_is_set(cb->flags, CBK_SETUP_SHIFTED))
     {
@@ -63,7 +64,8 @@ void control_bank_setup_draw(ControlBank* cb)
 
         for (u8 i = 0; i < GRID_SIZE; i++)
         {
-            checkbox_draw(cb->bipolar_checkboxes[i],
+            checkbox_draw(cb->bipolar_checkboxes,
+                          1 << i,
                           index + BIPOLAR_CHECKBOX_X);
 
             number_draw(cb->channel_numbers[i],
@@ -78,7 +80,8 @@ void control_bank_setup_draw(ControlBank* cb)
 void control_bank_draw_slider(ControlBank* cb, u8 index)
 {
     u8 x, y;
-    if ((cb->checkbox_checkbox && index >= CHECKBOX_ROW_INDEX)
+    if ((flag_is_set(cb->flags, CBK_SHOW_CHECKBOXES)
+         && index >= CHECKBOX_ROW_INDEX)
         || !index_to_pad(index, &x, &y))
     {
         return;
@@ -96,18 +99,20 @@ u8 control_bank_handle_press(
         return 0;
     }
 
-    if (cb->checkbox_checkbox && y == CHECKBOX_ROW)
+    if (flag_is_set(cb->flags, CBK_SHOW_CHECKBOXES)
+        && y == CHECKBOX_ROW)
     {
         if (!aftertouch)
         {
             checkbox_handle_press(
-                cb->checkboxes[x],
+                cb->checkboxes,
+                1 << x,
                 index, value,
                 index);
 
             send_midi(CC | cb->channel_numbers[y],
                       cb->control_numbers[y] + x,
-                      cb->checkboxes[x] * 127);
+                      flag_is_set(cb->checkboxes, 1 << x) * 127);
         }
     }
     else if (slider_handle_press(&cb->sliders[y], index, value, y))
@@ -149,7 +154,8 @@ u8 control_bank_setup_handle_press(ControlBank* cb, u8 index, u8 value)
     }
 
     if (checkbox_handle_press(
-            cb->checkbox_checkbox,
+            cb->flags,
+            CBK_SHOW_CHECKBOXES,
             index, value,
             CHECKBOX_ROW_INDEX))
     {
@@ -171,13 +177,15 @@ u8 control_bank_setup_handle_press(ControlBank* cb, u8 index, u8 value)
     else
     {
         if (checkbox_handle_press(
-                cb->bipolar_checkboxes[y],
+                cb->bipolar_checkboxes,
+                1 << y,
                 index, value,
                 coord_to_index(BIPOLAR_CHECKBOX_X, y)))
         {
-            cb->sliders[y].offset = cb->bipolar_checkboxes[y]
-                ? -128 / 2
-                : -1;
+            cb->sliders[y].offset =
+                flag_is_set(cb->bipolar_checkboxes, 1 << y)
+                    ? -128 / 2
+                    : -1;
         }
         else if (number_handle_press(
                      &cb->channel_numbers[y], index, value,

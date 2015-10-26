@@ -10,7 +10,8 @@ u8 lp_midi_port = USBMIDI;
 
 // Program state
 LpState lp_state = LP_NUM_MODES;
-u8 lp_flags = 0;
+u8 lp_flags = 0x00;
+
 u16 lp_tap_tempo_timer = 1000;
 u16 lp_tap_tempo_sum = 0;
 u8 lp_tap_tempo_counter = 0;
@@ -25,15 +26,12 @@ u8 lp_lit_pads[GRID_SIZE];
 Sequencer lp_sequencer;
 
 // UI
-Checkbox lp_port_checkbox;
-
 Slider lp_tempo_slider;
 Slider lp_swing_slider;
 
 Keyboard lp_keyboard;
 Slider lp_row_offset_slider;
 
-Checkbox lp_control_checkbox;
 Slider lp_control_sens_slider;
 Slider lp_control_offset_slider;
 
@@ -129,12 +127,21 @@ u8 session_setup_handle_press(u8 index, u8 value)
 {
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
-        u8 y = row_to_seq(i);
+        u8 pos = coord_to_index(CHANNEL_X, row_to_seq(i));
+        Sequence* s = &lp_sequencer.sequences[i];
+
+        // Pre-detect if the press will be handled so that we can turn off any
+        // note on the current channel before switching to a new channel.
+        if (index >= pos && index < pos + CHANNEL_BITS)
+        {
+            sequence_kill_current_note(s);
+        }
+
         if (number_handle_press(
-                &lp_sequencer.sequences[i].channel,
-                    index, value,
-                    coord_to_index(CHANNEL_X, y),
-                    CHANNEL_BITS))
+                &s->channel,
+                index, value,
+                pos,
+                CHANNEL_BITS))
         {
             return 1;
         }
@@ -166,18 +173,18 @@ void sequencer_setup_become_inactive()
 void sequencer_mode_draw()
 {
     grid_draw(&lp_sequencer);
-    sequencer_play_draw(&lp_sequencer);
 }
 
 void sequencer_setup_draw()
 {
-    sequencer_play_draw(&lp_sequencer);
-
     slider_set_value(
         &lp_tempo_slider,
         millis_to_bpm(lp_sequencer.step_millis) / TEMPO_MUL);
+
     slider_draw(&lp_tempo_slider, TEMPO_POS, TEMPO_COLOR);
     slider_draw(&lp_swing_slider, SWING_POS, SWING_COLOR);
+    checkbox_draw(lp_flags, LP_TEMPO_BLINK, BLINK_CHECKBOX_POS);
+    checkbox_draw(lp_flags, LP_POSITION_BLINK, BLINK_CHECKBOX_POS + 1);
 }
 
 u8 sequencer_mode_handle_press(u8 index, u8 value)
@@ -202,6 +209,29 @@ u8 sequencer_setup_handle_press(u8 index, u8 value)
     else if (slider_handle_press(&lp_swing_slider, index, value, SWING_POS))
     {
         sequencer_set_swing(&lp_sequencer, slider_get_value(&lp_swing_slider));
+    }
+    else if (checkbox_handle_press(
+                 lp_flags, LP_TEMPO_BLINK,
+                 index, value,
+                 BLINK_CHECKBOX_POS))
+    {
+        if (!flag_is_set(lp_flags, LP_TEMPO_BLINK))
+        {
+            plot_pad(LP_CLICK, off_color);
+        }
+    }
+    else if (checkbox_handle_press(
+                 lp_flags, LP_POSITION_BLINK,
+                 index, value,
+                 BLINK_CHECKBOX_POS + 1))
+    {
+        if (!flag_is_set(lp_flags, LP_POSITION_BLINK))
+        {
+            sequencer_blink_draw(
+                &lp_sequencer,
+                flag_is_set(lp_flags, LP_TEMPO_BLINK),
+                1, 1);
+        }
     }
     else
     {
@@ -242,8 +272,8 @@ void notes_setup_draw()
 
     keyboard_draw(&lp_keyboard);
     slider_draw(&lp_row_offset_slider, ROW_OFFSET_POS, ROW_OFFSET_COLOR);
-    checkbox_draw(lp_port_checkbox, PORT_CHECKBOX_POS);
-    checkbox_draw(lp_control_checkbox, CONTROL_CHECKBOX_POS);
+    checkbox_draw(lp_flags, LP_PORT_CHECKBOX, PORT_CHECKBOX_POS);
+    checkbox_draw(s->flags, SEQ_RECORD_CONTROL, CONTROL_CHECKBOX_POS);
     number_draw(s->control_code,
                 CC_POS, CC_BITS, CC_COLOR);
     
@@ -290,6 +320,10 @@ u8 notes_mode_handle_press(u8 index, u8 value)
             }
         }
     }
+    else if (index == LP_CLICK && modifier_held(LP_SHIFT))
+    {
+        lp_flags = toggle_flag(lp_flags, LP_TEMPO_BLINK);
+    }
     else
     {
         return 0;
@@ -307,18 +341,24 @@ u8 notes_setup_handle_press(u8 index, u8 value)
     {
         layout_set_row_offset(l, lp_row_offset_slider.value + 1);
     }
-    else if (checkbox_handle_press(
-                 lp_port_checkbox, index, value, PORT_CHECKBOX_POS))
+    // Test for the port checkbox before actually handling the press so that
+    // all notes on the current port can be turned off first.
+    else if (index == PORT_CHECKBOX_POS)
     {
-        lp_midi_port = lp_port_checkbox ? DINMIDI : USBMIDI;
+        sequencer_kill_current_notes(&lp_sequencer);
+
+        checkbox_handle_press(
+            lp_flags, LP_PORT_CHECKBOX,
+            index, value, PORT_CHECKBOX_POS);
+
+        lp_midi_port = flag_is_set(lp_flags, LP_PORT_CHECKBOX)
+            ? DINMIDI : USBMIDI;
     }
     else if (checkbox_handle_press(
-                 lp_control_checkbox, index, value, CONTROL_CHECKBOX_POS))
+                 s->flags, SEQ_RECORD_CONTROL,
+                 index, value, CONTROL_CHECKBOX_POS))
     {
-        s->flags = assign_flag(
-            s->flags,
-            SEQ_RECORD_CONTROL,
-            lp_control_checkbox);
+
     }
     else if (number_handle_press(
                  &s->control_code, index, value,

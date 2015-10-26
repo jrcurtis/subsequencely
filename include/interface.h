@@ -27,6 +27,7 @@
 #define TEMPO_COLOR                (sequence_colors[3])
 #define TEMPO_RESOLUTION           (5)
 #define TEMPO_MUL                  (3)
+#define BLINK_CHECKBOX_POS         (61)
 
 #define SWING_POS                  (6)
 #define SWING_COLOR                (sequence_colors[5])

@@ -12,16 +12,21 @@
 
 void sequencer_init(Sequencer* sr)
 {
-    sr->swing_millis = 0;
+
     sr->step_millis = 100;
+    sr->clock_millis = 0;
+    sr->swing_millis = 0;
+    sr->swung_step_millis = 100;
+    sr->step_timer = 0;
+    sr->step_counter = 0;
+    sr->clock_timer = 0;
+    
     sequencer_set_tempo(sr, DEFAULT_TEMPO);
-    sr->timer = 0;
 
     sr->master_sequence = 0xFF;
     sr->active_sequence = 0;
     sr->soloed_sequences = 0;
     sr->copied_sequence = -1;
-    sr->flags = 0x00;
 
     scale_init(&lp_scale);
 
@@ -42,10 +47,13 @@ void sequencer_init(Sequencer* sr)
 
 void sequencer_set_tempo_millis(Sequencer* sr, u16 millis)
 {
+    // Remember the swing in a tempo-independent format so
+    // the millis can be recalculated after the tempo change.
     s8 swing = 6 * sr->swing_millis / sr->step_millis;
 
     sr->step_millis = millis;
     sr->clock_millis = sr->step_millis / TICKS_PER_STEP;
+    sr->swung_step_millis = sr->step_millis;
 
     sequencer_set_swing(sr, swing);
 }
@@ -77,7 +85,6 @@ void sequencer_set_active(Sequencer* sr, u8 i)
     keyboard_init(&lp_keyboard, &s->layout);
     slider_set_value(&lp_row_offset_slider,
                      s->layout.row_offset);
-    lp_control_checkbox = flag_is_set(s->flags, SEQ_RECORD_CONTROL);
     slider_set_value(&lp_control_sens_slider,
                      CC_SENS_RESOLUTION * GRID_SIZE
                      - s->control_div);
@@ -121,6 +128,14 @@ Sequence* sequence_get_master(Sequencer* sr)
 Layout* sequencer_get_layout(Sequencer* sr)
 {
     return &sequencer_get_active(sr)->layout;
+}
+
+void sequencer_kill_current_notes(Sequencer* sr)
+{
+    for (u8 i = 0; i < GRID_SIZE; i++)
+    {
+        sequence_kill_current_note(&sr->sequences[i]);
+    }
 }
 
 void sequencer_copy(Sequencer* sr, u8 i)
@@ -230,8 +245,56 @@ void sequencer_play_draw(Sequencer* sr)
         flag_is_set(active_flags, SEQ_SOLOED)
              ? number_colors[3]
              : off_color);
+
 }
 
+void sequencer_blink_draw(Sequencer* sr, u8 blink, u8 position, u8 off)
+{
+    u8 step;
+    if (sr->master_sequence < GRID_SIZE)
+    {
+        step = sr->sequences[sr->master_sequence].playhead;
+    }
+    else
+    {
+        step = sr->step_counter;
+    }
+
+    if (blink)
+    {
+        plot_pad(LP_CLICK,
+                 step % STEPS_PER_PAD == 0 && !off
+                 ? on_color
+                 : off_color);
+    }
+
+    if (position)
+    {
+        step = (step % SEQUENCE_LENGTH) / STEPS_PER_PAD;
+
+        for (u8 i = 0; i < GRID_SIZE; i++)
+        {
+            const u8* color;
+
+            if (step == i
+                && sr->master_sequence < GRID_SIZE
+                && !off)
+            {
+                color = on_color;
+            }
+            else if (lp_state == i - 4)
+            {
+                color = number_colors[lp_state];
+            }
+            else
+            {
+                color = off_color;
+            }
+
+            plot_pad(LP_OCTAVE_UP + i, color);
+        }
+    }
+}
 
 
 /*******************************************************************************
@@ -331,8 +394,8 @@ u8 sequencer_handle_record(Sequencer* sr)
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
         Sequence* s = &sr->sequences[i];
-        u8 s_step_millis = s->clock_div * sr->step_millis;
-        u8 quantize_ahead = (sr->timer % s_step_millis) > (s_step_millis / 4);
+        u16 s_step_millis = s->clock_div * sr->swung_step_millis;
+        u8 quantize_ahead = sr->step_timer > (s_step_millis / 4);
         sequence_handle_record(&sr->sequences[i], 1, quantize_ahead);
     }
 
@@ -345,15 +408,18 @@ u8 sequencer_handle_record(Sequencer* sr)
 
 void sequencer_tick(Sequencer* sr)
 {
-    sr->timer++;
+    sr->step_timer++;
+    sr->clock_timer++;
 
     u16 channels = 0x0000;
 
     // If the timer is on an even clock interval, go through each
     // sequence and send clock for the playing ones. Keep track of which
     // channels have been seen so double messages aren't sent.
-    if (sr->timer % sr->clock_millis == 0)
+    if (sr->clock_timer >= sr->clock_millis)
     {
+        sr->clock_timer = 0;
+        
         for (u8 i = 0; i < GRID_SIZE; i++)
         {
             Sequence* s = &sr->sequences[i];
@@ -368,26 +434,13 @@ void sequencer_tick(Sequencer* sr)
         }
     }
 
-    // step_millis is the number of milliseconds in a step, but if swing
-    // is on, the even numbered steps are delayed and the odd ones are
-    // rushed, so that it adds up to the same tempo over time.
-    u16 step_millis = sr->step_millis;
-    if (sr->master_sequence < GRID_SIZE)
-    {
-        step_millis += sr->sequences[sr->master_sequence].playhead % 2 == 0
-            ? sr->swing_millis
-            : -sr->swing_millis;
-    }
-
-    // If the timer hasn't passed the step threshold, return early,
-    // but first check if we're halfway between steps, and give the sequence
-    // a chance to turn off notes that would otherwise not have time to
+    // If the timer hasn't passed the step threshold, return early, but first
+    // check if we're close to the next step (one clock tick away), and give the
+    // sequence a chance to turn off notes that would otherwise not have time to
     // fully turn off before the next note.
-    // This uses sr->step_millis instead of the swing-adjusted step_millis
-    // because otherwise a changing swing might cause it to be missed.
-    if (sr->timer % sr->step_millis != 0)
+    if (sr->step_timer < sr->swung_step_millis)
     {
-        if (sr->timer == sr->step_millis / 2)
+        if (sr->step_timer == sr->swung_step_millis / 2)
         {
             for (u8 i = 0; i < GRID_SIZE; i++)
             {
@@ -398,19 +451,20 @@ void sequencer_tick(Sequencer* sr)
         return;
     }
 
-    // Now we're ready to actually move forward 1 step. The timer is only reset
-    // every 8 steps because it is used to implement clock division. The dirty
-    // flag is used to force a redraw in states that are dependent on sequencer
-    // state.
-    u8 clock_step = sr->timer / sr->step_millis;
-    if (clock_step >= GRID_SIZE)
+    // Now we're ready to actually move forward 1 step. The timer is reset and
+    // the clock counter is reset after 8 steps to implement clock division.
+    // The dirty flag is used to force a redraw in states that are dependent
+    // on sequencer state.
+    sr->step_timer = 0;
+    sr->step_counter++;
+    if (sr->step_counter >= GRID_SIZE)
     {
-        sr->timer = 0;
+        sr->step_counter = 0;
     }
-    sr->flags = set_flag(sr->flags, SQR_DIRTY);
+    lp_flags = set_flag(lp_flags, LP_SQR_DIRTY);
 
     // Tick the master sequence first so that all subsequent sequences can
-    // be told if they're on beat or not.
+    // be told if they're on the start of a beat or not.
     u8 master_offset = (sr->master_sequence < GRID_SIZE)
         ? sr->master_sequence : 0;
     u8 on_beat = 1;
@@ -423,7 +477,7 @@ void sequencer_tick(Sequencer* sr)
             && (sr->soloed_sequences == 0
                 || flag_is_set(s->flags, SEQ_SOLOED));
 
-        if (s->clock_div == 1 || clock_step % s->clock_div == 0)
+        if (s->clock_div == 1 || sr->step_counter % s->clock_div == 0)
         {
             sequence_step(s, audible, on_beat);
         }
@@ -433,4 +487,11 @@ void sequencer_tick(Sequencer* sr)
             on_beat = s->playhead % STEPS_PER_PAD == 0;
         }
     }
+    
+    sr->swung_step_millis = sr->step_millis
+        + (sr->sequences[master_offset].playhead % 2 == 0
+              ? sr->swing_millis
+              : -sr->swing_millis);
 }
+
+

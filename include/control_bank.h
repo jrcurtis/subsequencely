@@ -12,7 +12,8 @@
 
 typedef enum
 {
-    CBK_SETUP_SHIFTED = 1 << 0
+    CBK_SETUP_SHIFTED   = 1 << 0,
+    CBK_SHOW_CHECKBOXES = 1 << 1
 } ControlBankFlags;
 
 typedef struct
@@ -21,13 +22,12 @@ typedef struct
 
     // User controls
     Slider sliders[GRID_SIZE];
-    Checkbox checkboxes[GRID_SIZE];
+    Checkbox checkboxes;
 
     // Setup controls
     Number control_numbers[GRID_SIZE];
     Number channel_numbers[GRID_SIZE];
-    Checkbox checkbox_checkbox;
-    Checkbox bipolar_checkboxes[GRID_SIZE];
+    Checkbox bipolar_checkboxes;
 } ControlBank;
 
 void control_bank_init(ControlBank* cb);

@@ -1,4 +1,6 @@
 
+#include "data.h"
+
 #include "session.h"
 
 void session_draw(Sequencer* sr)
@@ -32,7 +34,7 @@ void session_draw(Sequencer* sr)
         /*     && linked_seq->playhead % 2 == 0; */
         u8 copy_blink = modifier_held(LP_DUPLICATE)
             && sr->copied_sequence == row_seq_i
-            && linked_seq->playhead % 2 == 0;
+            && lp_sequencer.step_counter % 4 == 0;
 
         for (u8 x = 0; x < GRID_SIZE; x++)
         {

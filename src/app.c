@@ -219,11 +219,21 @@ void app_timer_event()
     sequencer_tick(&lp_sequencer);
     lp_tap_tempo_timer++;
 
-    if (!flag_is_set(lp_flags, LP_IS_SETUP)
-        && flag_is_set(lp_sequencer.flags, SQR_DIRTY))
+    if (flag_is_set(lp_flags, LP_SQR_DIRTY))
     {
-        lp_sequencer.flags = clear_flag(lp_sequencer.flags, SQR_DIRTY);
-        if (lp_state == LP_SEQUENCER_MODE)
+        lp_flags = clear_flag(lp_flags, LP_SQR_DIRTY);
+
+        sequencer_blink_draw(
+            &lp_sequencer,
+            flag_is_set(lp_flags, LP_TEMPO_BLINK),
+            flag_is_set(lp_flags, LP_POSITION_BLINK),
+            0);
+
+        if (flag_is_set(lp_flags, LP_IS_SETUP))
+        {
+
+        }
+        else if (lp_state == LP_SEQUENCER_MODE)
         {
             sequencer_mode_draw();
         }

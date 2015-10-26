@@ -69,7 +69,7 @@ void sequence_init(Sequence* s, u8 channel, Note* notes)
     s->clock_div = 1;
 
     s->x = 0;
-    s->y = 0;
+    s->y = 3 * NUM_NOTES;
     s->zoom = 0;
     s->flags = 0x00;
 
