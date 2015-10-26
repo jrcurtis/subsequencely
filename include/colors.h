@@ -11,5 +11,6 @@ extern const u8 off_color[3];
 extern const u8 on_color[3];
 extern const u8 sequence_colors[8][3];
 extern const u8 number_colors[4][3];
+extern const u8 drum_colors[4][3];
 
 #endif

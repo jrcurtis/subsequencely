@@ -248,7 +248,7 @@ void sequencer_play_draw(Sequencer* sr)
 
 }
 
-void sequencer_blink_draw(Sequencer* sr, u8 blink, u8 position, u8 off)
+void sequencer_blink_draw(Sequencer* sr, u8 blink, u8 position)
 {
     u8 step;
     if (sr->master_sequence < GRID_SIZE)
@@ -263,12 +263,12 @@ void sequencer_blink_draw(Sequencer* sr, u8 blink, u8 position, u8 off)
     if (blink)
     {
         plot_pad(LP_CLICK,
-                 step % STEPS_PER_PAD == 0 && !off
+                 step % STEPS_PER_PAD == 0
                  ? on_color
                  : off_color);
     }
 
-    if (position)
+    if (position && sr->master_sequence < GRID_SIZE)
     {
         step = (step % SEQUENCE_LENGTH) / STEPS_PER_PAD;
 
@@ -276,9 +276,7 @@ void sequencer_blink_draw(Sequencer* sr, u8 blink, u8 position, u8 off)
         {
             const u8* color;
 
-            if (step == i
-                && sr->master_sequence < GRID_SIZE
-                && !off)
+            if (step == i)
             {
                 color = on_color;
             }
@@ -289,6 +287,29 @@ void sequencer_blink_draw(Sequencer* sr, u8 blink, u8 position, u8 off)
             else
             {
                 color = off_color;
+            }
+
+            plot_pad(LP_OCTAVE_UP + i, color);
+        }
+    }
+}
+
+void sequencer_blink_clear(Sequencer* sr, u8 blink, u8 position)
+{
+    if (blink)
+    {
+        plot_pad(LP_CLICK, off_color);
+    }
+
+    if (position)
+    {
+        for (u8 i = 0; i < GRID_SIZE; i++)
+        {
+            const u8* color = off_color;
+
+            if (lp_state == i - 4)
+            {
+                color = number_colors[lp_state];
             }
 
             plot_pad(LP_OCTAVE_UP + i, color);
@@ -371,6 +392,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
         if (si == sr->master_sequence)
         {
             sequencer_find_master_sequence(sr);
+            sequencer_blink_clear(sr, 0, 1);
         }
     }
     // Otherwise, queue it to start playing on the next step.
@@ -472,7 +494,8 @@ void sequencer_tick(Sequencer* sr)
 
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
-        Sequence* s = &sr->sequences[(i + master_offset) % GRID_SIZE];
+        u8 seq_i = (i + master_offset) % GRID_SIZE;
+        Sequence* s = &sr->sequences[seq_i];
 
         u8 audible = !flag_is_set(s->flags, SEQ_MUTED)
             && (sr->soloed_sequences == 0
@@ -481,6 +504,12 @@ void sequencer_tick(Sequencer* sr)
         if (s->clock_div == 1 || sr->step_counter % s->clock_div == 0)
         {
             sequence_step(s, audible, on_beat);
+
+            if (flag_is_set(s->flags, SEQ_PLAYING)
+                && seq_i < sr->master_sequence)
+            {
+                sr->master_sequence = seq_i;
+            }
         }
 
         if (i == 0)
@@ -489,6 +518,7 @@ void sequencer_tick(Sequencer* sr)
         }
     }
     
+    // Get ready for the next step by calculating how much to delay or rush.
     sr->swung_step_millis = sr->step_millis
         + (sr->sequences[master_offset].playhead % 2 == 0
               ? sr->swing_millis

@@ -226,8 +226,7 @@ void app_timer_event()
         sequencer_blink_draw(
             &lp_sequencer,
             flag_is_set(lp_flags, LP_TEMPO_BLINK),
-            flag_is_set(lp_flags, LP_POSITION_BLINK),
-            0);
+            flag_is_set(lp_flags, LP_POSITION_BLINK));
 
         if (flag_is_set(lp_flags, LP_IS_SETUP))
         {

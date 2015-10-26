@@ -269,7 +269,7 @@ void sequence_clear_notes(Sequence* s)
 void sequence_transpose(Sequence* s, s8 amt)
 {
     sequence_kill_current_note(s);
-    
+
     while (1)
     {
         for (u8 i = 0; i < SEQUENCE_LENGTH; i++)

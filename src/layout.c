@@ -28,12 +28,50 @@ void layout_become_inactive(Layout* l)
     }
 }
 
+void layout_set_drums(Layout* l)
+{
+    layout_assign_pads(l);
+}
+
 u8 layout_is_root_note(Layout* l, u8 note_number)
 {
     return ((s8)note_number - l->root_note) % NUM_NOTES == 0;
 }
 
 void layout_assign_pads(Layout* l)
+{
+    if (l->row_offset < 0)
+    {
+        layout_assign_drums(l);
+    }
+    else
+    {
+        layout_assign_scale(l);
+    }
+}
+
+void layout_assign_drums(Layout* l)
+{
+    u8 note_number = l->root_note + NUM_NOTES * l->octave;
+
+    for (u8 y = 0; y < GRID_SIZE / 2; y++)
+    {
+        lp_lit_pads[y] = 0x00;
+
+        for (u8 x = 0; x < GRID_SIZE / 2; x++)
+        {
+            lp_pad_notes[y][x] = note_number;
+            lp_pad_notes[y][x + GRID_SIZE / 2] = note_number + NUM_NOTES;
+            lp_pad_notes[y + GRID_SIZE / 2][x] = note_number + 2 * NUM_NOTES;
+            lp_pad_notes[y + GRID_SIZE / 2][x + GRID_SIZE / 2]
+                = note_number + 3 * NUM_NOTES;
+
+            note_number++;
+        }
+    }
+}
+
+void layout_assign_scale(Layout* l)
 {
     u8 start_scale_deg = 0;
     u8 octave = l->octave;
@@ -87,6 +125,47 @@ void layout_set_row_offset(Layout* l, u8 o)
 }
 
 void layout_light_note(Layout* l, u8 note_number, u8 velocity, u8 on)
+{
+    if (l->row_offset < 0)
+    {
+        layout_light_drums(l, note_number, velocity, on);
+    }
+    else
+    {
+        layout_light_scale(l, note_number, velocity, on);
+    }
+}
+
+#define DRUM_RANGE    (4 * NUM_NOTES + (16 - NUM_NOTES))
+#define DRUM_SIZE     (GRID_SIZE / 2)
+void layout_light_drums(Layout* l, u8 note_number, u8 velocity, u8 on)
+{
+    u8 start_note = l->root_note + l->octave * NUM_NOTES;
+
+    if (note_number < start_note || note_number >= start_note + DRUM_RANGE)
+    {
+        return;
+    }
+
+    u8 offset = note_number - start_note;
+    u8 quadrant = offset / NUM_NOTES;
+    u8 quadrant_offset = offset - quadrant * NUM_NOTES;
+    u8 quadrant_row = quadrant_offset / DRUM_SIZE;
+
+    while (quadrant >= 0 && quadrant_offset < 16)
+    {
+        u8 y = quadrant_row + quadrant / 2 * DRUM_SIZE;
+        u8 x = quadrant_offset % DRUM_SIZE + quadrant % 2 * DRUM_SIZE;
+
+        lp_lit_pads[y] = assign_flag(lp_lit_pads[y], 1 << x, on);
+
+        quadrant--;
+        quadrant_offset += NUM_NOTES;
+        quadrant_row += DRUM_SIZE - 1;
+    }
+}
+
+void layout_light_scale(Layout* l, u8 note_number, u8 velocity, u8 on)
 {
     u8 index = FIRST_PAD;
 
@@ -240,6 +319,18 @@ u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, struct Sequence_* s)
 
 void layout_draw(Layout* l)
 {
+    if (l->row_offset < 0)
+    {
+        layout_draw_drums(l);
+    }
+    else
+    {
+        layout_draw_scale(l);
+    }
+}
+
+void layout_draw_scale(Layout* l)
+{
     u8 index = FIRST_PAD;
 
     for (u8 y = 0; y < GRID_SIZE; y++)
@@ -259,6 +350,48 @@ void layout_draw(Layout* l)
 
             plot_pad(index, color);
             index++;
+        }
+
+        index += ROW_GAP;
+    }
+}
+
+void layout_draw_drums(Layout* l)
+{
+    u8 index = FIRST_PAD;
+    u8 quadrant = 0;
+
+    for (u8 y = 0; y < GRID_SIZE; y++)
+    {
+        for (u8 x = 0; x < GRID_SIZE; x++)
+        {
+            const u8* color = off_color;
+
+            if (lp_lit_pads[y] & (1 << x))
+            {
+                color = on_color;
+            }
+            else
+            {
+                color = drum_colors[quadrant];
+            }
+
+            if (x == DRUM_SIZE - 1)
+            {
+                quadrant++;
+            }
+
+            plot_pad(index, color);
+            index++;
+        }
+
+        if (y == DRUM_SIZE - 1)
+        {
+            quadrant++;
+        }
+        else
+        {
+            quadrant--;
         }
 
         index += ROW_GAP;

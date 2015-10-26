@@ -217,7 +217,7 @@ u8 sequencer_setup_handle_press(u8 index, u8 value)
     {
         if (!flag_is_set(lp_flags, LP_TEMPO_BLINK))
         {
-            plot_pad(LP_CLICK, off_color);
+            sequencer_blink_clear(&lp_sequencer, 1, 0);
         }
     }
     else if (checkbox_handle_press(
@@ -227,10 +227,7 @@ u8 sequencer_setup_handle_press(u8 index, u8 value)
     {
         if (!flag_is_set(lp_flags, LP_POSITION_BLINK))
         {
-            sequencer_blink_draw(
-                &lp_sequencer,
-                flag_is_set(lp_flags, LP_TEMPO_BLINK),
-                1, 1);
+            sequencer_blink_clear(&lp_sequencer, 0, 1);
         }
     }
     else
@@ -269,12 +266,14 @@ void notes_mode_draw()
 void notes_setup_draw()
 {
     Sequence* s = sequencer_get_active(&lp_sequencer);
+    Layout* l = &s->layout;
 
     keyboard_draw(&lp_keyboard);
     slider_draw(&lp_row_offset_slider, ROW_OFFSET_POS, ROW_OFFSET_COLOR);
     checkbox_draw(lp_flags, LP_PORT_CHECKBOX, PORT_CHECKBOX_POS);
     checkbox_draw(s->flags, SEQ_RECORD_CONTROL, CONTROL_CHECKBOX_POS);
     checkbox_draw(s->flags, SEQ_SEND_CLOCK, CLOCK_CHECKBOX_POS);
+    checkbox_draw(l->row_offset, LYT_DRUMS, DRUM_CHECKBOX_POS);
     number_draw(s->control_code,
                 CC_POS, CC_BITS, CC_COLOR);
     
@@ -366,6 +365,12 @@ u8 notes_setup_handle_press(u8 index, u8 value)
                  index, value, CLOCK_CHECKBOX_POS))
     {
         
+    }
+    else if (checkbox_handle_press(
+                 l->row_offset, LYT_DRUMS,
+                 index, value, DRUM_CHECKBOX_POS))
+    {
+        layout_set_drums(l);
     }
     else if (number_handle_press(
                  &s->control_code, index, value,

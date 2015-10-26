@@ -37,6 +37,7 @@
 
 #define PORT_CHECKBOX_POS          (41)
 #define CLOCK_CHECKBOX_POS         (43)
+#define DRUM_CHECKBOX_POS          (45)
 #define CONTROL_CHECKBOX_POS       (81)
 
 #endif
