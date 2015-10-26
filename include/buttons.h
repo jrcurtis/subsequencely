@@ -54,8 +54,8 @@
 #define LP_SENDS_FLAG          (1 << 6)
 #define LP_STOP_CLIP_FLAG      (1 << 7)
 
-#define LP_OCTAVE_DOWN_FLAG    (1 << 8)
-#define LP_OCTAVE_UP_FLAG      (1 << 9)
+#define LP_OCTAVE_UP_FLAG      (1 << 8)
+#define LP_OCTAVE_DOWN_FLAG    (1 << 9)
 #define LP_TRANSPOSE_DOWN_FLAG (1 << 10)
 #define LP_TRANSPOSE_UP_FLAG   (1 << 11)
 

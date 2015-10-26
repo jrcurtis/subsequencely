@@ -138,6 +138,22 @@ u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
             sequence_toggle_linked(linked_s);
         }
     }
+    else if (modifier_held(LP_OCTAVE_UP))
+    {
+        sequence_transpose(s, NUM_NOTES);
+    }
+    else if (modifier_held(LP_OCTAVE_DOWN))
+    {
+        sequence_transpose(s, -NUM_NOTES);
+    }
+    else if (modifier_held(LP_TRANSPOSE_UP))
+    {
+        sequence_transpose(s, 1);
+    }
+    else if (modifier_held(LP_TRANSPOSE_DOWN))
+    {
+        sequence_transpose(s, -1);
+    }
     else
     {
         sequence_queue_or_jump(s, x * STEPS_PER_PAD, shift);

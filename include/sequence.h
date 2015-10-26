@@ -91,6 +91,8 @@ void sequence_clear_note(Sequence* s, u8 step);
 
 void sequence_clear_notes(Sequence* s);
 
+void sequence_transpose(Sequence* s, s8 amt);
+
 void sequence_set_skip(Sequence* s, u8 step, u8 skip);
 
 void sequence_toggle_linked_to(Sequence* s);

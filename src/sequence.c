@@ -266,6 +266,28 @@ void sequence_clear_notes(Sequence* s)
     }
 }
 
+void sequence_transpose(Sequence* s, s8 amt)
+{
+    sequence_kill_current_note(s);
+    
+    while (1)
+    {
+        for (u8 i = 0; i < SEQUENCE_LENGTH; i++)
+        {
+            s->notes[i].note_number += amt;
+        }
+
+        if (flag_is_set(s->flags, SEQ_LINKED_TO))
+        {
+            s++;
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
 void sequence_set_skip(Sequence* s, u8 step, u8 skip)
 {
     Note* n = sequence_get_note(s, step);
