@@ -24,8 +24,8 @@ typedef struct
     u8 step_millis;
     u8 clock_millis;
     s8 swing_millis;
-    u8 swung_step_millis;
-    u8 step_timer;
+    u16 swung_step_millis;
+    u16 step_timer;
     u8 step_counter;
     u8 clock_timer;
 
