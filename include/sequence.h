@@ -102,6 +102,8 @@ void sequence_toggle_linked_to(Sequence* s);
 
 void sequence_toggle_linked(Sequence* s);
 
+Sequence* sequence_get_supersequence(Sequence* s);
+
 void sequence_queue(Sequence* s, u8 is_beat);
 
 void sequence_queue_at(Sequence* s, u8 step, u8 is_beat);

@@ -317,6 +317,16 @@ void sequence_toggle_linked(Sequence* s)
     s->flags = toggle_flag(s->flags, SEQ_LINKED);
 }
 
+Sequence* sequence_get_supersequence(Sequence* s)
+{
+    while (flag_is_set(s->flags, SEQ_LINKED))
+    {
+        s--;
+    }
+
+    return s;
+}
+
 void sequence_queue(Sequence* s, u8 is_beat)
 {
     sequence_queue_at(s, s->playhead, is_beat);

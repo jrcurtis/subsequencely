@@ -140,9 +140,13 @@ u8 grid_handle_press(Sequencer* sr, u8 index, u8 value)
 
     if (grid_handle_zoom(sr, index, value)) { }
     else if (grid_handle_translate(sr, index, value)) { }
-    else if (index == LP_DELETE && modifier_held(LP_SHIFT))
+    else if (index == LP_DELETE && value > 0 && modifier_held(LP_SHIFT))
     {
         sequence_clear_notes(sequencer_get_active(sr));
+    }
+    else if (index == LP_UNDO && value > 0)
+    {
+        sequence_reverse(sequencer_get_active(sr));
     }
     else if (index_to_pad(index, &x, &y))
     {

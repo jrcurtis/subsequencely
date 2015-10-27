@@ -37,10 +37,10 @@ void sequencer_init(Sequencer* sr)
         layout_init(&s->layout);
     }
 
-    // for (u16 i = 0; i <= SEQUENCE_LENGTH * GRID_SIZE; i++)
-    // {
-    //     note_init(&sr->note_storage[i]);
-    // }
+    for (u16 i = 0; i <= SEQUENCE_LENGTH * GRID_SIZE; i++)
+    {
+        note_init(&lp_note_storage[i]);
+    }
 
     sequencer_set_active(sr, 0);
 }
@@ -150,17 +150,22 @@ void sequencer_paste(Sequencer* sr, u8 i)
         return;
     }
 
-    // Note* from = (sr->copied_sequence < GRID_SIZE)
-    //     ? lp_note_bank
-    //     : lp_note_storage;
-    // from += (sr->copied_sequence % GRID_SIZE) * SEQUENCE_LENGTH;
-    Note* from = lp_note_bank + sr->copied_sequence * SEQUENCE_LENGTH;
+    Note* from = (sr->copied_sequence < GRID_SIZE)
+        ? lp_note_bank
+        : lp_note_storage;
+    from += (sr->copied_sequence % GRID_SIZE) * SEQUENCE_LENGTH;
 
-    // Note* to = (i < GRID_SIZE)
-    //     ? lp_note_bank
-    //     : lp_note_storage;
-    // to += (i % GRID_SIZE) * SEQUENCE_LENGTH;
-    Note* to = lp_note_bank + i * SEQUENCE_LENGTH;
+    Note* to = (i < GRID_SIZE)
+        ? lp_note_bank
+        : lp_note_storage;
+    to += (i % GRID_SIZE) * SEQUENCE_LENGTH;
+
+    u8 seq_i = i / SEQUENCE_LENGTH;
+    if (seq_i < GRID_SIZE)
+    {
+        Sequence* s = sequence_get_supersequence(&sr->sequences[seq_i]);
+        sequence_kill_current_note(s);
+    }
 
     memcpy(to, from, sizeof(Note) * SEQUENCE_LENGTH);
 }
