@@ -416,19 +416,6 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
     return 1;
 }
 
-u8 sequencer_handle_record(Sequencer* sr)
-{
-    for (u8 i = 0; i < GRID_SIZE; i++)
-    {
-        Sequence* s = &sr->sequences[i];
-        u16 s_step_millis = s->clock_div * sr->swung_step_millis;
-        u8 quantize_ahead = sr->step_timer > (s_step_millis / 4);
-        sequence_handle_record(&sr->sequences[i], 1, quantize_ahead);
-    }
-
-    return 0;
-}
-
 /*******************************************************************************
  * Time handling
  ******************************************************************************/

@@ -60,7 +60,6 @@ void sequencer_blink_draw(Sequencer* sr, u8 blink, u8 position);
 void sequencer_blink_clear(Sequencer* sr, u8 blink, u8 position);
 
 u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value);
-u8 sequencer_handle_record(Sequencer* sr);
 
 void sequencer_tick(Sequencer* sr);
 

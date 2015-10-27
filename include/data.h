@@ -26,7 +26,8 @@ typedef enum
     LP_TEMPO_BLINK    = 1 << 2,
     LP_POSITION_BLINK = 1 << 3,
     LP_SQR_DIRTY      = 1 << 4,
-    LP_SEND_CLOCK     = 1 << 5
+    LP_SEND_CLOCK     = 1 << 5,
+    LP_ARMED          = 1 << 6
 } LpFlags;
 
 /*******************************************************************************

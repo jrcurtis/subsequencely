@@ -21,7 +21,7 @@ Scale lp_scale;
 Voices lp_voices;
 PadNotes lp_pad_notes;
 NoteBank lp_note_bank;
-//NoteBank lp_note_storage;
+NoteBank lp_note_storage;
 u8 lp_lit_pads[GRID_SIZE];
 Sequencer lp_sequencer;
 
@@ -310,7 +310,7 @@ void notes_setup_draw()
 u8 notes_mode_handle_press(u8 index, u8 value)
 {
     Sequence* s = sequencer_get_active(&lp_sequencer);
-    Layout* l = &s->layout;;
+    Layout* l = &s->layout;
 
     if (layout_handle_transpose(l, index, value))
     {
@@ -318,14 +318,9 @@ u8 notes_mode_handle_press(u8 index, u8 value)
     }
     else if (sequence_handle_press(s, index, value))
     {
-        if (value > 0)
-        {
-            sequencer_handle_record(&lp_sequencer);
-        }
-
-        if (value > 0
-            && !flag_is_set(s->flags, SEQ_PLAYING)
-            && modifier_held(LP_CLICK))
+        if (modifier_held(LP_CLICK)
+            && value > 0
+            && !flag_is_set(s->flags, SEQ_PLAYING))
         {
             u8 beat = lp_tap_tempo_counter % GRID_SIZE;
             Note* n = sequence_get_note(s, beat * STEPS_PER_PAD);

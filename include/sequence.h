@@ -116,7 +116,7 @@ void sequence_stop(Sequence* s);
 
 void sequence_reverse(Sequence* s);
 
-void sequence_handle_record(Sequence* s, u8 press, u8 quantize_ahead);
+void sequence_handle_record(Sequence* s, u8 press);
 
 u8 sequence_handle_press(Sequence* s, u8 index, u8 value);
 

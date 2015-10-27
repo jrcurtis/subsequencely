@@ -206,7 +206,7 @@ void sequence_kill_note(Sequence* s, Note* n)
             }
             else
             {
-                layout_light_note(&s->layout, n->note_number, n->velocity, 0);
+                layout_light_note(&s->layout, n->note_number, 0);
             }
         }
         else
@@ -239,7 +239,7 @@ void sequence_play_note(Sequence* s, Note* n)
         }
         else
         {
-           layout_light_note(&s->layout, n->note_number, n->velocity, 1);
+           layout_light_note(&s->layout, n->note_number, 1);
         }
     }
 
@@ -385,7 +385,7 @@ void sequence_reverse(Sequence* s)
     s->flags = toggle_flag(s->flags, SEQ_REVERSED);
 }
 
-void sequence_handle_record(Sequence* s, u8 press, u8 quantize_ahead)
+void sequence_handle_record(Sequence* s, u8 press)
 {
     if (!flag_is_set(s->flags, SEQ_ARMED)
         || !flag_is_set(s->flags, SEQ_PLAYING))
@@ -393,6 +393,8 @@ void sequence_handle_record(Sequence* s, u8 press, u8 quantize_ahead)
         return;
     }
 
+    u16 s_step_millis = s->clock_div * lp_sequencer.swung_step_millis;
+    u8 quantize_ahead = lp_sequencer.step_timer > (s_step_millis / 4);
     Note* current_n = sequence_get_note(s, s->playhead);
     Note* record_n = quantize_ahead
         ? sequence_get_note(s, sequence_get_next_playhead(s))
@@ -416,10 +418,7 @@ void sequence_handle_record(Sequence* s, u8 press, u8 quantize_ahead)
         else
         {
             current_n->flags = set_flag(current_n->flags, NTE_SLIDE);
-
-            record_n->velocity = flag_is_set(s->flags, SEQ_RECORD_CONTROL)
-                ? lp_voices.aftertouch
-                : -1;
+            record_n->velocity = lp_voices.aftertouch;
         }
 
         record_n->note_number = played_note;
@@ -506,7 +505,8 @@ void sequence_step(Sequence* s, u8 audible, u8 is_beat)
         // CC is handled separately because it should be sent even if the
         // note is held and no note on is being sent.
         if (audible
-            && flag_is_set(s->flags, SEQ_RECORD_CONTROL))
+            && flag_is_set(s->flags, SEQ_RECORD_CONTROL)
+            && flag_is_set(next_n->flags, NTE_ON))
         {
             note_control(next_n, s);
         }
@@ -518,7 +518,7 @@ void sequence_step(Sequence* s, u8 audible, u8 is_beat)
     // weren't just recorded as pressed notes right before this.
     if (!flag_is_set(s->flags, SEQ_DID_RECORD_AHEAD))
     {
-        sequence_handle_record(s, 0, 0);
+        sequence_handle_record(s, 0);
     }
     s->flags = clear_flag(s->flags, SEQ_DID_RECORD_AHEAD);
 }
@@ -545,12 +545,30 @@ void sequence_off_step(Sequence* s)
 
 u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
 {
-    u8 note_number = layout_get_note_number(&s->layout, index);
-    u8 channel = sequence_get_channel(s, note_number);
+    s8 note_number = layout_get_note_number(&s->layout, index);
 
-    if (layout_handle_press(&s->layout, index, value, channel))
+    if (note_number > -1)
     {
-        return 1;
+        u8 channel = sequence_get_channel(s, note_number);
+        u8 midi_message;
+
+        if (value > 0)
+        {
+            midi_message = NOTEON;
+            voices_add(&lp_voices, note_number, value);
+            sequence_handle_record(s, 1);
+        }
+        else
+        {
+            midi_message = NOTEOFF;
+            voices_remove(&lp_voices, note_number);
+        }
+
+        send_midi(
+            midi_message | channel,
+            note_number, value);
+
+        layout_light_note(&s->layout, note_number, value > 0);
     }
     else if (value == 0)
     {
@@ -581,20 +599,27 @@ u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
 
 u8 sequence_handle_aftertouch(Sequence* s, u8 index, u8 value)
 {
-    if (flag_is_set(s->flags, SEQ_RECORD_CONTROL))
+    s8 note_number = layout_get_note_number(&s->layout, index);
+
+    if (note_number > -1)
     {
-        value = cc_div(
-            value,
-            s->control_sgn,
-            s->control_div,
-            s->control_offset);
+        voices_handle_aftertouch(&lp_voices, note_number, value);
 
-        u8 note_number = layout_get_note_number(&s->layout, index);
+        if (flag_is_set(s->flags, SEQ_RECORD_CONTROL))
+        {
+            u8 channel = sequence_get_channel(s, note_number);
+            u8 scaled_value = cc_div(
+                value,
+                s->control_sgn,
+                s->control_div,
+                s->control_offset);
 
-        layout_handle_aftertouch(
-            &s->layout, index, value,
-            sequence_get_channel(s, note_number),
-            s->control_code);
+            send_midi(
+                POLYAFTERTOUCH | channel,
+                note_number, value);
+
+            send_midi(CC | channel, s->control_code, scaled_value);
+        }
     }
     else
     {

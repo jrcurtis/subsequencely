@@ -3,6 +3,9 @@
 
 #include "layout.h"
 
+#define DRUM_RANGE    (4 * NUM_NOTES + (16 - NUM_NOTES))
+#define DRUM_SIZE     (GRID_SIZE / 2)
+
 void layout_init(Layout* l)
 {
     l->root_note = 0;
@@ -134,21 +137,19 @@ void layout_set_row_offset(Layout* l, u8 o)
     layout_assign_pads(l);
 }
 
-void layout_light_note(Layout* l, u8 note_number, u8 velocity, u8 on)
+void layout_light_note(Layout* l, u8 note_number, u8 on)
 {
     if (l->row_offset < 0)
     {
-        layout_light_drums(l, note_number, velocity, on);
+        layout_light_drums(l, note_number, on);
     }
     else
     {
-        layout_light_scale(l, note_number, velocity, on);
+        layout_light_scale(l, note_number, on);
     }
 }
 
-#define DRUM_RANGE    (4 * NUM_NOTES + (16 - NUM_NOTES))
-#define DRUM_SIZE     (GRID_SIZE / 2)
-void layout_light_drums(Layout* l, u8 note_number, u8 velocity, u8 on)
+void layout_light_drums(Layout* l, u8 note_number, u8 on)
 {
     u8 start_note = l->root_note + l->octave * NUM_NOTES;
 
@@ -175,7 +176,7 @@ void layout_light_drums(Layout* l, u8 note_number, u8 velocity, u8 on)
     }
 }
 
-void layout_light_scale(Layout* l, u8 note_number, u8 velocity, u8 on)
+void layout_light_scale(Layout* l, u8 note_number, u8 on)
 {
     u8 index = FIRST_PAD;
 
@@ -250,72 +251,6 @@ u8 layout_handle_transpose(Layout* l, u8 index, u8 value)
     return 1;
 }
 
-u8 layout_handle_press(Layout* l, u8 index, u8 value, u8 channel)
-{
-    u8 x, y;
-
-    if (index_to_pad(index, &x, &y))
-    {
-        u8 note_number = lp_pad_notes[y][x];
-
-        if (note_number <= MAX_NOTE)
-        {
-            u8 midi_message;
-
-            if (value > 0)
-            {
-                midi_message = NOTEON;
-                voices_add(&lp_voices, note_number, value);
-            }
-            else
-            {
-                midi_message = NOTEOFF;
-                voices_remove(&lp_voices, note_number);
-            }
-
-            send_midi(
-                midi_message | channel,
-                note_number, value);
-
-            layout_light_note(l, note_number, value, value > 0);
-        }
-    }
-    else
-    {
-        return 0;
-    }
-
-
-    return 1;
-}
-
-u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, u8 channel, u8 cc)
-{
-    u8 x, y;
-
-    if (index_to_pad(index, &x, &y))
-    {
-        u8 note_number = lp_pad_notes[y][x];
-
-        if (note_number <= MAX_NOTE)
-        {
-            send_midi(
-                POLYAFTERTOUCH | channel,
-                note_number, value);
-
-            if (voices_handle_aftertouch(&lp_voices, note_number, value))
-            {
-                send_midi(CC | channel, cc, value);
-            }
-        }
-    }
-    else
-    {
-        return 0;
-    }
-
-    return 1;
-}
 
 /*******************************************************************************
  * Drawing functions

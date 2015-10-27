@@ -75,17 +75,11 @@ void layout_transpose_octave(Layout* l, s8 direction);
 void layout_set_row_offset(Layout* l, u8 o);
 
 /// Lights all pads currently on screen that correspond to the given note.
-void layout_light_note(Layout* l, u8 note_number, u8 velocity, u8 on);
-void layout_light_scale(Layout* l, u8 note_number, u8 velocity, u8 on);
-void layout_light_drums(Layout* l, u8 note_number, u8 velocity, u8 on);
+void layout_light_note(Layout* l, u8 note_number, u8 on);
+void layout_light_scale(Layout* l, u8 note_number, u8 on);
+void layout_light_drums(Layout* l, u8 note_number, u8 on);
 
 /// Transposes the notes of the layout by half steps or octaves.
 u8 layout_handle_transpose(Layout* l, u8 index, u8 value);
-
-/// Plays a note on the grid.
-u8 layout_handle_press(Layout* l, u8 index, u8 value, u8 channel);
-
-/// Sends aftertouch for a note on the grid.
-u8 layout_handle_aftertouch(Layout* l, u8 index, u8 value, u8 channel, u8 cc);
 
 #endif
