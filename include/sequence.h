@@ -31,16 +31,15 @@ typedef enum
     SEQ_PLAYING        = 1 << 0,  // Sequence is currently playing
     SEQ_MUTED          = 1 << 1,  // Sequence should not make sound
     SEQ_SOLOED         = 1 << 2,  // Other sequences should not make sound
-    SEQ_ARMED          = 1 << 3,  // Sequence will record played notes
-    SEQ_REVERSED       = 1 << 4,  // Playhead advances backwards
-    SEQ_QUEUED         = 1 << 5,  // Sequence should start playing next step
-    SEQ_BEAT_QUEUED    = 1 << 6,  // Only start if on beat (combined with ^^)
-    SEQ_ACTIVE         = 1 << 7,  // The currently selected sequence
-    SEQ_LINKED         = 1 << 8,  // Playhead is controlled by other sequence
-    SEQ_LINKED_TO      = 1 << 9,  // This sequence has other ones linked to it
-    SEQ_RECORD_CONTROL = 1 << 10, // Should record aftertouch values
-    SEQ_DID_RECORD_AHEAD = 1 << 11, // Was the last note quantized forwards?
-    SEQ_DRUM_MULTICHANNEL = 1 << 12 // Send each note on its own channel
+    SEQ_REVERSED       = 1 << 3,  // Playhead advances backwards
+    SEQ_QUEUED         = 1 << 4,  // Sequence should start playing next step
+    SEQ_BEAT_QUEUED    = 1 << 5,  // Only start if on beat (combined with ^^)
+    SEQ_ACTIVE         = 1 << 6,  // The currently selected sequence
+    SEQ_LINKED         = 1 << 7,  // Playhead is controlled by other sequence
+    SEQ_LINKED_TO      = 1 << 8,  // This sequence has other ones linked to it
+    SEQ_RECORD_CONTROL = 1 << 9,  // Should record aftertouch values
+    SEQ_DID_RECORD_AHEAD = 1 << 10, // Was the last note quantized forwards?
+    SEQ_DRUM_MULTICHANNEL = 1 << 11 // Send each note on its own channel
 } SequenceFlags;
 
 typedef struct

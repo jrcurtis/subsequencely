@@ -202,6 +202,12 @@ void VirtualLppApp::drawBottomPanel()
     }
     scaleSteps += to_string(12 - lastOffset);
     
+    bool armed = flag_is_set(lp_flags, LP_ARMED);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(armed ? 1 : 0.5, 0, 0, 1));
+    ImGui::Value("Armed", armed);
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+    
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0.3, 0.3, 1));
     ImGui::Value("BPM", millis_to_bpm((float)lp_sequencer.step_millis));
     ImGui::PopStyleColor();
@@ -297,7 +303,6 @@ void VirtualLppApp::drawSequenceInfo(Sequence& s)
     
     ImGui::Value("Muted", flag_is_set(s.flags, SEQ_MUTED));
     ImGui::Value("Soloed", flag_is_set(s.flags, SEQ_SOLOED));
-    ImGui::Value("Armed", flag_is_set(s.flags, SEQ_ARMED));
     ImGui::Value("Linked To", flag_is_set(s.flags, SEQ_LINKED_TO));
     ImGui::Value("Linked", flag_is_set(s.flags, SEQ_LINKED));
 

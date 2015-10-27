@@ -184,13 +184,7 @@ void sequencer_play_draw(Sequencer* sr)
     {
         Sequence* s = &sr->sequences[i];
 
-        if (modifier_held(LP_RECORD_ARM))
-        {
-            color = flag_is_set(s->flags, SEQ_ARMED)
-                ? number_colors[0]
-                : off_color;
-        }
-        else if (modifier_held(LP_TRACK_SELECT))
+        if (modifier_held(LP_TRACK_SELECT))
         {
             color = sr->active_sequence == i
                 ? number_colors[2]
@@ -216,14 +210,6 @@ void sequencer_play_draw(Sequencer* sr)
                 : off_color;
         }
 
-        // If any track is armed AND playing, turn the record indicator on.
-        if (flag_is_set(s->flags, SEQ_ARMED)
-            && (flag_is_set(s->flags, SEQ_PLAYING)
-                || flag_is_set(s->flags, SEQ_QUEUED)))
-        {
-            active_flags = set_flag(active_flags, SEQ_ARMED);
-        }
-
         // If any tracks are muted/soloed, turn those indicators on.
         active_flags |= flag_is_set(s->flags, SEQ_MUTED) ? SEQ_MUTED : 0;
         active_flags |= flag_is_set(s->flags, SEQ_SOLOED) ? SEQ_SOLOED : 0;
@@ -234,7 +220,7 @@ void sequencer_play_draw(Sequencer* sr)
     
     
     plot_pad(LP_RECORD_ARM,
-        flag_is_set(active_flags, SEQ_ARMED)
+        flag_is_set(lp_flags, LP_ARMED)
              ? number_colors[0]
              : off_color);
     
@@ -330,8 +316,13 @@ void sequencer_blink_clear(Sequencer* sr, u8 blink, u8 position)
 
 u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
 {
-    s8 si = index_to_play(index);
+    if (index == LP_RECORD_ARM && value > 0)
+    {
+        lp_flags = toggle_flag(lp_flags, LP_ARMED);
+        return 1;
+    }
 
+    s8 si = index_to_play(index);
     if (value == 0 || si == -1)
     {
         return 0;
@@ -339,11 +330,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
 
     Sequence* s = &sr->sequences[si];
 
-    if (modifier_held(LP_RECORD_ARM))
-    {
-        s->flags = toggle_flag(s->flags, SEQ_ARMED);
-    }
-    else if (modifier_held(LP_TRACK_SELECT))
+    if (modifier_held(LP_TRACK_SELECT))
     {
         sequencer_set_active(sr, si);
     }

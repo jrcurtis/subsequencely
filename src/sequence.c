@@ -387,7 +387,8 @@ void sequence_reverse(Sequence* s)
 
 void sequence_handle_record(Sequence* s, u8 press)
 {
-    if (!flag_is_set(s->flags, SEQ_ARMED)
+    if (!flag_is_set(lp_flags, LP_ARMED)
+        || !flag_is_set(s->flags, SEQ_ACTIVE)
         || !flag_is_set(s->flags, SEQ_PLAYING))
     {
         return;
