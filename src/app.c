@@ -95,7 +95,6 @@ void app_surface_event(u8 type, u8 index, u8 value)
         else if (lp_state == LP_NOTES_MODE)
         {
             notes_mode_handle_press(index, value);
-            notes_mode_draw();
         }
         else if (lp_state == LP_SEQUENCER_MODE)
         {
@@ -239,10 +238,6 @@ void app_timer_event()
         else if (lp_state == LP_SESSION_MODE)
         {
             session_mode_draw();
-        }
-        else if (lp_state == LP_NOTES_MODE)
-        {
-            notes_mode_draw();
         }
     }
 #else

@@ -50,7 +50,6 @@ extern Voices lp_voices;
 extern PadNotes lp_pad_notes;
 extern NoteBank lp_note_bank;
 extern NoteBank lp_note_storage;
-extern u8 lp_lit_pads[GRID_SIZE];
 extern Sequencer lp_sequencer;
 
 // UI

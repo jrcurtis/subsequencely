@@ -9,6 +9,8 @@
 #include "voices.h"
 #include "util.h"
 
+#define ROW_OFFSET_MASK      (0x7F)
+
 typedef enum
 {
     /// Indicates the layout should be 4x4 drum pad style. This flag lives in

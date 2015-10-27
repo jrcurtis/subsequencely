@@ -22,7 +22,6 @@ Voices lp_voices;
 PadNotes lp_pad_notes;
 NoteBank lp_note_bank;
 NoteBank lp_note_storage;
-u8 lp_lit_pads[GRID_SIZE];
 Sequencer lp_sequencer;
 
 // UI
@@ -261,7 +260,10 @@ u8 sequencer_setup_handle_press(u8 index, u8 value)
 
 void notes_mode_become_active()
 {
-    
+    // Layout is drawn when the mode becomes active (and when switching active
+    // tracks) but not in the normal draw function because it's mostly static
+    // and gets updated by layout_light_note instead.
+    layout_draw(sequencer_get_layout(&lp_sequencer));
 }
 
 void notes_mode_become_inactive()
@@ -281,7 +283,7 @@ void notes_setup_become_inactive()
 
 void notes_mode_draw()
 {
-    layout_draw(sequencer_get_layout(&lp_sequencer));
+
 }
 
 void notes_setup_draw()

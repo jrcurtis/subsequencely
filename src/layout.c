@@ -20,14 +20,16 @@ void layout_init(Layout* l)
 void layout_become_active(Layout* l)
 {
     layout_assign_pads(l);
+
+    if (lp_state == LP_NOTES_MODE && !flag_is_set(lp_flags, LP_IS_SETUP))
+    {
+        layout_draw(l);
+    }
 }
 
 void layout_become_inactive(Layout* l)
 {
-    for (int i = 0; i < GRID_SIZE; i++)
-    {
-        lp_lit_pads[i] = 0x00;
-    }
+
 }
 
 void layout_set_drums(Layout* l)
@@ -53,7 +55,7 @@ u8 layout_get_note_number(Layout* l, u8 index)
 
 void layout_assign_pads(Layout* l)
 {
-    if (l->row_offset < 0)
+    if (flag_is_set(l->row_offset, LYT_DRUMS))
     {
         layout_assign_drums(l);
     }
@@ -69,8 +71,6 @@ void layout_assign_drums(Layout* l)
 
     for (u8 y = 0; y < GRID_SIZE / 2; y++)
     {
-        lp_lit_pads[y] = 0x00;
-
         for (u8 x = 0; x < GRID_SIZE / 2; x++)
         {
             lp_pad_notes[y][x] = note_number;
@@ -91,8 +91,6 @@ void layout_assign_scale(Layout* l)
 
     for (u8 y = 0; y < GRID_SIZE; y++)
     {
-        lp_lit_pads[y] = 0x00;
-
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
             u8 scale_deg = start_scale_deg + x;
@@ -133,13 +131,18 @@ void layout_transpose_octave(Layout* l, s8 direction)
 
 void layout_set_row_offset(Layout* l, u8 o)
 {
-    l->row_offset = o;
+    l->row_offset = (l->row_offset & ~ROW_OFFSET_MASK) | (o & ROW_OFFSET_MASK);
     layout_assign_pads(l);
 }
 
 void layout_light_note(Layout* l, u8 note_number, u8 on)
 {
-    if (l->row_offset < 0)
+    if (lp_state != LP_NOTES_MODE || flag_is_set(lp_flags, LP_IS_SETUP))
+    {
+        return;
+    }
+
+    if (flag_is_set(l->row_offset, LYT_DRUMS))
     {
         layout_light_drums(l, note_number, on);
     }
@@ -159,7 +162,7 @@ void layout_light_drums(Layout* l, u8 note_number, u8 on)
     }
 
     u8 offset = note_number - start_note;
-    u8 quadrant = offset / NUM_NOTES;
+    s8 quadrant = offset / NUM_NOTES;
     u8 quadrant_offset = offset - quadrant * NUM_NOTES;
     u8 quadrant_row = quadrant_offset / DRUM_SIZE;
 
@@ -168,7 +171,7 @@ void layout_light_drums(Layout* l, u8 note_number, u8 on)
         u8 y = quadrant_row + quadrant / 2 * DRUM_SIZE;
         u8 x = quadrant_offset % DRUM_SIZE + quadrant % 2 * DRUM_SIZE;
 
-        lp_lit_pads[y] = assign_flag(lp_lit_pads[y], 1 << x, on);
+        plot_pad(coord_to_index(x, y), on ? on_color : drum_colors[quadrant]);
 
         quadrant--;
         quadrant_offset += NUM_NOTES;
@@ -179,6 +182,7 @@ void layout_light_drums(Layout* l, u8 note_number, u8 on)
 void layout_light_scale(Layout* l, u8 note_number, u8 on)
 {
     u8 index = FIRST_PAD;
+    u8 root = layout_is_root_note(l, note_number);
 
     for (u8 y = 0; y < GRID_SIZE; y++)
     {
@@ -200,14 +204,10 @@ void layout_light_scale(Layout* l, u8 note_number, u8 on)
                 continue;
             }
 
-            if (on)
-            {
-                lp_lit_pads[y] |= 1 << x;
-            }
-            else
-            {
-                lp_lit_pads[y] &= ~(1 << x);
-            }
+            plot_pad(coord_to_index(x, y),
+                     on ? on_color
+                     : root ? root_note_color
+                     : off_color);
 
             index++;
         }
@@ -258,7 +258,7 @@ u8 layout_handle_transpose(Layout* l, u8 index, u8 value)
 
 void layout_draw(Layout* l)
 {
-    if (l->row_offset < 0)
+    if (flag_is_set(l->row_offset, LYT_DRUMS))
     {
         layout_draw_drums(l);
     }
@@ -278,11 +278,7 @@ void layout_draw_scale(Layout* l)
         {
             const u8* color = off_color;
 
-            if (lp_lit_pads[y] & (1 << x))
-            {
-                color = on_color;
-            }
-            else if (layout_is_root_note(l, lp_pad_notes[y][x]))
+            if (layout_is_root_note(l, lp_pad_notes[y][x]))
             {
                 color = root_note_color;
             }
@@ -304,23 +300,14 @@ void layout_draw_drums(Layout* l)
     {
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
-            const u8* color = off_color;
-
-            if (lp_lit_pads[y] & (1 << x))
-            {
-                color = on_color;
-            }
-            else
-            {
-                color = drum_colors[quadrant];
-            }
+            const u8* color = drum_colors[quadrant];
+            plot_pad(index, color);
 
             if (x == DRUM_SIZE - 1)
             {
                 quadrant++;
             }
 
-            plot_pad(index, color);
             index++;
         }
 

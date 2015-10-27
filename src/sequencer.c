@@ -84,7 +84,7 @@ void sequencer_set_active(Sequencer* sr, u8 i)
 
     keyboard_init(&lp_keyboard, &s->layout);
     slider_set_value(&lp_row_offset_slider,
-                     s->layout.row_offset);
+                     s->layout.row_offset & ROW_OFFSET_MASK);
     slider_set_value(&lp_control_sens_slider,
                      CC_SENS_RESOLUTION * GRID_SIZE
                      - s->control_div);
