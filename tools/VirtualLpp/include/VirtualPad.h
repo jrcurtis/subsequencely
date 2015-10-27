@@ -33,7 +33,7 @@ public:
     Color getColor() { return color; }
     void setColor(Color c) { color = c; }
     
-    void press(u8 v);
+    void press(u8 v, bool aftertouch);
     
     u8 getIndex() { return index; }
     void setIndex(u8 i) { index = i; }

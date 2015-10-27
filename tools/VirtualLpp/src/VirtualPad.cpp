@@ -33,9 +33,9 @@ VirtualPad::VirtualPad(const char* l)
     }
 }
 
-void VirtualPad::press(u8 v)
+void VirtualPad::press(u8 v, bool aftertouch)
 {
-    if (held && v > 0)
+    if (aftertouch)
     {
         if (!isButton)
         {
@@ -50,7 +50,7 @@ void VirtualPad::press(u8 v)
             v);
     }
     
-    held = v > 0;
+    held = aftertouch || v != 0;
     velocity = v;
 }
 

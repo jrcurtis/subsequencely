@@ -122,13 +122,17 @@ void VirtualLpp::receiveMidi(double timestamp, vector<unsigned char>* message, v
 void VirtualLpp::receiveMidiControl(double timestamp, vector<unsigned char>* message, void* userData)
 {
     u8 type = (*message)[0] & 0xF0;
-    if (type == NOTEON || type == POLYAFTERTOUCH)
+    if (type == NOTEON)
     {
-        pads[(*message)[1]].press((*message)[2]);
+        pads[(*message)[1]].press((*message)[2], false);
     }
     else if (type == NOTEOFF)
     {
-        pads[(*message)[1]].press(0);
+        pads[(*message)[1]].press(0, false);
+    }
+    else if (type == POLYAFTERTOUCH)
+    {
+        pads[(*message)[1]].press((*message)[2], true);
     }
 }
 
@@ -146,7 +150,7 @@ void VirtualLpp::mouseDown(int index, int velocity)
     {
         heldIndex = index;
         heldVelocity = velocity;
-        pads[index].press(velocity);
+        pads[index].press(velocity, false);
     }
 }
 
@@ -159,7 +163,7 @@ void VirtualLpp::mouseUp()
 {
     if (heldIndex != -1)
     {
-        pads[heldIndex].press(0);
+        pads[heldIndex].press(0, false);
         heldIndex = -1;
         heldVelocity = -1;
     }
@@ -180,7 +184,7 @@ void VirtualLpp::mouseDrag(MouseEvent event)
         else if (velocity != heldVelocity)
         {
             heldVelocity = velocity;
-            pads[heldIndex].press(heldVelocity);
+            pads[heldIndex].press(heldVelocity, true);
         }
     }
     else
