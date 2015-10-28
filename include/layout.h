@@ -9,6 +9,8 @@
 #include "voices.h"
 #include "util.h"
 
+/// The bits where row offset lives. Excludes the drum flag bit, so that
+/// the drums state doesn't get trashed when you use the row offset slider.
 #define ROW_OFFSET_MASK      (0x7F)
 
 typedef enum

@@ -45,7 +45,7 @@ void sequencer_init(Sequencer* sr)
     sequencer_set_active(sr, 0);
 }
 
-void sequencer_set_tempo_millis(Sequencer* sr, u16 millis)
+void sequencer_set_tempo_millis(Sequencer* sr, u8 millis)
 {
     // Remember the swing in a tempo-independent format so
     // the millis can be recalculated after the tempo change.
@@ -58,7 +58,7 @@ void sequencer_set_tempo_millis(Sequencer* sr, u16 millis)
     sequencer_set_swing(sr, swing);
 }
 
-void sequencer_set_tempo(Sequencer* sr, u16 bpm)
+void sequencer_set_tempo(Sequencer* sr, u8 bpm)
 {
     sequencer_set_tempo_millis(sr, bpm_to_millis(bpm));
 }
@@ -66,12 +66,6 @@ void sequencer_set_tempo(Sequencer* sr, u16 bpm)
 void sequencer_set_swing(Sequencer* sr, s8 swing)
 {
     sr->swing_millis = sr->step_millis * swing / 6;
-}
-
-void sequencer_set_octave(Sequencer* sr, u8 octave)
-{
-    Sequence* s = sequencer_get_active(sr);
-    s->y = octave * lp_scale.num_notes;
 }
 
 void sequencer_set_active(Sequencer* sr, u8 i)

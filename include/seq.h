@@ -29,6 +29,18 @@
 
 u8 tap_tempo_handle_press(u8 index, u8 value);
 
+/// All the handlers for all the modes.
+
+/// become_active/become_inactive are called when the mode changes using the
+/// mode buttons, or when switching between setup mode.
+
+/// *_draw functions are called when a mode becomes active, when a pad or button
+/// is pressed, and for some modes, when the sequencer ticks forward.
+
+/// *_handle_press functions are called upon any surface event, and follow
+/// the convention of returning 1 upon successfully handling the event, and 0
+/// if it is not handled.
+
 void session_mode_become_active();
 void session_mode_become_inactive();
 void session_setup_become_active();
@@ -69,6 +81,7 @@ u8 user_setup_handle_press(u8 index, u8 value);
  * State management
  ******************************************************************************/
 
+/// Switch the mode or switch between normal and setup modes.
 void set_state(LpState st, u8 setup);
 
 #endif

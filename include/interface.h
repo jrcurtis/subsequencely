@@ -2,6 +2,8 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
+// Where stuff should be positioned, and what color it should be.
+
 #define CC_SENS_RESOLUTION         (2)
 #define CC_SENS_POS                (6)
 #define CC_SENS_POS_COLOR          (sequence_colors[6])

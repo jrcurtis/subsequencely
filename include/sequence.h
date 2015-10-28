@@ -7,9 +7,13 @@
 
 #define zoom_to_sequence_x(sr)        (1 << (MAX_ZOOM - (sr)->zoom))
 
+/// Given a sequence and a grid x coordinate, returns the sequence step it
+/// represents, based the the sequence's zoom and translation.
 #define grid_to_sequence_x(s, gx)     (((gx) + (s)->x)                  \
                                        * (1 << (MAX_ZOOM - (s)->zoom)))
 
+/// Given a sequence, and a grid y coordinate, returns the represented note
+/// number based on the sequence's zoom and translation.
 #define grid_to_sequence_y(s, gy)     (lp_scale.offsets[                \
                                            ((gy) + (s)->y)              \
                                            % lp_scale.num_notes         \
@@ -21,9 +25,9 @@
                                            ))
 typedef enum
 {
-    NTE_ON = 1 << 0,
-    NTE_SLIDE = 1 << 1,
-    NTE_SKIP = 1 << 2
+    NTE_ON = 1 << 0, // Set on when a note on is sent, and should always be turned off again!
+    NTE_SLIDE = 1 << 1, // Is this note tied to the previous, or individually articulated?
+    NTE_SKIP = 1 << 2 // Skip the playhead right over this note, taking 0 time.
 } NoteFlags;
 
 typedef enum
@@ -42,6 +46,10 @@ typedef enum
     SEQ_DRUM_MULTICHANNEL = 1 << 11 // Send each note on its own channel
 } SequenceFlags;
 
+/// The note storage structure for sequences. This used to store velocity and
+/// aftertouch separately, but had to be changed to save ram, so now velocity
+/// is recorded when a note is first pressed, but aftertouch is recorded into
+/// the velocity field while the note is held.
 typedef struct
 {
     s8 note_number;
@@ -49,80 +57,119 @@ typedef struct
     u8 flags;
 } Note;
 
+/// The number of notes needed for all 8 sequences. Two of these are used: one
+/// for the live sequences data, and one for extra storage.
 typedef Note NoteBank[GRID_SIZE * SEQUENCE_LENGTH];
 
 typedef struct Sequence_
 {
     u16 flags;
-    Layout layout;
-    u8 channel;
+    Layout layout; // The layout to use in notes mode when this sequence is active.
+    u8 channel; // The channel to send midi on (or the base channel, when in multichannel mode)
 
-    u8 control_code;
-    u8 control_div;
-    s8 control_sgn;
-    s8 control_offset;
+    u8 control_code; // The midi CC that aftertouch is sent on.
+    u8 control_div; // The sensitivity divider for aftertouch values (see cc_div in util.h)
+    s8 control_sgn; // Whether CC is positive or negative.
+    s8 control_offset; // Value added to all CCs sent
 
-    u8 playhead;
-    s8 jump_step;
-    u8 clock_div;
+    u8 playhead; // The position of the playhead/the currently playing note.
+    s8 jump_step; // Set to >= 0 to make the playhead jump there on the next step.
+    u8 clock_div; // The amount to divide the global tempo clock.
 
-    u8 zoom;
-    u8 x;
-    u8 y;
+    u8 zoom; // Zoom level in sequencer mode.
+    u8 x; // X location of view in sequencer mode.
+    u8 y; // Y location of view in sequencer mode.
 
-    Note* notes;
+    Note* notes; // Pointer to the beginning of this sequence's notes in the NoteBank.
 } Sequence;
 
+/// Initializes note to empty/off.
 void note_init(Note* n);
 
+/// Initializes sequence to empty/off.
 void sequence_init(Sequence* s, u8 channel, Note* notes);
 
+/// Gets the note at the playhead.
 Note* sequence_get_note(Sequence* s, u8 playhead);
 
+/// Gets the channel. Has special logic for multichannel mode.
 u8 sequence_get_channel(Sequence* s, u8 note_number);
 
+/// Handler for when the active sequence changes.
 void sequence_become_active(Sequence* s);
 
+/// Handler for when the active sequence changes (but in the other way.)
 void sequence_become_inactive(Sequence* s);
 
+/// Send a note off/unlight lit pads/whatever else, if there is a note currently
+/// playing.
 void sequence_kill_current_note(Sequence* s);
 
+/// Play the note at the playhead and light up the pads, if necessary.
 void sequence_play_current_note(Sequence* s);
 
+/// Clear note data at given step.
 void sequence_clear_note(Sequence* s, u8 step);
 
+/// Clear all note data in the sequence. Includes linked sequences.
 void sequence_clear_notes(Sequence* s);
 
+/// Transpose all the notes in the sequence by the given amount.
 void sequence_transpose(Sequence* s, s8 amt);
 
+/// Set a note to be skipped over.
 void sequence_set_skip(Sequence* s, u8 step, u8 skip);
 
+/// Called when this sequence becomes the supersequence to the next sequence.
 void sequence_toggle_linked_to(Sequence* s);
 
+/// Called when this sequence become the subsequence of the previous sequence.
 void sequence_toggle_linked(Sequence* s);
 
+/// Gets the first sequence preceding this one that does not have the SEQ_LINKED
+/// flag set (might return the passed in sequence).
 Sequence* sequence_get_supersequence(Sequence* s);
 
+/// Set the sequence to start playing on the next step.
+/// is_beat indicates whether it should wait for the next beat of the master
+/// sequence, rather than playing immediately on the next step.
 void sequence_queue(Sequence* s, u8 is_beat);
 
+/// Sets the sequence to start playing from the given step.
 void sequence_queue_at(Sequence* s, u8 step, u8 is_beat);
 
+/// Immediately jumps the playhead to the given step, assuming the sequence is
+/// already playing.
 void sequence_jump_to(Sequence* s, u8 step);
 
+/// Chooses between sequence_queue_at or sequence_jump_to based on whether
+/// the sequence is already playing.
+/// is_beat does not affect sequence_jump_to.
 void sequence_queue_or_jump(Sequence* s, u8 step, u8 is_beat);
 
+/// Immediately stops the sequence and kills any playing note.
 void sequence_stop(Sequence* s);
 
+/// Reverses the playing direction of the sequence.
 void sequence_reverse(Sequence* s);
 
+/// Handles the logic of writing new notes/aftertouch values in the sequence.
 void sequence_handle_record(Sequence* s, u8 press);
 
+/// Handles when notes are played in notes mode.
 u8 sequence_handle_press(Sequence* s, u8 index, u8 value);
 
+/// Handles aftertouch in notes mode.
 u8 sequence_handle_aftertouch(Sequence* s, u8 index, u8 value);
 
+/// Logic to step the sequence forward, handling note on/off for the appropriate
+/// steps.
 void sequence_step(Sequence* s, u8 audible, u8 is_beat);
 
+/// Called in between calls to sequence_step. If there is currently a note
+/// playing, and the upcoming note in the sequence is NOT a slide note, the
+/// current note is killed early so it can have time to turn off before the
+/// next note.
 void sequence_off_step(Sequence* s);
 
 #endif

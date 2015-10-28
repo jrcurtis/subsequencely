@@ -10,6 +10,7 @@
 #include "sequencer.h"
 #include "slider.h"
 
+/// Enum representing the different program modes.
 typedef enum
 {
     LP_SESSION_MODE,
@@ -19,6 +20,7 @@ typedef enum
     LP_NUM_MODES
 } LpState;
 
+/// Global program flags.
 typedef enum
 {
     LP_IS_SETUP       = 1 << 0,
@@ -35,12 +37,13 @@ typedef enum
  ******************************************************************************/
 
 // Global settings
-extern u8 lp_midi_port;
+extern u8 lp_midi_port; // Which port to send on.
 
 // Program state
-extern LpState lp_state;
-extern u8 lp_flags;
-extern u16 lp_tap_tempo_timer;
+extern LpState lp_state; // What mode the program is in
+extern u8 lp_flags; // Global flags
+
+extern u16 lp_tap_tempo_timer; // Timer used to track tap tempo presses
 extern u16 lp_tap_tempo_sum;
 extern u8 lp_tap_tempo_counter;
 
@@ -52,7 +55,7 @@ extern NoteBank lp_note_bank;
 extern NoteBank lp_note_storage;
 extern Sequencer lp_sequencer;
 
-// UI
+// Setup UI elements
 extern Slider lp_tempo_slider;
 extern Slider lp_swing_slider;
 
