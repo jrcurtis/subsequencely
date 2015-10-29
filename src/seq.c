@@ -316,6 +316,7 @@ u8 notes_mode_handle_press(u8 index, u8 value)
 
     if (layout_handle_transpose(l, index, value))
     {
+        sequence_kill_voices(s);
         keyboard_update_indices(&lp_keyboard);
     }
     else if (sequence_handle_press(s, index, value))
@@ -398,11 +399,20 @@ u8 notes_setup_handle_press(u8 index, u8 value)
         {
             s->control_sgn = 1;
         }
+
     }
     else if (slider_handle_press(
                  &lp_control_offset_slider, index, value, CC_OFFSET_POS))
     {
-        s->control_offset = slider_get_value(&lp_control_offset_slider);
+        u8 slider_value = slider_get_value(&lp_control_offset_slider);
+        s->control_offset = slider_value;
+
+        // Send midi from the offset slider so that you can test the value
+        // you put in/use midi learn on a software synth to map parameters.
+        send_midi(CC | s->channel,
+                  s->control_code,
+                  slider_value);
+
     }
     else if (layout_handle_transpose(l, index, value))
     {

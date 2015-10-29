@@ -114,6 +114,10 @@ void sequence_clear_note(Sequence* s, u8 step);
 /// Clear all note data in the sequence. Includes linked sequences.
 void sequence_clear_notes(Sequence* s);
 
+/// Kills all held down notes. Used when the pads are transposed so that the
+/// note off when the pads are released aren't different from the note on.
+void sequence_kill_voices(Sequence* s);
+
 /// Transpose all the notes in the sequence by the given amount.
 void sequence_transpose(Sequence* s, s8 amt);
 

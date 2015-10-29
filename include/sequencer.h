@@ -22,7 +22,7 @@ typedef struct
 {
     // Time handling
     u8 step_millis; // Baseline for how long a single step takes.
-    u8 clock_millis; // 1/24th of step_millis. Used for midi clock.
+    u8 clock_millis; // 1/6th of step_millis. Used for midi clock.
     s8 swing_millis; // How many milliseconds of extra delay for swing notes.
     u16 swung_step_millis; // step_millis +/- swing_millis. Used to avoid repeatedly checking whether sequence is on a swing note.
     u16 step_timer; // Number of milliseconds since last step.

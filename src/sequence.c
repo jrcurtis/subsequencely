@@ -260,22 +260,40 @@ void sequence_clear_note(Sequence* s, u8 step)
 
 void sequence_clear_notes(Sequence* s)
 {
+    Sequence* linked_seq = s;
+    u8 i = 0;
     while (1)
     {
-        for (u8 i = 0; i < SEQUENCE_LENGTH; i++)
+        u8 seq_end = i + SEQUENCE_LENGTH;
+        for (; i < seq_end; i++)
         {
+            // clear_note must be called on original s so that noteoff is sent
+            // on the right channel, if necessary.
             sequence_clear_note(s, i);
         }
 
-        if (flag_is_set(s->flags, SEQ_LINKED_TO))
+        if (flag_is_set(linked_seq->flags, SEQ_LINKED_TO))
         {
-            s++;
+            linked_seq++;
         }
         else
         {
             break;
         }
     }
+}
+
+void sequence_kill_voices(Sequence* s)
+{
+    for (u8 i = 0; i < voices_get_num_active(&lp_voices); i++)
+    {
+        u8 note_number = lp_voices.voices[i].note_number;
+        u8 channel = sequence_get_channel(s, note_number);
+
+        send_midi(NOTEOFF | channel, note_number, lp_voices.velocity);
+    }
+
+    voices_reset(&lp_voices);
 }
 
 void sequence_transpose(Sequence* s, s8 amt)
