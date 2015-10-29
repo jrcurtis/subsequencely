@@ -8,6 +8,9 @@ If you'd like to see what the program can do, check out the user manual in the
 resources directory, or check out [this video](https://youtu.be/_G3-Z9f-Xr0), or
 just upload resources/subsequencely.syx to your Launchpad Pro and try it out.
 
+![Customizable faders](http://i.imgur.com/JIs1cOp.jpg) ![Drum pad layout](http://i.imgur.com/VusxP8s.jpg)
+![Session mode](http://i.imgur.com/FSUyeEX.jpg) ![Step sequencer](http://i.imgur.com/qDviuut.jpg)
+
 # Be aware
 
 This software hasn't been thoroughly tested, and may be buggy, or not perform up
