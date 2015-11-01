@@ -162,7 +162,7 @@ void layout_light_drums(Layout* l, u8 note_number, u8 on)
     }
 
     u8 offset = note_number - start_note;
-    s8 quadrant = offset / NUM_NOTES;
+    s8 quadrant = min(3, offset / NUM_NOTES);
     u8 quadrant_offset = offset - quadrant * NUM_NOTES;
     u8 quadrant_row = quadrant_offset / DRUM_SIZE;
 
