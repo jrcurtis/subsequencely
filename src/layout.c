@@ -248,6 +248,7 @@ u8 layout_handle_transpose(Layout* l, u8 index, u8 value)
         return 0;
     }
 
+    layout_draw(l);
     return 1;
 }
 
