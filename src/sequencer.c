@@ -26,7 +26,7 @@ void sequencer_init(Sequencer* sr)
     sr->master_sequence = 0xFF;
     sr->active_sequence = 0;
     sr->soloed_sequences = 0;
-    sr->copied_sequence = -1;
+    sr->copied_sequence = SQR_COPY_MASK;
 
     scale_init(&lp_scale);
 
@@ -132,36 +132,72 @@ void sequencer_kill_current_notes(Sequencer* sr)
     }
 }
 
-void sequencer_copy(Sequencer* sr, u8 i)
+void sequencer_copy(Sequencer* sr, u8 i, u8 swap)
 {
-    sr->copied_sequence = i;
+    sr->copied_sequence = (swap ? SQR_COPY_SWAP : 0x00)
+        | (i & SQR_COPY_MASK);
 }
 
 void sequencer_paste(Sequencer* sr, u8 i)
 {
-    if (sr->copied_sequence < 0)
+    u8 copied_sequence = sr->copied_sequence & SQR_COPY_MASK;
+    u8 swap = (sr->copied_sequence & SQR_COPY_SWAP) != 0;
+
+    if (copied_sequence == SQR_COPY_MASK)
     {
         return;
     }
 
-    Note* from = (sr->copied_sequence < GRID_SIZE)
+    Note* from = (copied_sequence < GRID_SIZE)
         ? lp_note_bank
         : lp_note_storage;
-    from += (sr->copied_sequence % GRID_SIZE) * SEQUENCE_LENGTH;
+    from += (copied_sequence % GRID_SIZE) * SEQUENCE_LENGTH;
 
     Note* to = (i < GRID_SIZE)
         ? lp_note_bank
         : lp_note_storage;
     to += (i % GRID_SIZE) * SEQUENCE_LENGTH;
 
-    u8 seq_i = i / SEQUENCE_LENGTH;
-    if (seq_i < GRID_SIZE)
+    Sequence* s;
+    if (i < GRID_SIZE)
     {
-        Sequence* s = sequence_get_supersequence(&sr->sequences[seq_i]);
+        s = sequence_get_supersequence(&sr->sequences[i]);
         sequence_kill_current_note(s);
     }
 
-    memcpy(to, from, sizeof(Note) * SEQUENCE_LENGTH);
+    if (copied_sequence < GRID_SIZE && swap)
+    {
+        s = sequence_get_supersequence(&sr->sequences[copied_sequence]);
+        sequence_kill_current_note(s);
+    }
+
+
+    if (swap)
+    {
+        Note temp;
+        for (u8 note_i = 0; note_i < SEQUENCE_LENGTH; note_i++)
+        {
+            temp = from[note_i];
+            from[note_i] = to[note_i];
+            to[note_i] = temp;
+        }
+    }
+    else
+    {
+        memcpy(to, from, sizeof(Note) * SEQUENCE_LENGTH);
+    }
+}
+
+void sequencer_copy_or_paste(Sequencer* sr, u8 i)
+{
+    if ((sr->copied_sequence & SQR_COPY_MASK) == SQR_COPY_MASK)
+    {
+        sequencer_copy(sr, i, sr->copied_sequence & SQR_COPY_SWAP);
+    }
+    else
+    {
+        sequencer_paste(sr, i);
+    }
 }
 
 /*******************************************************************************

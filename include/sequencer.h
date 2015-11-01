@@ -16,6 +16,9 @@
 #include "voices.h"
 #include "util.h"
 
+#define SQR_COPY_SWAP    (0x80)
+#define SQR_COPY_MASK    (0x7F)
+
 typedef Sequence Sequences[GRID_SIZE];
 
 typedef struct
@@ -33,7 +36,7 @@ typedef struct
     u8 master_sequence; // Index of earliest playing sequence. Used as clock reference.
     u8 active_sequence; // Index of sequence used in notes mode and sequencer mode.
     u8 soloed_sequences; // Number of soloed sequences.
-    s8 copied_sequence; // Index of sequence copied in session mode. Use values 8-15 to access the storage bank.
+    u8 copied_sequence; // Index of sequence copied in session mode. Use values 8-15 to access the storage bank.
 
     // Data
     Sequences sequences;
@@ -58,11 +61,16 @@ void sequencer_set_active(Sequencer* sr, u8 i);
 void sequencer_kill_current_notes(Sequencer* sr);
 
 /// Sets the index of the sequence to copy from values 0-7 are the 8 sequences,
-/// and values 8-15 are extra storage slots.
-void sequencer_copy(Sequencer* sr, u8 i);
+/// and values 8-15 are extra storage slots. Swap indicates the two slots
+/// should have their data swapped, rather than one be overwritten.
+void sequencer_copy(Sequencer* sr, u8 i, u8 swap);
 
 /// Pastes from the copied sequence/storage bank, into the given one.
 void sequencer_paste(Sequencer* sr, u8 i);
+
+/// Calls copy if there is not already an index in the clipboard, otherwise
+/// pastes.
+void sequencer_copy_or_paste(Sequencer* sr, u8 i);
 
 /// Returns the active sequence.
 Sequence* sequencer_get_active(Sequencer* sr);

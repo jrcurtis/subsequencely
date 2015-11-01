@@ -29,8 +29,9 @@ void session_draw(Sequencer* sr)
             linked_seq = &s[linked_seq_i];
         }
 
+        u8 copied_sequence = sr->copied_sequence & SQR_COPY_MASK;
         u8 copy_blink = modifier_held(LP_DUPLICATE)
-            && sr->copied_sequence % GRID_SIZE == row_seq_i
+            && copied_sequence % GRID_SIZE == row_seq_i
             && lp_sequencer.step_counter % 4 == 0;
 
         for (u8 x = 0; x < GRID_SIZE; x++)
@@ -41,7 +42,7 @@ void session_draw(Sequencer* sr)
             u8 index = coord_to_index(x, y);
 
             if (copy_blink
-                && x / (GRID_SIZE / 2) == sr->copied_sequence / GRID_SIZE)
+                && x / (GRID_SIZE / 2) == copied_sequence / GRID_SIZE)
             {
                 plot_pad(index, on_color);
             }
@@ -70,7 +71,7 @@ u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
     // When duplicate is pressed or released, reset the clipboard.
     if (index == LP_DUPLICATE)
     {
-        sequencer_copy(sr, -1);
+        sequencer_copy(sr, SQR_COPY_MASK, modifier_held(LP_SHIFT));
         return 1;
     }
 
@@ -115,15 +116,7 @@ u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
         // but if it's on the right, pull from the cold storage, aka the
         // sequences stored GRID_SIZE offset from the normal ones.
         u8 offset = x / (GRID_SIZE / 2) * GRID_SIZE;
-
-        if (sr->copied_sequence == -1)
-        {
-            sequencer_copy(sr, seq_i + offset);
-        }
-        else
-        {
-            sequencer_paste(sr, seq_i + offset);
-        }
+        sequencer_copy_or_paste(sr, seq_i + offset);
     }
     else if (modifier_held(LP_DOUBLE))
     {
