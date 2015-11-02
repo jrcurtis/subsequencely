@@ -15,14 +15,15 @@ void note_init(Note* n)
     n->flags = 0x00;
 }
 
-void note_play(Note* n, u8 channel)
+void note_play(Note* n, u8 channel, u8 full_velocity)
 {
     if (!flag_is_set(n->flags, NTE_ON))
     {
         n->flags = set_flag(n->flags, NTE_ON);
         send_midi(
             NOTEON | channel,
-            n->note_number, n->velocity);
+            n->note_number,
+            full_velocity ? 127 : n->velocity);
     }
 }
 
@@ -243,7 +244,8 @@ void sequence_play_note(Sequence* s, Note* n)
         }
     }
 
-    note_play(n, sequence_get_channel(s, n->note_number));
+    note_play(n, sequence_get_channel(s, n->note_number),
+              flag_is_set(s->flags, SEQ_FULL_VELOCITY));
 }
 
 void sequence_play_current_note(Sequence* s)
@@ -585,7 +587,8 @@ u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
 
         send_midi(
             midi_message | channel,
-            note_number, value);
+            note_number,
+            flag_is_set(s->flags, SEQ_FULL_VELOCITY) ? 127 : value);
 
         layout_light_note(&s->layout, note_number, value > 0);
     }

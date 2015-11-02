@@ -297,6 +297,7 @@ void notes_setup_draw()
     checkbox_draw(s->flags, SEQ_RECORD_CONTROL, CONTROL_CHECKBOX_POS);
     checkbox_draw(l->row_offset, LYT_DRUMS, DRUM_CHECKBOX_POS);
     checkbox_draw(s->flags, SEQ_DRUM_MULTICHANNEL, MULTICHANNEL_CHECKBOX_POS);
+    checkbox_draw(s->flags, SEQ_FULL_VELOCITY, VELOCITY_CHECKBOX_POS);
     number_draw(s->control_code,
                 CC_POS, CC_BITS, CC_COLOR);
     
@@ -380,6 +381,12 @@ u8 notes_setup_handle_press(u8 index, u8 value)
         checkbox_handle_press(
             s->flags, SEQ_DRUM_MULTICHANNEL,
             index, value, MULTICHANNEL_CHECKBOX_POS);
+    }
+    else if (checkbox_handle_press(
+                 s->flags, SEQ_FULL_VELOCITY,
+                 index, value, VELOCITY_CHECKBOX_POS))
+    {
+        
     }
     else if (number_handle_press(
                  &s->control_code, index, value,

@@ -43,7 +43,8 @@ typedef enum
     SEQ_LINKED_TO      = 1 << 8,  // This sequence has other ones linked to it
     SEQ_RECORD_CONTROL = 1 << 9,  // Should record aftertouch values
     SEQ_DID_RECORD_AHEAD = 1 << 10, // Was the last note quantized forwards?
-    SEQ_DRUM_MULTICHANNEL = 1 << 11 // Send each note on its own channel
+    SEQ_DRUM_MULTICHANNEL = 1 << 11, // Send each note on its own channel
+    SEQ_FULL_VELOCITY  = 1 << 12
 } SequenceFlags;
 
 /// The note storage structure for sequences. This used to store velocity and

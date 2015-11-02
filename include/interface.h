@@ -39,6 +39,7 @@
 #define ROW_OFFSET_POS             (2)
 #define ROW_OFFSET_COLOR           (number_colors[2])
 
+#define VELOCITY_CHECKBOX_POS      (41)
 #define DRUM_CHECKBOX_POS          (45)
 #define MULTICHANNEL_CHECKBOX_POS  (47)
 #define CONTROL_CHECKBOX_POS       (81)
