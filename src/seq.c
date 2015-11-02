@@ -268,7 +268,8 @@ void notes_mode_become_active()
 
 void notes_mode_become_inactive()
 {
-    
+    Sequence* s = sequencer_get_active(&lp_sequencer);
+    sequence_kill_voices(s);
 }
 
 void notes_setup_become_active()
@@ -317,6 +318,7 @@ u8 notes_mode_handle_press(u8 index, u8 value)
     if (layout_handle_transpose(l, index, value))
     {
         sequence_kill_voices(s);
+        layout_draw(l);
         keyboard_update_indices(&lp_keyboard);
     }
     else if (sequence_handle_press(s, index, value))

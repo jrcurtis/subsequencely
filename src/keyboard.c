@@ -81,7 +81,11 @@ void keyboard_draw(Keyboard* k)
     {
         s8 note = k->index_to_note[i];
 
-        if (note == -1)
+        if (i >= GRID_SIZE && i < ROW_SIZE)
+        {
+            continue;
+        }
+        else if (note == -1)
         {
             color = off_color;
         }

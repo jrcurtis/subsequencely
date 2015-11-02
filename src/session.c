@@ -11,6 +11,12 @@ void session_draw(Sequencer* sr)
     Sequence* s = 0;
     Sequence* linked_seq = 0;
 
+    u8 copied_sequence = sr->copied_sequence & SQR_COPY_MASK;
+    u8 copy_blink = modifier_held(LP_DUPLICATE)
+        && lp_sequencer.step_counter % 4 == 0;
+
+    u8 index = coord_to_index(0, GRID_SIZE - 1);
+
     for (s8 y = GRID_SIZE - 1; y >= 0; y--)
     {
         row_seq_i = row_to_seq(y);
@@ -29,19 +35,14 @@ void session_draw(Sequencer* sr)
             linked_seq = &s[linked_seq_i];
         }
 
-        u8 copied_sequence = sr->copied_sequence & SQR_COPY_MASK;
-        u8 copy_blink = modifier_held(LP_DUPLICATE)
-            && copied_sequence % GRID_SIZE == row_seq_i
-            && lp_sequencer.step_counter % 4 == 0;
+        u8 step = linked_seq_i * SEQUENCE_LENGTH;
 
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
-            u8 step = x * STEPS_PER_PAD + linked_seq_i * SEQUENCE_LENGTH;
             Note* n = sequence_get_note(s, step);
-            u8 skip = flag_is_set(n->flags, NTE_SKIP);
-            u8 index = coord_to_index(x, y);
 
             if (copy_blink
+                && copied_sequence % GRID_SIZE == row_seq_i
                 && x / (GRID_SIZE / 2) == copied_sequence / GRID_SIZE)
             {
                 plot_pad(index, on_color);
@@ -51,7 +52,7 @@ void session_draw(Sequencer* sr)
             {
                 plot_pad(index, on_color);
             }
-            else if (skip)
+            else if (flag_is_set(n->flags, NTE_SKIP))
             {
                 plot_pad(index, off_color);
             }
@@ -61,7 +62,12 @@ void session_draw(Sequencer* sr)
                 u8 dimness = 5 * (linked_playhead / STEPS_PER_PAD != x);
                 plot_pad_dim(index, sequence_colors[seq_i], dimness);
             }
+
+            step += STEPS_PER_PAD;
+            index++;
         }
+
+        index -= ROW_SIZE + GRID_SIZE;
     }
 }
 
