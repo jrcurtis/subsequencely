@@ -13,6 +13,7 @@
 #include "interface.h"
 #include "keyboard.h"
 #include "layout.h"
+#include "mod_wheel.h"
 #include "number.h"
 #include "scale.h"
 #include "sequence.h"

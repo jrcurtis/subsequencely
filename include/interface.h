@@ -40,8 +40,12 @@
 #define ROW_OFFSET_COLOR           (number_colors[2])
 
 #define VELOCITY_CHECKBOX_POS      (41)
+#define MOD_WHEEL_CHECKBOX_POS     (43)
+#define MOD_CC_CHECKBOX_POS        (53)
 #define DRUM_CHECKBOX_POS          (45)
-#define MULTICHANNEL_CHECKBOX_POS  (47)
+#define MULTICHANNEL_CHECKBOX_POS  (55)
 #define CONTROL_CHECKBOX_POS       (81)
+
+#define MOD_WHEEL_POS              (51)
 
 #endif

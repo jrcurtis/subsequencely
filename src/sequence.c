@@ -298,6 +298,15 @@ void sequence_kill_voices(Sequence* s)
     voices_reset(&lp_voices);
 }
 
+void sequence_send_pitch_bend(Sequence* s)
+{
+    u16 bend = mod_wheel_get_value(lp_mod_wheel);
+    send_midi(PITCHBEND | s->channel,
+              bend & 0x7F,
+              (bend >> 7) & 0x7F);
+}
+
+
 void sequence_transpose(Sequence* s, s8 amt)
 {
     sequence_kill_current_note(s);
@@ -561,11 +570,30 @@ void sequence_off_step(Sequence* s)
 }
 
 /*******************************************************************************
+ * Drawing
+ ******************************************************************************/
+
+void sequence_draw(Sequence* s)
+{
+    if (flag_is_set(s->flags, SEQ_MOD_WHEEL))
+    {
+        mod_wheel_draw(lp_mod_wheel, MOD_WHEEL_POS);
+    }
+}
+
+/*******************************************************************************
  * Button handling
  ******************************************************************************/
 
 u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
 {
+    if (flag_is_set(s->flags, SEQ_MOD_WHEEL)
+        && mod_wheel_handle_press(&lp_mod_wheel, index, value, MOD_WHEEL_POS))
+    {
+        sequence_send_pitch_bend(s);
+        return 1;
+    }
+
     s8 note_number = layout_get_note_number(&s->layout, index);
 
     if (note_number > -1)
@@ -621,6 +649,13 @@ u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
 
 u8 sequence_handle_aftertouch(Sequence* s, u8 index, u8 value)
 {
+    if (flag_is_set(s->flags, SEQ_MOD_WHEEL)
+        && mod_wheel_handle_press(&lp_mod_wheel, index, value, MOD_WHEEL_POS))
+    {
+        sequence_send_pitch_bend(s);
+        return 1;
+    }
+
     s8 note_number = layout_get_note_number(&s->layout, index);
 
     if (note_number > -1)

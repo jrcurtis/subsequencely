@@ -95,6 +95,7 @@ void app_surface_event(u8 type, u8 index, u8 value)
         else if (lp_state == LP_NOTES_MODE)
         {
             notes_mode_handle_press(index, value);
+            notes_mode_draw();
         }
         else if (lp_state == LP_SEQUENCER_MODE)
         {
@@ -172,8 +173,9 @@ void app_aftertouch_event(u8 index, u8 value)
 
     if (lp_state == LP_NOTES_MODE && !setup)
     {
-        sequence_handle_aftertouch(
-            sequencer_get_active(&lp_sequencer), index, value);
+        Sequence* s = sequencer_get_active(&lp_sequencer);
+        sequence_handle_aftertouch(s, index, value);
+        sequence_draw(s);
     }
     else if (lp_state == LP_SEQUENCER_MODE && setup)
     {
@@ -277,6 +279,8 @@ void app_init()
     sequencer_init(&lp_sequencer);
 
     control_bank_init(&lp_user_control_bank);
+
+    lp_mod_wheel = 0;
 
     set_state(LP_NOTES_MODE, 0);
 #else

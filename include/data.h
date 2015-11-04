@@ -5,6 +5,7 @@
 #include "app.h"
 #include "control_bank.h"
 #include "keyboard.h"
+#include "mod_wheel.h"
 #include "scale.h"
 #include "sequence.h"
 #include "sequencer.h"
@@ -66,5 +67,7 @@ extern Slider lp_control_sens_slider;
 extern Slider lp_control_offset_slider;
 
 extern ControlBank lp_user_control_bank;
+
+extern ModWheel lp_mod_wheel;
 
 #endif

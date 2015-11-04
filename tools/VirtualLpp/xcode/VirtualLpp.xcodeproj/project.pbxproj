@@ -17,31 +17,32 @@
 		00B9955A1B128DF400A5C623 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B995581B128DF400A5C623 /* IOKit.framework */; };
 		00B9955B1B128DF400A5C623 /* IOSurface.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B995591B128DF400A5C623 /* IOSurface.framework */; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
-		8C27CEB61BDAF25800F415F5 /* control_bank.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C27CEB51BDAF25800F415F5 /* control_bank.c */; settings = {ASSET_TAGS = (); }; };
-		8C27CEB91BDB555000F415F5 /* seq.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C27CEB81BDB555000F415F5 /* seq.c */; settings = {ASSET_TAGS = (); }; };
-		8C2CC7A41BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C2CC7A21BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp */; settings = {ASSET_TAGS = (); }; };
-		8C42764F1BD2021100422293 /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4276471BD2021100422293 /* imgui_demo.cpp */; settings = {ASSET_TAGS = (); }; };
-		8C4276501BD2021100422293 /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4276481BD2021100422293 /* imgui_draw.cpp */; settings = {ASSET_TAGS = (); }; };
-		8C4276511BD2021100422293 /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C42764A1BD2021100422293 /* imgui.cpp */; settings = {ASSET_TAGS = (); }; };
-		8C4FBD0A1BCE036D0030F8F9 /* RtMidi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD071BCE036D0030F8F9 /* RtMidi.cpp */; settings = {ASSET_TAGS = (); }; };
-		8C4FBD0B1BCE036D0030F8F9 /* VirtualHal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD081BCE036D0030F8F9 /* VirtualHal.cpp */; settings = {ASSET_TAGS = (); }; };
-		8C4FBD0C1BCE036D0030F8F9 /* VirtualLpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD091BCE036D0030F8F9 /* VirtualLpp.cpp */; settings = {ASSET_TAGS = (); }; };
-		8C4FBD221BCE04560030F8F9 /* app.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD1A1BCE04560030F8F9 /* app.c */; settings = {ASSET_TAGS = (); }; };
-		8C4FBD231BCE04560030F8F9 /* colors.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD1B1BCE04560030F8F9 /* colors.c */; settings = {ASSET_TAGS = (); }; };
-		8C4FBD241BCE04560030F8F9 /* keyboard.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD1C1BCE04560030F8F9 /* keyboard.c */; settings = {ASSET_TAGS = (); }; };
-		8C4FBD251BCE04560030F8F9 /* layout.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD1D1BCE04560030F8F9 /* layout.c */; settings = {ASSET_TAGS = (); }; };
-		8C4FBD261BCE04560030F8F9 /* scale.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD1E1BCE04560030F8F9 /* scale.c */; settings = {ASSET_TAGS = (); }; };
-		8C4FBD271BCE04560030F8F9 /* sequencer.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD1F1BCE04560030F8F9 /* sequencer.c */; settings = {ASSET_TAGS = (); }; };
-		8C4FBD281BCE04560030F8F9 /* slider.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD201BCE04560030F8F9 /* slider.c */; settings = {ASSET_TAGS = (); }; };
-		8C4FBD291BCE04560030F8F9 /* util.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD211BCE04560030F8F9 /* util.c */; settings = {ASSET_TAGS = (); }; };
+		8C27CEB61BDAF25800F415F5 /* control_bank.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C27CEB51BDAF25800F415F5 /* control_bank.c */; };
+		8C27CEB91BDB555000F415F5 /* seq.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C27CEB81BDB555000F415F5 /* seq.c */; };
+		8C2CC7A41BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C2CC7A21BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp */; };
+		8C42764F1BD2021100422293 /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4276471BD2021100422293 /* imgui_demo.cpp */; };
+		8C4276501BD2021100422293 /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4276481BD2021100422293 /* imgui_draw.cpp */; };
+		8C4276511BD2021100422293 /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C42764A1BD2021100422293 /* imgui.cpp */; };
+		8C4FBD0A1BCE036D0030F8F9 /* RtMidi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD071BCE036D0030F8F9 /* RtMidi.cpp */; };
+		8C4FBD0B1BCE036D0030F8F9 /* VirtualHal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD081BCE036D0030F8F9 /* VirtualHal.cpp */; };
+		8C4FBD0C1BCE036D0030F8F9 /* VirtualLpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD091BCE036D0030F8F9 /* VirtualLpp.cpp */; };
+		8C4FBD221BCE04560030F8F9 /* app.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD1A1BCE04560030F8F9 /* app.c */; };
+		8C4FBD231BCE04560030F8F9 /* colors.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD1B1BCE04560030F8F9 /* colors.c */; };
+		8C4FBD241BCE04560030F8F9 /* keyboard.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD1C1BCE04560030F8F9 /* keyboard.c */; };
+		8C4FBD251BCE04560030F8F9 /* layout.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD1D1BCE04560030F8F9 /* layout.c */; };
+		8C4FBD261BCE04560030F8F9 /* scale.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD1E1BCE04560030F8F9 /* scale.c */; };
+		8C4FBD271BCE04560030F8F9 /* sequencer.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD1F1BCE04560030F8F9 /* sequencer.c */; };
+		8C4FBD281BCE04560030F8F9 /* slider.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD201BCE04560030F8F9 /* slider.c */; };
+		8C4FBD291BCE04560030F8F9 /* util.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C4FBD211BCE04560030F8F9 /* util.c */; };
 		8C4FBD2B1BCE10650030F8F9 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8C4FBD2A1BCE10640030F8F9 /* CoreMIDI.framework */; };
-		8C51F9B11BD5A3280032CE68 /* grid.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9AE1BD5A3280032CE68 /* grid.c */; settings = {ASSET_TAGS = (); }; };
-		8C51F9B21BD5A3280032CE68 /* sequence.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9AF1BD5A3280032CE68 /* sequence.c */; settings = {ASSET_TAGS = (); }; };
-		8C51F9B31BD5A3280032CE68 /* session.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9B01BD5A3280032CE68 /* session.c */; settings = {ASSET_TAGS = (); }; };
-		8C51F9B81BD6361F0032CE68 /* number.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9B71BD6361F0032CE68 /* number.c */; settings = {ASSET_TAGS = (); }; };
-		8C64BB3F1BCEEBD800E0D655 /* VirtualPad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C64BB3E1BCEEBD800E0D655 /* VirtualPad.cpp */; settings = {ASSET_TAGS = (); }; };
-		8CAC381E1BD2FFE300BBDB05 /* shaders in Resources */ = {isa = PBXBuildFile; fileRef = 8CAC381D1BD2FFE300BBDB05 /* shaders */; settings = {ASSET_TAGS = (); }; };
-		8CC751761BD0F08C005CD976 /* voices.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CC751751BD0F08C005CD976 /* voices.c */; settings = {ASSET_TAGS = (); }; };
+		8C51F9B11BD5A3280032CE68 /* grid.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9AE1BD5A3280032CE68 /* grid.c */; };
+		8C51F9B21BD5A3280032CE68 /* sequence.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9AF1BD5A3280032CE68 /* sequence.c */; };
+		8C51F9B31BD5A3280032CE68 /* session.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9B01BD5A3280032CE68 /* session.c */; };
+		8C51F9B81BD6361F0032CE68 /* number.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C51F9B71BD6361F0032CE68 /* number.c */; };
+		8C64BB3F1BCEEBD800E0D655 /* VirtualPad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C64BB3E1BCEEBD800E0D655 /* VirtualPad.cpp */; };
+		8CAC381E1BD2FFE300BBDB05 /* shaders in Resources */ = {isa = PBXBuildFile; fileRef = 8CAC381D1BD2FFE300BBDB05 /* shaders */; };
+		8CB76CBA1BE959F200EF166E /* mod_wheel.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CB76CB91BE959F200EF166E /* mod_wheel.c */; };
+		8CC751761BD0F08C005CD976 /* voices.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CC751751BD0F08C005CD976 /* voices.c */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		A3896E2F25B9485FBC4A26A3 /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 450E15B07B6049D29E23AF2B /* CinderApp.icns */; };
 		BD92F027A4EE47F886B1F960 /* VirtualLppApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 63433217FDB540E9A4DD1DDC /* VirtualLppApp.cpp */; };
@@ -119,6 +120,8 @@
 		8C64BB3D1BCEEB4300E0D655 /* VirtualPad.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; name = VirtualPad.h; path = ../include/VirtualPad.h; sourceTree = "<group>"; };
 		8C64BB3E1BCEEBD800E0D655 /* VirtualPad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VirtualPad.cpp; path = ../src/VirtualPad.cpp; sourceTree = "<group>"; };
 		8CAC381D1BD2FFE300BBDB05 /* shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shaders; path = ../assets/shaders; sourceTree = "<group>"; };
+		8CB76CB91BE959F200EF166E /* mod_wheel.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = mod_wheel.c; path = ../../../src/mod_wheel.c; sourceTree = "<group>"; };
+		8CB76CBB1BE959FF00EF166E /* mod_wheel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mod_wheel.h; path = ../../../include/mod_wheel.h; sourceTree = "<group>"; };
 		8CC751731BD04B94005CD976 /* Timer.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; name = Timer.h; path = ../include/Timer.h; sourceTree = "<group>"; };
 		8CC751741BD0F062005CD976 /* voices.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = voices.h; path = ../../../include/voices.h; sourceTree = "<group>"; };
 		8CC751751BD0F08C005CD976 /* voices.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = voices.c; path = ../../../src/voices.c; sourceTree = "<group>"; };
@@ -158,6 +161,7 @@
 		080E96DDFE201D6D7F000001 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				8CB76CB91BE959F200EF166E /* mod_wheel.c */,
 				8C27CEB81BDB555000F415F5 /* seq.c */,
 				8C27CEB51BDAF25800F415F5 /* control_bank.c */,
 				8C51F9B71BD6361F0032CE68 /* number.c */,
@@ -234,6 +238,7 @@
 		29B97315FDCFA39411CA2CEA /* Headers */ = {
 			isa = PBXGroup;
 			children = (
+				8CB76CBB1BE959FF00EF166E /* mod_wheel.h */,
 				8C27CEBA1BDB57D400F415F5 /* data.h */,
 				8C27CEB71BDB26E000F415F5 /* interface.h */,
 				8C27CEB41BDAF24900F415F5 /* control_bank.h */,
@@ -384,6 +389,7 @@
 				8CC751761BD0F08C005CD976 /* voices.c in Sources */,
 				8C4FBD251BCE04560030F8F9 /* layout.c in Sources */,
 				8C64BB3F1BCEEBD800E0D655 /* VirtualPad.cpp in Sources */,
+				8CB76CBA1BE959F200EF166E /* mod_wheel.c in Sources */,
 				8C27CEB61BDAF25800F415F5 /* control_bank.c in Sources */,
 				8C4FBD221BCE04560030F8F9 /* app.c in Sources */,
 				8C4FBD241BCE04560030F8F9 /* keyboard.c in Sources */,

@@ -66,11 +66,12 @@ typedef unsigned char  u8;
 // Useful MIDI constants
 // ____________________________________________________________________________
 
-#define	NOTEON				0x90
-#define	NOTEOFF				0x80
-#define	POLYAFTERTOUCH		0xA0
-#define	CC					0xB0
+#define	NOTEON              0x90
+#define	NOTEOFF             0x80
+#define	POLYAFTERTOUCH      0xA0
+#define	CC                  0xB0
 #define	CHANNELAFTERTOUCH   0xD0
+#define PITCHBEND           0xE0
 #define	SONGPOSITIONPOINTER 0xF2
 #define	MIDITIMINGCLOCK     0xF8
 #define	MIDISTART           0xFA

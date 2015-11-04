@@ -86,6 +86,8 @@ void sequencer_set_active(Sequencer* sr, u8 i)
                      s->control_offset);
 
     voices_reset(&lp_voices);
+
+    lp_mod_wheel = 0;
 }
 
 Sequence* sequencer_get_active(Sequencer* sr)

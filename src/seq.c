@@ -36,6 +36,8 @@ Slider lp_control_offset_slider;
 
 ControlBank lp_user_control_bank;
 
+ModWheel lp_mod_wheel;
+
 /*******************************************************************************
  * App functionality
  ******************************************************************************/
@@ -284,7 +286,7 @@ void notes_setup_become_inactive()
 
 void notes_mode_draw()
 {
-
+    sequence_draw(sequencer_get_active(&lp_sequencer));
 }
 
 void notes_setup_draw()
@@ -294,10 +296,14 @@ void notes_setup_draw()
 
     keyboard_draw(&lp_keyboard);
     slider_draw(&lp_row_offset_slider, ROW_OFFSET_POS, ROW_OFFSET_COLOR);
+
     checkbox_draw(s->flags, SEQ_RECORD_CONTROL, CONTROL_CHECKBOX_POS);
     checkbox_draw(l->row_offset, LYT_DRUMS, DRUM_CHECKBOX_POS);
     checkbox_draw(s->flags, SEQ_DRUM_MULTICHANNEL, MULTICHANNEL_CHECKBOX_POS);
     checkbox_draw(s->flags, SEQ_FULL_VELOCITY, VELOCITY_CHECKBOX_POS);
+    checkbox_draw(s->flags, SEQ_MOD_WHEEL, MOD_WHEEL_CHECKBOX_POS);
+    checkbox_draw(s->flags, SEQ_MOD_CC, MOD_CC_CHECKBOX_POS);
+
     number_draw(s->control_code,
                 CC_POS, CC_BITS, CC_COLOR);
     
@@ -385,6 +391,18 @@ u8 notes_setup_handle_press(u8 index, u8 value)
     else if (checkbox_handle_press(
                  s->flags, SEQ_FULL_VELOCITY,
                  index, value, VELOCITY_CHECKBOX_POS))
+    {
+        
+    }
+    else if (checkbox_handle_press(
+                 s->flags, SEQ_MOD_WHEEL,
+                 index, value, MOD_WHEEL_CHECKBOX_POS))
+    {
+        
+    }
+    else if (checkbox_handle_press(
+                 s->flags, SEQ_MOD_CC,
+                 index, value, MOD_CC_CHECKBOX_POS))
     {
         
     }

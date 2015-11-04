@@ -4,6 +4,7 @@
 
 #include "app.h"
 #include "layout.h"
+#include "mod_wheel.h"
 
 #define zoom_to_sequence_x(sr)        (1 << (MAX_ZOOM - (sr)->zoom))
 
@@ -44,7 +45,9 @@ typedef enum
     SEQ_RECORD_CONTROL = 1 << 9,  // Should record aftertouch values
     SEQ_DID_RECORD_AHEAD = 1 << 10, // Was the last note quantized forwards?
     SEQ_DRUM_MULTICHANNEL = 1 << 11, // Send each note on its own channel
-    SEQ_FULL_VELOCITY  = 1 << 12
+    SEQ_FULL_VELOCITY  = 1 << 12, // Always send notes at full velocity
+    SEQ_MOD_WHEEL      = 1 << 13, // Show the mod wheel in notes mode
+    SEQ_MOD_CC         = 1 << 14  // Send CC from mod wheel instead of aftertouch
 } SequenceFlags;
 
 /// The note storage structure for sequences. This used to store velocity and
@@ -160,6 +163,9 @@ void sequence_reverse(Sequence* s);
 
 /// Handles the logic of writing new notes/aftertouch values in the sequence.
 void sequence_handle_record(Sequence* s, u8 press);
+
+/// Draws stuff in notes mode, although not responsible for drawing the layout.
+void sequence_draw(Sequence* s);
 
 /// Handles when notes are played in notes mode.
 u8 sequence_handle_press(Sequence* s, u8 index, u8 value);
