@@ -7,10 +7,11 @@
 
 // Global settings
 u8 lp_midi_port = USBMIDI;
+u8 lp_rcv_clock_port = USBMIDI;
 
 // Program state
 LpState lp_state = LP_NUM_MODES;
-u8 lp_flags = 0x00;
+u16 lp_flags = 0x0000;
 
 u16 lp_tap_tempo_timer = 1000;
 u16 lp_tap_tempo_sum = 0;
@@ -185,9 +186,11 @@ void sequencer_setup_draw()
     slider_draw(&lp_tempo_slider, TEMPO_POS, TEMPO_COLOR);
     slider_draw(&lp_swing_slider, SWING_POS, SWING_COLOR);
     checkbox_draw(lp_flags, LP_TEMPO_BLINK, BLINK_CHECKBOX_POS);
-    checkbox_draw(lp_flags, LP_POSITION_BLINK, BLINK_CHECKBOX_POS + 1);
+    checkbox_draw(lp_flags, LP_POSITION_BLINK, PLAYHEAD_CHECKBOX_POS);
     checkbox_draw(lp_flags, LP_PORT_CHECKBOX, PORT_CHECKBOX_POS);
     checkbox_draw(lp_flags, LP_SEND_CLOCK, CLOCK_CHECKBOX_POS);
+    checkbox_draw(lp_flags, LP_RCV_CLOCK, RCV_CLOCK_CHECKBOX_POS);
+    checkbox_draw(lp_flags, LP_RCV_CLOCK_PORT, RCV_CLOCK_PORT_CHECKBOX_POS);
 }
 
 u8 sequencer_mode_handle_press(u8 index, u8 value)
@@ -226,7 +229,7 @@ u8 sequencer_setup_handle_press(u8 index, u8 value)
     else if (checkbox_handle_press(
                  lp_flags, LP_POSITION_BLINK,
                  index, value,
-                 BLINK_CHECKBOX_POS + 1))
+                 PLAYHEAD_CHECKBOX_POS))
     {
         if (!flag_is_set(lp_flags, LP_POSITION_BLINK))
         {
@@ -251,6 +254,25 @@ u8 sequencer_setup_handle_press(u8 index, u8 value)
                  index, value, CLOCK_CHECKBOX_POS))
     {
         
+    }
+    else if (checkbox_handle_press(
+                 lp_flags, LP_RCV_CLOCK,
+                 index, value, RCV_CLOCK_CHECKBOX_POS))
+    {
+        lp_tap_tempo_counter = 0;
+        lp_tap_tempo_sum = 0;
+        lp_tap_tempo_timer = 0;
+    }
+    else if (checkbox_handle_press(
+                 lp_flags, LP_RCV_CLOCK_PORT,
+                 index, value, RCV_CLOCK_PORT_CHECKBOX_POS))
+    {
+        lp_rcv_clock_port = flag_is_set(lp_flags, LP_RCV_CLOCK_PORT)
+            ? DINMIDI : USBMIDI;
+
+        lp_tap_tempo_counter = 0;
+        lp_tap_tempo_sum = 0;
+        lp_tap_tempo_timer = 0;
     }
     else
     {
@@ -330,7 +352,8 @@ u8 notes_mode_handle_press(u8 index, u8 value)
     }
     else if (sequence_handle_press(s, index, value))
     {
-        if (modifier_held(LP_CLICK)
+        if (!flag_is_set(lp_flags, LP_RCV_CLOCK)
+            && modifier_held(LP_CLICK)
             && value > 0
             && !flag_is_set(s->flags, SEQ_PLAYING))
         {

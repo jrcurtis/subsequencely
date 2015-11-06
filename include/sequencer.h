@@ -95,7 +95,8 @@ void sequencer_blink_clear(Sequencer* sr, u8 blink, u8 position);
 u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value);
 
 /// Ticks the sequence forward 1 millisecond, sending midi clock and stepping
-/// the sequences as necessary.
-void sequencer_tick(Sequencer* sr);
+/// the sequences as necessary. clock_tick indicates that this tick was
+/// initiated by an external clock.
+void sequencer_tick(Sequencer* sr, u8 clock_tick);
 
 #endif

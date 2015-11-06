@@ -84,7 +84,9 @@ void app_surface_event(u8 type, u8 index, u8 value)
         set_state(lp_state, !flag_is_set(lp_flags, LP_IS_SETUP));
     }
     else if (sequencer_handle_play(&lp_sequencer, index, value)) { }
-    else if (tap_tempo_handle_press(index, value)) { }
+    // Don't let tap tempo be used when tempo is controlled by clock.
+    else if (!flag_is_set(lp_flags, LP_RCV_CLOCK)
+             && tap_tempo_handle_press(index, value)) { }
     else if (!flag_is_set(lp_flags, LP_IS_SETUP))
     {
         if (lp_state == LP_SESSION_MODE)
@@ -141,15 +143,38 @@ void app_surface_event(u8 type, u8 index, u8 value)
 
 void app_midi_event(u8 port, u8 status, u8 d1, u8 d2)
 {
-    if (port == USBMIDI)
+#ifndef SEQ_DEBUG
+    if (status == MIDITIMINGCLOCK
+        && flag_is_set(lp_flags, LP_RCV_CLOCK)
+        && port == lp_rcv_clock_port)
     {
-		
-    }
+        sequencer_tick(&lp_sequencer, 1);
 
-    if (port == DINMIDI)
-    {
-		
+        lp_tap_tempo_counter++;
+        if (lp_tap_tempo_counter == TICKS_PER_BEAT)
+        {
+            // Update the tempo if it has changed enough to be significant.
+            // The sequencer ticks immediately upon receiving the midi message
+            // but internal timer still used for swing. step_millis must be
+            // exact multiple of clock_millis so that sequence is stepped on
+            // the exact step that clock is received when swing is not on.
+            // With swing, some steps will fall between midi clock messages.
+            s16 tempo_diff = (s16)lp_tap_tempo_timer - lp_tap_tempo_sum;
+            if (abs(tempo_diff) >= TICKS_PER_BEAT)
+            {
+                sequencer_set_tempo_millis(
+                    &lp_sequencer,
+                    (lp_tap_tempo_timer / TICKS_PER_BEAT) * TICKS_PER_STEP);
+                lp_tap_tempo_sum = lp_tap_tempo_timer;
+            }
+
+            lp_tap_tempo_counter = 0;
+            lp_tap_tempo_timer = 0;
+        }
     }
+#else
+
+#endif
 }
 
 
@@ -217,7 +242,7 @@ void app_cable_event(u8 type, u8 value)
 void app_timer_event()
 {
 #ifndef SEQ_DEBUG
-    sequencer_tick(&lp_sequencer);
+    sequencer_tick(&lp_sequencer, 0);
     lp_tap_tempo_timer++;
 
     if (flag_is_set(lp_flags, LP_SQR_DIRTY))
@@ -231,7 +256,10 @@ void app_timer_event()
 
         if (flag_is_set(lp_flags, LP_IS_SETUP))
         {
-
+            if (lp_state == LP_SEQUENCER_MODE)
+            {
+                sequencer_setup_draw();
+            }
         }
         else if (lp_state == LP_SEQUENCER_MODE)
         {

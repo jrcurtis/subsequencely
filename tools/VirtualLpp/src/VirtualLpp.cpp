@@ -50,6 +50,7 @@ VirtualLpp::VirtualLpp(int width)
     midiIn = make_shared<RtMidiIn>(RtMidi::Api::UNSPECIFIED, "VirtualLpp");
     midiIn->setErrorCallback(handleMidiError);
     midiIn->setCallback(receiveMidiCallback, this);
+    midiIn->ignoreTypes(true, false, true);
     midiIn->openVirtualPort("VirtualLppIn");
     
     midiLightsOut = make_shared<RtMidiOut>(RtMidi::Api::UNSPECIFIED, "VirtualLpp");
@@ -116,7 +117,11 @@ void VirtualLpp::sendSysex(u8 port, const u8* data, u16 length)
 
 void VirtualLpp::receiveMidi(double timestamp, vector<unsigned char>* message, void* userData)
 {
-    app_midi_event(USBSTANDALONE, (*message)[0], (*message)[1], (*message)[2]);
+    app_midi_event(
+        USBMIDI,
+        (*message)[0],
+        message->size() > 1 ? (*message)[1] : 0x00,
+        message->size() > 2 ? (*message)[2] : 0x00);
 }
 
 void VirtualLpp::receiveMidiControl(double timestamp, vector<unsigned char>* message, void* userData)

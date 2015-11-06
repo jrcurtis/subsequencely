@@ -37,7 +37,7 @@ void sequencer_init(Sequencer* sr)
         layout_init(&s->layout);
     }
 
-    for (u16 i = 0; i <= SEQUENCE_LENGTH * GRID_SIZE; i++)
+    for (u16 i = 0; i < SEQUENCE_LENGTH * GRID_SIZE; i++)
     {
         note_init(&lp_note_storage[i]);
     }
@@ -439,17 +439,40 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
  * Time handling
  ******************************************************************************/
 
-void sequencer_tick(Sequencer* sr)
+void sequencer_tick(Sequencer* sr, u8 clock_tick)
 {
-    sr->step_timer++;
-    sr->clock_timer++;
+    // If we just received a clock tick, immediately jump to the next clock
+    // increment.
+    if (clock_tick)
+    {
+        sr->step_timer += sr->clock_millis - sr->clock_timer;
+        sr->clock_timer = sr->clock_millis;
+    }
+    // If we didn't receive a clock tick, but we ARE being clocked externally,
+    // don't go to the next clock tick until we actually receive a clock
+    // message. Just wait.
+    else if (flag_is_set(lp_flags, LP_RCV_CLOCK)
+             && !clock_tick
+             && sr->clock_timer >= sr->clock_millis - 1)
+    {
+        return;
+    }
+    // If we aren't being clocked externally, or we are, but we're in between
+    // clock ticks, just proceed 1 millisecond at a time as normal.
+    else
+    {
+        sr->step_timer++;
+        sr->clock_timer++;
+    }
 
     // If the timer is on a clock interval, and clock is enabled, send clock.
-    if (flag_is_set(lp_flags, LP_SEND_CLOCK)
-        && sr->clock_timer >= sr->clock_millis)
+    if (sr->clock_timer >= sr->clock_millis)
     {
         sr->clock_timer = 0;
-        send_midi(MIDITIMINGCLOCK, 0x00, 0x00);
+        if (flag_is_set(lp_flags, LP_SEND_CLOCK))
+        {
+            send_midi(MIDITIMINGCLOCK, 0x00, 0x00);
+        }
     }
 
     // If the timer hasn't passed the step threshold, return early, but first
@@ -474,6 +497,7 @@ void sequencer_tick(Sequencer* sr)
     // The dirty flag is used to force a redraw in states that are dependent
     // on sequencer state.
     sr->step_timer = 0;
+    sr->clock_timer = 0;
     sr->step_counter++;
     if (sr->step_counter >= GRID_SIZE)
     {
@@ -519,5 +543,4 @@ void sequencer_tick(Sequencer* sr)
               ? sr->swing_millis
               : -sr->swing_millis);
 }
-
 

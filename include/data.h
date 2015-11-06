@@ -30,7 +30,9 @@ typedef enum
     LP_POSITION_BLINK = 1 << 3,
     LP_SQR_DIRTY      = 1 << 4,
     LP_SEND_CLOCK     = 1 << 5,
-    LP_ARMED          = 1 << 6
+    LP_ARMED          = 1 << 6,
+    LP_RCV_CLOCK      = 1 << 7,
+    LP_RCV_CLOCK_PORT = 1 << 8
 } LpFlags;
 
 /*******************************************************************************
@@ -39,10 +41,11 @@ typedef enum
 
 // Global settings
 extern u8 lp_midi_port; // Which port to send on.
+extern u8 lp_rcv_clock_port; // Which port to receive clock from.
 
 // Program state
 extern LpState lp_state; // What mode the program is in
-extern u8 lp_flags; // Global flags
+extern u16 lp_flags; // Global flags
 
 extern u16 lp_tap_tempo_timer; // Timer used to track tap tempo presses
 extern u16 lp_tap_tempo_sum;

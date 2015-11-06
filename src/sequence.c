@@ -531,7 +531,7 @@ void sequence_step(Sequence* s, u8 audible, u8 is_beat)
             s->flags = clear_flag(s->flags, SEQ_BEAT_QUEUED);
             s->flags = set_flag(s->flags, SEQ_PLAYING);
 
-            if (audible)
+            if (audible && !flag_is_set(s->flags, SEQ_DID_RECORD_AHEAD))
             {
                 sequence_play_current_note(s);
             }
