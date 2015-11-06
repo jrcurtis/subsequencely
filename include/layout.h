@@ -23,7 +23,7 @@ typedef enum
 
 /// Cache of which midi note numbers correspond to which pad. Used to avoid
 /// calculating every time a pad is pressed.
-typedef u8 PadNotes[GRID_SIZE][GRID_SIZE];
+typedef s8 PadNotes[GRID_SIZE][GRID_SIZE];
 
 /// Represents a layout of a scale on a grid. Determines which note and octave
 /// to start from, and the distance in scale steps between rows of the grid.

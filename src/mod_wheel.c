@@ -77,23 +77,27 @@ void mod_wheel_draw(ModWheel m, u8 position)
 u16 mod_wheel_get_value(ModWheel m)
 {
     u16 value = MW_DEFAULT;
+    s16 diff = (m & MW_LSB_MASK) << (MW_BYTE_BITS - 2);
+    diff |= 0x1F;
 
     if (flag_is_set(m, MW_LSB_NEG))
     {
-        value -= (m & MW_LSB_MASK) << 5;
+        value -= diff;
     }
     else
     {
-        value += (m & MW_LSB_MASK) << 5;
+        value += diff;
     }
+
+    diff = (m & MW_MSB_MASK) >> MW_BYTE_BITS;
 
     if (flag_is_set(m, MW_MSB_NEG))
     {
-        value -= value * ((m & MW_MSB_MASK) >> 7) / 127;
+        value -= value * diff / 0x7F;
     }
     else
     {
-        value += (MW_MAX - value) * ((m & MW_MSB_MASK) >> 7) / 127;
+        value += (MW_MAX - value) * diff / 0x7F;
     }
 
     return value;

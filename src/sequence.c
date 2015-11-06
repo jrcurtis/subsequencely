@@ -17,13 +17,15 @@ void note_init(Note* n)
 
 void note_play(Note* n, u8 channel, u8 full_velocity)
 {
+    // Set the nte_on flag so that we remember to turn it off. Make sure that
+    // a 0 velocity note on is not sent, as it gets interpreted as a note off.
     if (!flag_is_set(n->flags, NTE_ON))
     {
         n->flags = set_flag(n->flags, NTE_ON);
         send_midi(
             NOTEON | channel,
             n->note_number,
-            full_velocity ? 127 : n->velocity);
+            full_velocity ? 127 : max(1, n->velocity));
     }
 }
 
@@ -31,13 +33,27 @@ void note_control(Note* n, Sequence* s)
 {
     if (n->velocity != -1)
     {
+        s8 value = n->velocity;
+
+        if (value < -s->control_offset)
+        {
+            value = -s->control_offset;
+        }
+        else if (value > 127 - s->control_offset)
+        {
+            value = 127 - s->control_offset;
+        }
+
+        value = cc_div(
+            value,
+            s->control_sgn,
+            s->control_div,
+            s->control_offset);
+
         send_midi(
             CC | sequence_get_channel(s, n->note_number),
             s->control_code,
-            cc_div(n->velocity,
-                   s->control_sgn,
-                   s->control_div,
-                   s->control_offset));
+            value);
     }
 }
 
@@ -176,12 +192,25 @@ void sequence_become_active(Sequence* s)
 {
     s->flags = set_flag(s->flags, SEQ_ACTIVE);
     layout_become_active(&s->layout);
+    sequence_prepare_mod_wheel(s);
 }
 
 void sequence_become_inactive(Sequence* s)
 {
     s->flags = clear_flag(s->flags, SEQ_ACTIVE);
     layout_become_inactive(&s->layout);
+}
+
+void sequence_prepare_mod_wheel(Sequence* s)
+{
+    // When the mod wheel is visible, the notes are flipped negative so they
+    // won't be mistaken for real notes when light_note is called.
+    s8 mul = flag_is_set(s->flags, SEQ_MOD_WHEEL) ? -1 : 1;
+    for (u8 i = 0; i < MW_SIZE; i++)
+    {
+        lp_pad_notes[MOD_WHEEL_Y + i][MOD_WHEEL_X] =
+            mul * abs(lp_pad_notes[MOD_WHEEL_Y + i][MOD_WHEEL_X]);
+    }
 }
 
 void sequence_kill_note(Sequence* s, Note* n)
@@ -306,6 +335,34 @@ void sequence_send_pitch_bend(Sequence* s)
               (bend >> 7) & 0x7F);
 }
 
+void sequence_send_aftertouch(Sequence *s, s8 note_number, s8 value)
+{
+    u8 channel = sequence_get_channel(s, note_number);
+
+    if (note_number >= 0)
+    {
+        send_midi(
+            POLYAFTERTOUCH | channel,
+            note_number, value);
+    }
+
+    if (value < -s->control_offset)
+    {
+        value = -s->control_offset;
+    }
+    else if (value > 127 - s->control_offset)
+    {
+        value = 127 - s->control_offset;
+    }
+
+    value = cc_div(
+        value,
+        s->control_sgn,
+        s->control_div,
+        s->control_offset);
+
+    send_midi(CC | channel, s->control_code, value);
+}
 
 void sequence_transpose(Sequence* s, s8 amt)
 {
@@ -534,9 +591,14 @@ void sequence_step(Sequence* s, u8 audible, u8 is_beat)
 
         // CC is handled separately because it should be sent even if the
         // note is held and no note on is being sent.
+        // If mod_cc is on, then control from the mod wheel takes precedence
+        // over control recorded in the note the same way live notes take
+        // precedence over sequence notes.
         if (audible
             && flag_is_set(s->flags, SEQ_RECORD_CONTROL)
-            && flag_is_set(next_n->flags, NTE_ON))
+            && flag_is_set(next_n->flags, NTE_ON)
+            && !(flag_is_set(s->flags, SEQ_MOD_CC)
+                 && lp_mod_wheel != 0))
         {
             note_control(next_n, s);
         }
@@ -588,9 +650,19 @@ void sequence_draw(Sequence* s)
 u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
 {
     if (flag_is_set(s->flags, SEQ_MOD_WHEEL)
-        && mod_wheel_handle_press(&lp_mod_wheel, index, value, MOD_WHEEL_POS))
+        && mod_wheel_handle_press(
+            &lp_mod_wheel, index, value, MOD_WHEEL_POS))
     {
-        sequence_send_pitch_bend(s);
+        if (flag_is_set(s->flags, SEQ_MOD_CC))
+        {
+            sequence_send_aftertouch(
+                s, -1, mod_to_cc(lp_mod_wheel));
+        }
+        else
+        {
+            sequence_send_pitch_bend(s);
+        }
+
         return 1;
     }
 
@@ -647,40 +719,46 @@ u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
     return 1;
 }
 
-u8 sequence_handle_aftertouch(Sequence* s, u8 index, u8 value)
+u8 sequence_handle_aftertouch(Sequence* s, u8 index, s8 value)
 {
-    if (flag_is_set(s->flags, SEQ_MOD_WHEEL)
-        && mod_wheel_handle_press(&lp_mod_wheel, index, value, MOD_WHEEL_POS))
+    s8 note_number = -1;
+
+    if (flag_is_set(s->flags, SEQ_MOD_WHEEL))
     {
-        sequence_send_pitch_bend(s);
-        return 1;
-    }
+        u8 handled = mod_wheel_handle_press(
+            &lp_mod_wheel, index, value, MOD_WHEEL_POS);
 
-    s8 note_number = layout_get_note_number(&s->layout, index);
-
-    if (note_number > -1)
-    {
-        voices_handle_aftertouch(&lp_voices, note_number, value);
-
-        if (flag_is_set(s->flags, SEQ_RECORD_CONTROL))
+        if (flag_is_set(s->flags, SEQ_MOD_CC))
         {
-            u8 channel = sequence_get_channel(s, note_number);
-            u8 scaled_value = cc_div(
-                value,
-                s->control_sgn,
-                s->control_div,
-                s->control_offset);
-
-            send_midi(
-                POLYAFTERTOUCH | channel,
-                note_number, value);
-
-            send_midi(CC | channel, s->control_code, scaled_value);
+            if (handled)
+            {
+                value = mod_to_cc(lp_mod_wheel);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        else if (handled)
+        {
+            sequence_send_pitch_bend(s);
+            return 1;
+        }
+        else
+        {
+            note_number = layout_get_note_number(&s->layout, index);
         }
     }
     else
     {
-        return 0;
+        note_number = layout_get_note_number(&s->layout, index);
+    }
+
+    voices_handle_aftertouch(&lp_voices, note_number, value);
+
+    if (flag_is_set(s->flags, SEQ_RECORD_CONTROL))
+    {
+        sequence_send_aftertouch(s, note_number, value);
     }
 
     return 1;

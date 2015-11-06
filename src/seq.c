@@ -398,7 +398,7 @@ u8 notes_setup_handle_press(u8 index, u8 value)
                  s->flags, SEQ_MOD_WHEEL,
                  index, value, MOD_WHEEL_CHECKBOX_POS))
     {
-        
+        sequence_prepare_mod_wheel(s);
     }
     else if (checkbox_handle_press(
                  s->flags, SEQ_MOD_CC,

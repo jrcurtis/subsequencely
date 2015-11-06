@@ -47,5 +47,7 @@
 #define CONTROL_CHECKBOX_POS       (81)
 
 #define MOD_WHEEL_POS              (51)
+#define MOD_WHEEL_X                (0)
+#define MOD_WHEEL_Y                (4)
 
 #endif

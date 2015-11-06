@@ -24,6 +24,9 @@
                                            ((gy) + (s)->y)              \
                                            / lp_scale.num_notes         \
                                            ))
+
+#define mod_to_cc(m) ((mod_wheel_get_value((m)) >> (MW_BYTE_BITS - 1)) - 128)
+
 typedef enum
 {
     NTE_ON = 1 << 0, // Set on when a note on is sent, and should always be turned off again!
@@ -105,6 +108,10 @@ void sequence_become_active(Sequence* s);
 /// Handler for when the active sequence changes (but in the other way.)
 void sequence_become_inactive(Sequence* s);
 
+/// Prepares mod wheel by clearing out the notes in the pad_notes buffer at the
+/// location of the mod wheel to avoid them being lit up while playing.
+void sequence_prepare_mod_wheel(Sequence* s);
+
 /// Send a note off/unlight lit pads/whatever else, if there is a note currently
 /// playing.
 void sequence_kill_current_note(Sequence* s);
@@ -171,7 +178,7 @@ void sequence_draw(Sequence* s);
 u8 sequence_handle_press(Sequence* s, u8 index, u8 value);
 
 /// Handles aftertouch in notes mode.
-u8 sequence_handle_aftertouch(Sequence* s, u8 index, u8 value);
+u8 sequence_handle_aftertouch(Sequence* s, u8 index, s8 value);
 
 /// Logic to step the sequence forward, handling note on/off for the appropriate
 /// steps.

@@ -10,7 +10,7 @@
 typedef struct
 {
     s8 note_number;
-    u8 aftertouch;
+    s8 aftertouch;
 } Voice;
 
 /// Voices manages keeping track of which notes are being held down, so that
@@ -19,9 +19,9 @@ typedef struct
 /// currently held.
 typedef struct
 {
-    s8 max_index;
+    s8 num_active;
     u8 velocity;
-    u8 aftertouch;
+    s8 aftertouch;
     Voice voices[GRID_SIZE];
 } Voices;
 
@@ -36,7 +36,7 @@ void voices_remove(Voices* vs, u8 note_number);
 
 /// Sets the aftertouch of an already-held note, and potentially updates the
 /// channel aftertouch value.
-u8 voices_handle_aftertouch(Voices* vs, u8 note_number, u8 aftertouch);
+u8 voices_handle_aftertouch(Voices* vs, s8 note_number, s8 aftertouch);
 
 /// Gets the most recently pressed note number, or -1 if no notes are held.
 s8 voices_get_newest(Voices* vs);
