@@ -45,7 +45,10 @@ void session_draw(Sequencer* sr)
                 && copied_sequence % GRID_SIZE == row_seq_i
                 && x / (GRID_SIZE / 2) == copied_sequence / GRID_SIZE)
             {
-                plot_pad(index, on_color);
+                plot_pad(index,
+                         flag_is_set(sr->copied_sequence, SQR_COPY_SWAP)
+                         ? drum_colors[2]
+                         : on_color);
             }
             else if (modifier_held(LP_CLICK)
                 && x == linked_seq->clock_div - 1)
