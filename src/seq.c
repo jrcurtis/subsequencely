@@ -343,7 +343,10 @@ u8 notes_mode_handle_press(u8 index, u8 value)
             u8 tempo_set = tap_tempo_handle_press(LP_CLICK, 0x7F);
             if (tempo_set && beat == GRID_SIZE - 1)
             {
-                sequence_queue_at(s, SEQUENCE_LENGTH - STEPS_PER_PAD + 1, 0);
+                // Set did_record_ahead so that the just-entered note is not
+                // played twice.
+                s->flags = set_flag(s->flags, SEQ_DID_RECORD_AHEAD);
+                sequence_queue_at(s, SEQUENCE_LENGTH - STEPS_PER_PAD, 0);
             }
         }
     }
