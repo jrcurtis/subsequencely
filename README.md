@@ -4,12 +4,19 @@ Welcome to the Github page about Subsequencely, an 8 track performance sequencer
 for the Launchpad Pro built on the Launchpad Pro open firmware, which you can
 read about [here](https://github.com/dvhdr/launchpad-pro).
 
-If you'd like to see what the program can do, check out the user manual in the
-resources directory, or check out [this video](https://youtu.be/_G3-Z9f-Xr0), or
-just upload resources/subsequencely.syx to your Launchpad Pro and try it out.
+If you'd like to see what the program can do, check out the documentation in the
+[wiki](https://github.com/jrcurtis/subsequencely/wiki), or check out
+[this video](https://youtu.be/_G3-Z9f-Xr0), or just upload
+resources/subsequencely.syx to your Launchpad Pro and try it out.
 
 ![Customizable faders](http://i.imgur.com/JIs1cOp.jpg) ![Drum pad layout](http://i.imgur.com/VusxP8s.jpg)
 ![Session mode](http://i.imgur.com/FSUyeEX.jpg) ![Step sequencer](http://i.imgur.com/qDviuut.jpg)
+
+# Videos
+
+* [Feature overview](https://youtu.be/_G3-Z9f-Xr0)
+* [Jam with Volcas](https://www.youtube.com/watch?v=Dphug-y7MXQ)
+* [Dev update](https://www.youtube.com/watch?v=skxym4i0RlE)
 
 # Be aware
 

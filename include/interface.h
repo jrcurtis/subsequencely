@@ -31,8 +31,8 @@
 #define TEMPO_MUL                  (3)
 #define BLINK_CHECKBOX_POS         (51)
 #define PLAYHEAD_CHECKBOX_POS      (61)
-#define CLOCK_CHECKBOX_POS         (11)
-#define PORT_CHECKBOX_POS          (13)
+#define PORT_CHECKBOX_POS          (11)
+#define CLOCK_CHECKBOX_POS         (13)
 #define RCV_CLOCK_CHECKBOX_POS     (15)
 #define RCV_CLOCK_PORT_CHECKBOX_POS (25)
 
