@@ -237,7 +237,8 @@ void sequencer_play_draw(Sequencer* sr)
         else
         {
             color = (flag_is_set(s->flags, SEQ_PLAYING)
-                     || seq_get_queued(s->flags) != 0)
+                     || (seq_get_queued(s->flags) != 0
+                         && lp_sequencer.step_counter % STEPS_PER_PAD == 0))
                 ? sequence_colors[i]
                 : off_color;
         }
@@ -424,7 +425,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
     // sequence.
     else
     {
-        if (si < sr->master_sequence)
+        if (sr->master_sequence == 0xFF)
         {
             sr->master_sequence = si;
         }

@@ -254,6 +254,8 @@ void app_timer_event()
             flag_is_set(lp_flags, LP_TEMPO_BLINK),
             flag_is_set(lp_flags, LP_POSITION_BLINK));
 
+        sequencer_play_draw(&lp_sequencer);
+
         if (flag_is_set(lp_flags, LP_IS_SETUP))
         {
             if (lp_state == LP_SEQUENCER_MODE)
