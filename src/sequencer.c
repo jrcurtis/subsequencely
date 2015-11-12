@@ -237,7 +237,7 @@ void sequencer_play_draw(Sequencer* sr)
         else
         {
             color = (flag_is_set(s->flags, SEQ_PLAYING)
-                     || flag_is_set(s->flags, SEQ_QUEUED))
+                     || seq_get_queued(s->flags) != 0)
                 ? sequence_colors[i]
                 : off_color;
         }
@@ -408,7 +408,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
     }
     // If the sequence has been queued, or started playing stop it.
     // If we just stopped the master sequence, find a new one.
-    else if (flag_is_set(s->flags, SEQ_QUEUED)
+    else if (seq_get_queued(s->flags) != 0
              || flag_is_set(s->flags, SEQ_PLAYING))
     {
         sequence_stop(s);

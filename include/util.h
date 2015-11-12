@@ -46,6 +46,10 @@
 #define toggle_flag(v, f)    ((v) ^ (f))
 #define assign_flag(v, f, b) ((b) ? set_flag((v), (f)) : clear_flag((v), (f)))
 
+// Helpers for dealing with values that live in a subset of an int.
+#define get_masked(v, m, o)    (((v) & (m)) >> (o))
+#define set_masked(v, m, o, x) (((v) & ~(m)) | ((x) << (o)))
+
 // x, y coordinate with origin on lower left pad, to HAL index.
 // only covers the pads, not the buttons around them.
 #define coord_to_index(x, y)    (FIRST_PAD + ((ROW_SIZE) * (y)) + (x))

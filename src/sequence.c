@@ -428,8 +428,8 @@ void sequence_queue_at(Sequence* s, u8 step, u8 is_beat)
 
     sequence_kill_current_note(s);
     s->flags = clear_flag(s->flags, SEQ_PLAYING);
-    s->flags = assign_flag(s->flags, SEQ_BEAT_QUEUED, is_beat);
-    s->flags = set_flag(s->flags, SEQ_QUEUED);
+    u8 queued = is_beat ? SEQ_QUEUED_BEAT : SEQ_QUEUED_STEP;
+    s->flags = seq_set_queued(s->flags, queued);
     s->playhead = step;
 }
 
@@ -458,8 +458,7 @@ void sequence_queue_or_jump(Sequence* s, u8 step, u8 is_beat)
 
 void sequence_stop(Sequence* s)
 {
-    s->flags = clear_flag(s->flags, SEQ_QUEUED);
-    s->flags = clear_flag(s->flags, SEQ_BEAT_QUEUED);
+    s->flags = seq_set_queued(s->flags, 0);
     s->flags = clear_flag(s->flags, SEQ_PLAYING);
     sequence_kill_current_note(s);
     s->playhead = 0;
@@ -514,21 +513,21 @@ void sequence_handle_record(Sequence* s, u8 press)
 
 void sequence_step(Sequence* s, u8 audible, u8 is_beat)
 {
+    u8 queued = seq_get_queued(s->flags);
+
     // If this sequence is not playing and not about to start playing
     // skip it.
-    if (!flag_is_set(s->flags, SEQ_QUEUED)
-        && !flag_is_set(s->flags, SEQ_PLAYING))
+    if (!queued && !flag_is_set(s->flags, SEQ_PLAYING))
     {
         return;
     }
     // If it's about to start playing, switch it to playing.
     // If not on beat, only play if sequence isn't beat queued.
-    else if (flag_is_set(s->flags, SEQ_QUEUED))
+    else if (queued)
     {
-        if (is_beat || !flag_is_set(s->flags, SEQ_BEAT_QUEUED))
+        if (is_beat || queued != SEQ_QUEUED_BEAT)
         {
-            s->flags = clear_flag(s->flags, SEQ_QUEUED);
-            s->flags = clear_flag(s->flags, SEQ_BEAT_QUEUED);
+            s->flags = seq_set_queued(s->flags, 0);
             s->flags = set_flag(s->flags, SEQ_PLAYING);
 
             if (audible && !flag_is_set(s->flags, SEQ_DID_RECORD_AHEAD))

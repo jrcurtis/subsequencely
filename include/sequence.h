@@ -34,14 +34,23 @@ typedef enum
     NTE_SKIP = 1 << 2 // Skip the playhead right over this note, taking 0 time.
 } NoteFlags;
 
+#define SEQ_QUEUED_OFFSET (4)
+#define SEQ_QUEUED_STEP   (1)
+#define SEQ_QUEUED_BEAT   (2)
+#define SEQ_QUEUED_START  (3)
+
+#define seq_get_queued(f)    (get_masked(                                      \
+                                  (f), SEQ_QUEUED_MASK, SEQ_QUEUED_OFFSET))
+#define seq_set_queued(f, v) (set_masked(                                      \
+                                  (f), SEQ_QUEUED_MASK, SEQ_QUEUED_OFFSET, (v)))
+
 typedef enum
 {
     SEQ_PLAYING        = 1 << 0,  // Sequence is currently playing
     SEQ_MUTED          = 1 << 1,  // Sequence should not make sound
     SEQ_SOLOED         = 1 << 2,  // Other sequences should not make sound
     SEQ_REVERSED       = 1 << 3,  // Playhead advances backwards
-    SEQ_QUEUED         = 1 << 4,  // Sequence should start playing next step
-    SEQ_BEAT_QUEUED    = 1 << 5,  // Only start if on beat (combined with ^^)
+    SEQ_QUEUED_MASK    = 0x3 << 4,// Queueing mode the sequence is in
     SEQ_ACTIVE         = 1 << 6,  // The currently selected sequence
     SEQ_LINKED         = 1 << 7,  // Playhead is controlled by other sequence
     SEQ_LINKED_TO      = 1 << 8,  // This sequence has other ones linked to it
