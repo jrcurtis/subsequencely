@@ -429,7 +429,10 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
             sr->master_sequence = si;
         }
 
-        sequence_queue(s, modifier_held(LP_SHIFT));
+        u8 queue_mode = sr->master_sequence == si ? SEQ_QUEUED_STEP
+            : modifier_held(LP_SHIFT) ? SEQ_QUEUED_START
+            : SEQ_QUEUED_BEAT;
+        sequence_queue(s, queue_mode);
     }
 
     return 1;
@@ -509,7 +512,7 @@ void sequencer_tick(Sequencer* sr, u8 clock_tick)
     // be told if they're on the start of a beat or not.
     u8 master_offset = (sr->master_sequence < GRID_SIZE)
         ? sr->master_sequence : 0;
-    u8 on_beat = 1;
+    u8 queue_flags = 1 << SEQ_QUEUED_STEP;
 
     for (u8 i = 0; i < GRID_SIZE; i++)
     {
@@ -522,18 +525,25 @@ void sequencer_tick(Sequencer* sr, u8 clock_tick)
 
         if (s->clock_div == 1 || sr->step_counter % s->clock_div == 0)
         {
-            sequence_step(s, audible, on_beat);
+            sequence_step(s, audible, queue_flags);
 
-            if (flag_is_set(s->flags, SEQ_PLAYING)
-                && seq_i < sr->master_sequence)
+            if (flag_is_set(s->flags, SEQ_PLAYING))
             {
-                sr->master_sequence = seq_i;
-            }
-        }
+                if (seq_i < sr->master_sequence)
+                {
+                    sr->master_sequence = seq_i;
+                }
 
-        if (i == 0)
-        {
-            on_beat = s->playhead % STEPS_PER_PAD == 0;
+                if (i == 0 && s->playhead % STEPS_PER_PAD == 0)
+                {
+                    queue_flags |= 1 << SEQ_QUEUED_BEAT;
+                }
+
+                if (s->playhead == 0)
+                {
+                    queue_flags |= 1 << SEQ_QUEUED_START;
+                }
+            }
         }
     }
     

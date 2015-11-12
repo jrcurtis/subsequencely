@@ -413,12 +413,12 @@ Sequence* sequence_get_supersequence(Sequence* s)
     return s;
 }
 
-void sequence_queue(Sequence* s, u8 is_beat)
+void sequence_queue(Sequence* s, u8 queue_mode)
 {
-    sequence_queue_at(s, s->playhead, is_beat);
+    sequence_queue_at(s, s->playhead, queue_mode);
 }
 
-void sequence_queue_at(Sequence* s, u8 step, u8 is_beat)
+void sequence_queue_at(Sequence* s, u8 step, u8 queue_mode)
 {
     while (flag_is_set(s->flags, SEQ_LINKED))
     {
@@ -428,8 +428,7 @@ void sequence_queue_at(Sequence* s, u8 step, u8 is_beat)
 
     sequence_kill_current_note(s);
     s->flags = clear_flag(s->flags, SEQ_PLAYING);
-    u8 queued = is_beat ? SEQ_QUEUED_BEAT : SEQ_QUEUED_STEP;
-    s->flags = seq_set_queued(s->flags, queued);
+    s->flags = seq_set_queued(s->flags, queue_mode);
     s->playhead = step;
 }
 
@@ -444,7 +443,7 @@ void sequence_jump_to(Sequence* s, u8 step)
     s->jump_step = step;
 }
 
-void sequence_queue_or_jump(Sequence* s, u8 step, u8 is_beat)
+void sequence_queue_or_jump(Sequence* s, u8 step, u8 queue_mode)
 {
     if (flag_is_set(s->flags, SEQ_PLAYING))
     {
@@ -452,7 +451,7 @@ void sequence_queue_or_jump(Sequence* s, u8 step, u8 is_beat)
     }
     else
     {
-        sequence_queue_at(s, step, is_beat);
+        sequence_queue_at(s, step, queue_mode);
     }
 }
 
@@ -511,7 +510,7 @@ void sequence_handle_record(Sequence* s, u8 press)
     }
 }
 
-void sequence_step(Sequence* s, u8 audible, u8 is_beat)
+void sequence_step(Sequence* s, u8 audible, u8 queue_flags)
 {
     u8 queued = seq_get_queued(s->flags);
 
@@ -521,11 +520,11 @@ void sequence_step(Sequence* s, u8 audible, u8 is_beat)
     {
         return;
     }
-    // If it's about to start playing, switch it to playing.
-    // If not on beat, only play if sequence isn't beat queued.
+    // If it's about to start playing, check if it should become unqueued based
+    // on the queue mode, and switch it to playing.
     else if (queued)
     {
-        if (is_beat || queued != SEQ_QUEUED_BEAT)
+        if (flag_is_set(queue_flags, 1 << queued))
         {
             s->flags = seq_set_queued(s->flags, 0);
             s->flags = set_flag(s->flags, SEQ_PLAYING);

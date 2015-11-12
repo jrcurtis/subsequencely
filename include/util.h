@@ -48,7 +48,7 @@
 
 // Helpers for dealing with values that live in a subset of an int.
 #define get_masked(v, m, o)    (((v) & (m)) >> (o))
-#define set_masked(v, m, o, x) (((v) & ~(m)) | ((x) << (o)))
+#define set_masked(v, m, o, x) (((v) & ~(m)) | (((x) << (o)) & (m)))
 
 // x, y coordinate with origin on lower left pad, to HAL index.
 // only covers the pads, not the buttons around them.

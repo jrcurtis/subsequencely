@@ -154,7 +154,8 @@ u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
     }
     else
     {
-        sequence_queue_or_jump(s, x * STEPS_PER_PAD, shift);
+        sequence_queue_or_jump(
+            s, x * STEPS_PER_PAD, shift ? SEQ_QUEUED_BEAT : SEQ_QUEUED_STEP);
     }
 
     return 1;

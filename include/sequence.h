@@ -34,16 +34,6 @@ typedef enum
     NTE_SKIP = 1 << 2 // Skip the playhead right over this note, taking 0 time.
 } NoteFlags;
 
-#define SEQ_QUEUED_OFFSET (4)
-#define SEQ_QUEUED_STEP   (1)
-#define SEQ_QUEUED_BEAT   (2)
-#define SEQ_QUEUED_START  (3)
-
-#define seq_get_queued(f)    (get_masked(                                      \
-                                  (f), SEQ_QUEUED_MASK, SEQ_QUEUED_OFFSET))
-#define seq_set_queued(f, v) (set_masked(                                      \
-                                  (f), SEQ_QUEUED_MASK, SEQ_QUEUED_OFFSET, (v)))
-
 typedef enum
 {
     SEQ_PLAYING        = 1 << 0,  // Sequence is currently playing
@@ -61,6 +51,16 @@ typedef enum
     SEQ_MOD_WHEEL      = 1 << 13, // Show the mod wheel in notes mode
     SEQ_MOD_CC         = 1 << 14  // Send CC from mod wheel instead of aftertouch
 } SequenceFlags;
+
+#define SEQ_QUEUED_OFFSET (4)
+#define SEQ_QUEUED_STEP   (1)
+#define SEQ_QUEUED_BEAT   (2)
+#define SEQ_QUEUED_START  (3)
+
+#define seq_get_queued(f)    (get_masked(                                      \
+                                  (f), SEQ_QUEUED_MASK, SEQ_QUEUED_OFFSET))
+#define seq_set_queued(f, x) (set_masked(                                      \
+                                  (f), SEQ_QUEUED_MASK, SEQ_QUEUED_OFFSET, (x)))
 
 /// The note storage structure for sequences. This used to store velocity and
 /// aftertouch separately, but had to be changed to save ram, so now velocity
@@ -154,13 +154,13 @@ void sequence_toggle_linked(Sequence* s);
 /// flag set (might return the passed in sequence).
 Sequence* sequence_get_supersequence(Sequence* s);
 
-/// Set the sequence to start playing on the next step.
-/// is_beat indicates whether it should wait for the next beat of the master
-/// sequence, rather than playing immediately on the next step.
-void sequence_queue(Sequence* s, u8 is_beat);
+/// Set the sequence to start playing at a time based on queue_mode.
+/// queue_mode is one of SEQ_QUEUED_STEP/BEAT/START and determines when the
+/// sequence should become unqueued.
+void sequence_queue(Sequence* s, u8 queue_mode);
 
 /// Sets the sequence to start playing from the given step.
-void sequence_queue_at(Sequence* s, u8 step, u8 is_beat);
+void sequence_queue_at(Sequence* s, u8 step, u8 queue_mode);
 
 /// Immediately jumps the playhead to the given step, assuming the sequence is
 /// already playing.
@@ -168,8 +168,8 @@ void sequence_jump_to(Sequence* s, u8 step);
 
 /// Chooses between sequence_queue_at or sequence_jump_to based on whether
 /// the sequence is already playing.
-/// is_beat does not affect sequence_jump_to.
-void sequence_queue_or_jump(Sequence* s, u8 step, u8 is_beat);
+/// queue_mode does not affect sequence_jump_to.
+void sequence_queue_or_jump(Sequence* s, u8 step, u8 queue_mode);
 
 /// Immediately stops the sequence and kills any playing note.
 void sequence_stop(Sequence* s);
@@ -191,7 +191,7 @@ u8 sequence_handle_aftertouch(Sequence* s, u8 index, s8 value);
 
 /// Logic to step the sequence forward, handling note on/off for the appropriate
 /// steps.
-void sequence_step(Sequence* s, u8 audible, u8 is_beat);
+void sequence_step(Sequence* s, u8 audible, u8 queue_flags);
 
 /// Called in between calls to sequence_step. If there is currently a note
 /// playing, and the upcoming note in the sequence is NOT a slide note, the

@@ -369,7 +369,8 @@ u8 notes_mode_handle_press(u8 index, u8 value)
                 // Set did_record_ahead so that the just-entered note is not
                 // played twice.
                 s->flags = set_flag(s->flags, SEQ_DID_RECORD_AHEAD);
-                sequence_queue_at(s, SEQUENCE_LENGTH - STEPS_PER_PAD, 0);
+                sequence_queue_at(
+                    s, SEQUENCE_LENGTH - STEPS_PER_PAD, SEQ_QUEUED_STEP);
             }
         }
     }
