@@ -5,6 +5,7 @@
 #include "app.h"
 #include "buttons.h"
 #include "colors.h"
+#include "keyboard.h"
 #include "scale.h"
 #include "voices.h"
 #include "util.h"

@@ -11,6 +11,8 @@
 #define FIRST_KEYBOARD_PAD (FIRST_PAD)
 #define LAST_KEYBOARD_PAD  (FIRST_KEYBOARD_PAD + NUM_KEYBOARD_PADS - 1)
 
+extern const u8 diatonic_notes[NUM_NOTES];
+
 /// Represents an onscreen keyboard that can be transposed up or down, and have
 /// keys toggled on or off. Used to select which notes to enable in a scale.
 typedef struct

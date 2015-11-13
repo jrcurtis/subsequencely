@@ -182,7 +182,28 @@ void layout_light_drums(Layout* l, u8 note_number, u8 on)
 void layout_light_scale(Layout* l, u8 note_number, u8 on)
 {
     u8 index = FIRST_PAD;
-    u8 root = layout_is_root_note(l, note_number);
+    const u8* color = off_color;
+
+    if (on)
+    {
+        color = on_color;
+    }
+    else if (layout_is_root_note(l, note_number))
+    {
+        color = root_note_color;
+    }
+    else if (note_number % NUM_NOTES == 0)
+    {
+        color = c_note_color;
+    }
+    else if (diatonic_notes[note_number % NUM_NOTES])
+    {
+        color = white_note_color;
+    }
+    else
+    {
+        color = black_note_color;
+    }
 
     for (u8 y = 0; y < GRID_SIZE; y++)
     {
@@ -204,10 +225,7 @@ void layout_light_scale(Layout* l, u8 note_number, u8 on)
                 continue;
             }
 
-            plot_pad(coord_to_index(x, y),
-                     on ? on_color
-                     : root ? root_note_color
-                     : off_color);
+            plot_pad(coord_to_index(x, y), color);
 
             index++;
         }
@@ -277,10 +295,23 @@ void layout_draw_scale(Layout* l)
         for (u8 x = 0; x < GRID_SIZE; x++)
         {
             const u8* color = off_color;
+            s8 note_number = lp_pad_notes[y][x];
 
-            if (layout_is_root_note(l, lp_pad_notes[y][x]))
+            if (layout_is_root_note(l, note_number))
             {
                 color = root_note_color;
+            }
+            else if (note_number % NUM_NOTES == 0)
+            {
+                color = c_note_color;
+            }
+            else if (diatonic_notes[note_number % NUM_NOTES])
+            {
+                color = white_note_color;
+            }
+            else
+            {
+                color = black_note_color;
             }
 
             plot_pad(index, color);

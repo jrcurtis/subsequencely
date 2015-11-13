@@ -3,6 +3,9 @@
 #define COLORS_H
 
 extern const u8 root_note_color[3];
+extern const u8 white_note_color[3];
+extern const u8 black_note_color[3];
+extern const u8 c_note_color[3];
 extern const u8 no_note_color[3];
 extern const u8 white_key_color[3];
 extern const u8 black_key_color[3];
