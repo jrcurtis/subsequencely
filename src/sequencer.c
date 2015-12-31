@@ -512,7 +512,7 @@ void sequencer_tick(Sequencer* sr, u8 clock_tick)
     //Blink the 'Click' button to provide visual feedback of the
     //current tempo
     plot_pad(LP_CLICK,
-                     sr->step_counter % 2 == 0
+                     sr->step_counter % STEPS_PER_PAD == 0
                      ? on_color
                      : off_color);
 
