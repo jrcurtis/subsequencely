@@ -509,6 +509,13 @@ void sequencer_tick(Sequencer* sr, u8 clock_tick)
     }
     lp_flags = set_flag(lp_flags, LP_SQR_DIRTY);
 
+    //Blink the 'Click' button to provide visual feedback of the
+    //current tempo
+    plot_pad(LP_CLICK,
+                     sr->step_counter % 2 == 0
+                     ? on_color
+                     : off_color);
+
     // Tick the master sequence first so that all subsequent sequences can
     // be told if they're on the start of a beat or not.
     u8 master_offset = (sr->master_sequence < GRID_SIZE)
