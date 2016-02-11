@@ -1,26 +1,26 @@
 
 #include "slider.h"
 
-void slider_init(Slider* s, u8 resolution, s8 offset, s8 value)
+void slider_init(Slider* s, uint8_t resolution, int8_t offset, int8_t value)
 {
     s->resolution = resolution;
     s->offset = offset;
     s->value = value - offset;
 }
 
-void slider_set_value(Slider* s, s8 value)
+void slider_set_value(Slider* s, int8_t value)
 {
     s->value = value - s->offset;
 }
 
-s8 slider_get_value(Slider* s)
+int8_t slider_get_value(Slider* s)
 {
     return s->value + s->offset;
 }
 
-u8 slider_handle_press(Slider* s, u8 index, u8 value, u8 pos)
+uint8_t slider_handle_press(Slider* s, uint8_t index, uint8_t value, uint8_t pos)
 {
-    u8 x, y;
+    uint8_t x, y;
     if (value == 0 || !index_to_pad(index, &x, &y) || y != pos)
     {
         return 0;
@@ -48,17 +48,17 @@ u8 slider_handle_press(Slider* s, u8 index, u8 value, u8 pos)
     return 1;
 }
 
-void slider_draw(Slider* s, u8 pos, const u8* color)
+void slider_draw(Slider* s, uint8_t pos, const uint8_t* color)
 {
-    u8 x = 0;
+    uint8_t x = 0;
 
     // For positive offset (unipolar) sliders, all the pads before the value
     // are filled, but for negative offsets, only the pads between the one
     // that 0 is in and the one the value lies in are filled.
-    u8 range_start = 0;
-    u8 range_end = 0;
-    u8 zero_point = max(0, -s->offset / s->resolution);
-    u8 value_point = s->value / s->resolution;
+    uint8_t range_start = 0;
+    uint8_t range_end = 0;
+    uint8_t zero_point = max(0, -s->offset / s->resolution);
+    uint8_t value_point = s->value / s->resolution;
 
     if (s->offset >= 0)
     {
@@ -75,24 +75,24 @@ void slider_draw(Slider* s, u8 pos, const u8* color)
         range_end = value_point;
     }
 
-    s8 prev_value = -1;
+    int8_t prev_value = -1;
 
     for (x = 0; x < GRID_SIZE; x++)
     {
-        const u8* pad_color = off_color;
+        const uint8_t* pad_color = off_color;
         if (x >= range_start
             && x <= range_end)
         {
             pad_color = color;
         }
 
-        u8 dimness = 0;
+        uint8_t dimness = 0;
         if (x == value_point)
         {
             // Figure out how much of the resolution of this pad is filled.
             // Reverse the direction for negative values just like in
             // handle_press.
-            u8 pad_value = s->value - prev_value;
+            uint8_t pad_value = s->value - prev_value;
             if (s->value + s->offset <= 0)
             {
                 pad_value = s->resolution - pad_value + 1;

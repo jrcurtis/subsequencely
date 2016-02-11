@@ -8,6 +8,7 @@
 #include <cinder/app/App.h>
 #include <cinder/Clipboard.h>
 #include <cinder/Display.h>
+#include <cinder/gl/gl.h>
 #include "imgui_impl_cinder_gl3.h"
 
 // Data

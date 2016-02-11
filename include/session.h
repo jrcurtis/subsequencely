@@ -9,6 +9,6 @@ void session_draw(Sequencer* sr);
 
 /// Handles presses on the pads and the modifiers on the left side of the pads
 /// in session mode.
-u8 session_handle_press(Sequencer* sr, u8 index, u8 value);
+uint8_t session_handle_press(Sequencer* sr, uint8_t index, uint8_t value);
 
 #endif

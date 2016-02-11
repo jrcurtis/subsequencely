@@ -8,12 +8,12 @@
 void grid_draw(Sequencer* sr);
 
 /// Handles moving around using the arrow buttons in sequencer mode.
-u8 grid_handle_translate(Sequencer* sr, u8 index, u8 value);
+uint8_t grid_handle_translate(Sequencer* sr, uint8_t index, uint8_t value);
 
 /// Zooms in and out.
-u8 grid_handle_zoom(Sequencer* sr, u8 index, u8 value);
+uint8_t grid_handle_zoom(Sequencer* sr, uint8_t index, uint8_t value);
 
 /// Handles all the presses.
-u8 grid_handle_press(Sequencer* sr, u8 index, u8 value);
+uint8_t grid_handle_press(Sequencer* sr, uint8_t index, uint8_t value);
 
 #endif

@@ -5,19 +5,19 @@
 
 void session_draw(Sequencer* sr)
 {
-    u8 seq_i = 0;
-    u8 linked_seq_i = 0;
-    u8 row_seq_i = 0;
+    uint8_t seq_i = 0;
+    uint8_t linked_seq_i = 0;
+    uint8_t row_seq_i = 0;
     Sequence* s = 0;
     Sequence* linked_seq = 0;
 
-    u8 copied_sequence = sr->copied_sequence & SQR_COPY_MASK;
-    u8 copy_blink = modifier_held(LP_DUPLICATE)
+    uint8_t copied_sequence = sr->copied_sequence & SQR_COPY_MASK;
+    uint8_t copy_blink = modifier_held(LP_DUPLICATE)
         && lp_sequencer.step_counter % 4 == 0;
 
-    u8 index = coord_to_index(0, GRID_SIZE - 1);
+    uint8_t index = coord_to_index(0, GRID_SIZE - 1);
 
-    for (s8 y = GRID_SIZE - 1; y >= 0; y--)
+    for (int8_t y = GRID_SIZE - 1; y >= 0; y--)
     {
         row_seq_i = row_to_seq(y);
 
@@ -35,9 +35,9 @@ void session_draw(Sequencer* sr)
             linked_seq = &s[linked_seq_i];
         }
 
-        u8 step = linked_seq_i * SEQUENCE_LENGTH;
+        uint8_t step = linked_seq_i * SEQUENCE_LENGTH;
 
-        for (u8 x = 0; x < GRID_SIZE; x++)
+        for (uint8_t x = 0; x < GRID_SIZE; x++)
         {
             Note* n = sequence_get_note(s, step);
 
@@ -61,8 +61,8 @@ void session_draw(Sequencer* sr)
             }
             else
             {
-                u8 linked_playhead = s->playhead - linked_seq_i * SEQUENCE_LENGTH;
-                u8 dimness = 5 * (linked_playhead / STEPS_PER_PAD != x);
+                uint8_t linked_playhead = s->playhead - linked_seq_i * SEQUENCE_LENGTH;
+                uint8_t dimness = 5 * (linked_playhead / STEPS_PER_PAD != x);
                 plot_pad_dim(index, sequence_colors[seq_i], dimness);
             }
 
@@ -75,7 +75,7 @@ void session_draw(Sequencer* sr)
 }
 
 
-u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
+uint8_t session_handle_press(Sequencer* sr, uint8_t index, uint8_t value)
 {
     // When duplicate is pressed or released, reset the clipboard.
     if (index == LP_DUPLICATE)
@@ -84,16 +84,16 @@ u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
         return 1;
     }
 
-    u8 x, y;
+    uint8_t x, y;
     if (value == 0 || !index_to_pad(index, &x, &y))
     {
         return 0;
     }
 
-    u8 seq_i = row_to_seq(y);
+    uint8_t seq_i = row_to_seq(y);
     Sequence* s = &sr->sequences[seq_i];
-    u8 shift = modifier_held(LP_SHIFT);
-    u8 step = x * STEPS_PER_PAD;
+    uint8_t shift = modifier_held(LP_SHIFT);
+    uint8_t step = x * STEPS_PER_PAD;
 
     if (modifier_held(LP_CLICK))
     {
@@ -105,7 +105,7 @@ u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
     }
     else if (modifier_held(LP_DELETE))
     {
-        for (u8 i = 0; i < STEPS_PER_PAD; i++)
+        for (uint8_t i = 0; i < STEPS_PER_PAD; i++)
         {
             sequence_clear_note(s, step + i);
         }
@@ -113,8 +113,8 @@ u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
     else if (modifier_held(LP_QUANTISE))
     {
         Note* n = sequence_get_note(s, step);
-        u8 skip = !flag_is_set(n->flags, NTE_SKIP);
-        for (u8 i = 0; i < STEPS_PER_PAD; i++)
+        uint8_t skip = !flag_is_set(n->flags, NTE_SKIP);
+        for (uint8_t i = 0; i < STEPS_PER_PAD; i++)
         {
             sequence_set_skip(s, step + i, skip);
         }
@@ -124,7 +124,7 @@ u8 session_handle_press(Sequencer* sr, u8 index, u8 value)
         // If it's on the left half of the pads, pull from live sequence data,
         // but if it's on the right, pull from the cold storage, aka the
         // sequences stored GRID_SIZE offset from the normal ones.
-        u8 offset = x / (GRID_SIZE / 2) * GRID_SIZE;
+        uint8_t offset = x / (GRID_SIZE / 2) * GRID_SIZE;
         sequencer_copy_or_paste(sr, seq_i + offset);
     }
     else if (modifier_held(LP_DOUBLE))

@@ -9,7 +9,7 @@ void control_bank_init(ControlBank* cb)
     cb->checkboxes = 0x00;
     cb->bipolar_checkboxes = 0x00;
 
-    for (u8 i = 0; i < GRID_SIZE; i++)
+    for (uint8_t i = 0; i < GRID_SIZE; i++)
     {
         slider_init(&cb->sliders[i],
                     128 / GRID_SIZE, -1,
@@ -23,12 +23,12 @@ void control_bank_init(ControlBank* cb)
 
 void control_bank_draw(ControlBank* cb)
 {
-    for (u8 y = 0; y < GRID_SIZE; y++)
+    for (uint8_t y = 0; y < GRID_SIZE; y++)
     {
         if (flag_is_set(cb->flags, CBK_SHOW_CHECKBOXES)
             && y == CHECKBOX_ROW)
         {
-            for (u8 x = 0; x < GRID_SIZE; x++)
+            for (uint8_t x = 0; x < GRID_SIZE; x++)
             {
                 checkbox_draw(
                     cb->checkboxes,
@@ -51,7 +51,7 @@ void control_bank_setup_draw(ControlBank* cb)
 
     if (flag_is_set(cb->flags, CBK_SETUP_SHIFTED))
     {
-        for (u8 i = 0; i < GRID_SIZE; i++)
+        for (uint8_t i = 0; i < GRID_SIZE; i++)
         {
             number_draw(cb->control_numbers[i],
                         coord_to_index(CC_X, i), CC_BITS,
@@ -60,9 +60,9 @@ void control_bank_setup_draw(ControlBank* cb)
     }
     else
     {
-        u8 index = FIRST_PAD;
+        uint8_t index = FIRST_PAD;
 
-        for (u8 i = 0; i < GRID_SIZE; i++)
+        for (uint8_t i = 0; i < GRID_SIZE; i++)
         {
             checkbox_draw(cb->bipolar_checkboxes,
                           1 << i,
@@ -77,9 +77,9 @@ void control_bank_setup_draw(ControlBank* cb)
     }
 }
 
-void control_bank_draw_slider(ControlBank* cb, u8 index)
+void control_bank_draw_slider(ControlBank* cb, uint8_t index)
 {
-    u8 x, y;
+    uint8_t x, y;
     if ((flag_is_set(cb->flags, CBK_SHOW_CHECKBOXES)
          && index >= CHECKBOX_ROW_INDEX)
         || !index_to_pad(index, &x, &y))
@@ -90,10 +90,10 @@ void control_bank_draw_slider(ControlBank* cb, u8 index)
     slider_draw(&cb->sliders[y], y, sequence_colors[row_to_seq(y)]);
 }
 
-u8 control_bank_handle_press(
-    ControlBank* cb, u8 index, u8 value, u8 aftertouch)
+uint8_t control_bank_handle_press(
+    ControlBank* cb, uint8_t index, uint8_t value, uint8_t aftertouch)
 {
-    u8 x, y;
+    uint8_t x, y;
     if (value == 0 || !index_to_pad(index, &x, &y))
     {
         return 0;
@@ -130,7 +130,7 @@ u8 control_bank_handle_press(
     return 1;
 }
 
-u8 control_bank_setup_handle_press(ControlBank* cb, u8 index, u8 value)
+uint8_t control_bank_setup_handle_press(ControlBank* cb, uint8_t index, uint8_t value)
 {
     if (index == LP_SHIFT)
     {
@@ -147,7 +147,7 @@ u8 control_bank_setup_handle_press(ControlBank* cb, u8 index, u8 value)
         return 1;
     }
 
-    u8 x, y;
+    uint8_t x, y;
     if (!index_to_pad(index, &x, &y))
     {
         return 0;

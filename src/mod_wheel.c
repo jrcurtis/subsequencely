@@ -1,16 +1,16 @@
 
 #include "mod_wheel.h"
 
-int mod_wheel_handle_press(ModWheel* m, u8 index, u8 value, u8 position)
+int16_t mod_wheel_handle_press(ModWheel* m, uint8_t index, uint8_t value, uint8_t position)
 {
-    u8 pad = (index - position) / ROW_SIZE;
+    uint8_t pad = (index - position) / ROW_SIZE;
 
     if (pad >= MW_SIZE || (index - position) % ROW_SIZE != 0)
     {
         return 0;
     }
 
-    u8 neg = 0;
+    uint8_t neg = 0;
 
     switch (pad)
     {
@@ -34,7 +34,7 @@ int mod_wheel_handle_press(ModWheel* m, u8 index, u8 value, u8 position)
     return 1;
 }
 
-void mod_wheel_draw(ModWheel m, u8 position)
+void mod_wheel_draw(ModWheel m, uint8_t position)
 {
     if (m == 0)
     {
@@ -45,10 +45,10 @@ void mod_wheel_draw(ModWheel m, u8 position)
     }
     else
     {
-        for (u8 i = 0; i < 2; i++)
+        for (uint8_t i = 0; i < 2; i++)
         {
-            u8 neg, neg_pad, pos_pad, value;
-            const u8* color;
+            uint8_t neg, neg_pad, pos_pad, value;
+            const uint8_t* color;
 
             if (i)
             {
@@ -67,17 +67,17 @@ void mod_wheel_draw(ModWheel m, u8 position)
                 color = drum_colors[2];
             }
 
-            u8 dimness = value == 0 ? 3 : 4 - (value >> 5);
+            uint8_t dimness = value == 0 ? 3 : 4 - (value >> 5);
             plot_pad_dim(neg_pad, color, neg ? dimness : 3);
             plot_pad_dim(pos_pad, color, neg ? 3 : dimness);
         }
     }
 }
 
-u16 mod_wheel_get_value(ModWheel m)
+uint16_t mod_wheel_get_value(ModWheel m)
 {
-    u16 value = MW_DEFAULT;
-    s16 diff = (m & MW_LSB_MASK) << (MW_BYTE_BITS - 2);
+    uint16_t value = MW_DEFAULT;
+    int16_t diff = (m & MW_LSB_MASK) << (MW_BYTE_BITS - 2);
     diff |= 0x1F;
 
     if (flag_is_set(m, MW_LSB_NEG))

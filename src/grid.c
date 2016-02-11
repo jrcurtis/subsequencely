@@ -6,26 +6,26 @@
 void grid_draw(Sequencer* sr)
 {
     Sequence* s = sequencer_get_active(sr);
-    u8 scale_deg = s->y % lp_scale.num_notes;
-    u8 octave = s->y / lp_scale.num_notes;
-    u8 index = FIRST_PAD;
-    u8 zoom = zoom_to_sequence_x(s);
+    uint8_t scale_deg = s->y % lp_scale.num_notes;
+    uint8_t octave = s->y / lp_scale.num_notes;
+    uint8_t index = FIRST_PAD;
+    uint8_t zoom = zoom_to_sequence_x(s);
 
-    for (u8 y = 0; y < GRID_SIZE; y++)
+    for (uint8_t y = 0; y < GRID_SIZE; y++)
     {
-        u8 note_number = lp_scale.offsets[scale_deg]
+        uint8_t note_number = lp_scale.offsets[scale_deg]
             + s->layout.root_note
             + NUM_NOTES * octave;
 
-        for (u8 x = 0; x < GRID_SIZE; x++)
+        for (uint8_t x = 0; x < GRID_SIZE; x++)
         {
-            u8 seq_x = grid_to_sequence_x(s, x);
+            uint8_t seq_x = grid_to_sequence_x(s, x);
             Note* n = sequence_get_note(s, seq_x);
             
             if (n->note_number == note_number)
             {
-                const u8* color = number_colors[seq_x & 3];
-                u8 dimness = min(100, 127 - n->velocity) / 25;
+                const uint8_t* color = number_colors[seq_x & 3];
+                uint8_t dimness = min(100, 127 - n->velocity) / 25;
                 plot_pad_dim(index, color, dimness);
             }
             else if (s->playhead / zoom == x + s->x)
@@ -55,7 +55,7 @@ void grid_draw(Sequencer* sr)
     }
 }
 
-u8 grid_handle_translate(Sequencer* sr, u8 index, u8 value)
+uint8_t grid_handle_translate(Sequencer* sr, uint8_t index, uint8_t value)
 {
     if (modifier_held(LP_SHIFT) || value == 0)
     {
@@ -100,7 +100,7 @@ u8 grid_handle_translate(Sequencer* sr, u8 index, u8 value)
     return 1;
 }
 
-u8 grid_handle_zoom(Sequencer* sr, u8 index, u8 value)
+uint8_t grid_handle_zoom(Sequencer* sr, uint8_t index, uint8_t value)
 {
     if (!modifier_held(LP_SHIFT) || value == 0)
     {
@@ -133,10 +133,10 @@ u8 grid_handle_zoom(Sequencer* sr, u8 index, u8 value)
     return 1;
 }
 
-u8 grid_handle_press(Sequencer* sr, u8 index, u8 value)
+uint8_t grid_handle_press(Sequencer* sr, uint8_t index, uint8_t value)
 {
-    u8 x = 0;
-    u8 y = 0;
+    uint8_t x = 0;
+    uint8_t y = 0;
 
     if (grid_handle_zoom(sr, index, value)) { }
     else if (grid_handle_translate(sr, index, value)) { }
@@ -151,10 +151,10 @@ u8 grid_handle_press(Sequencer* sr, u8 index, u8 value)
     else if (index_to_pad(index, &x, &y))
     {
         Sequence* s = sequencer_get_active(sr);
-        u8 seq_x = grid_to_sequence_x(s, x);
+        uint8_t seq_x = grid_to_sequence_x(s, x);
         Note* n = sequence_get_note(s, seq_x);
 
-        u8 note_number = grid_to_sequence_y(s, y);
+        uint8_t note_number = grid_to_sequence_y(s, y);
 
         if (s->playhead == seq_x)
         {

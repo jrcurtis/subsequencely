@@ -40,16 +40,16 @@ typedef enum
  ******************************************************************************/
 
 // Global settings
-extern u8 lp_midi_port; // Which port to send on.
-extern u8 lp_rcv_clock_port; // Which port to receive clock from.
+extern uint8_t lp_midi_port; // Which port to send on.
+extern uint8_t lp_rcv_clock_port; // Which port to receive clock from.
 
 // Program state
 extern LpState lp_state; // What mode the program is in
-extern u16 lp_flags; // Global flags
+extern uint16_t lp_flags; // Global flags
 
-extern u16 lp_tap_tempo_timer; // Timer used to track tap tempo presses
-extern u16 lp_tap_tempo_sum;
-extern u8 lp_tap_tempo_counter;
+extern uint16_t lp_tap_tempo_timer; // Timer used to track tap tempo presses
+extern uint16_t lp_tap_tempo_sum;
+extern uint8_t lp_tap_tempo_counter;
 
 // Data
 extern Scale lp_scale;

@@ -56,7 +56,7 @@
 
 // Tries to convert the given index to coordinates and writes to the x and y
 // parameters, or returns 0 if the index does not correspond to a pad.
-u8 index_to_pad(u8 i, u8* x, u8* y);
+uint8_t index_to_pad(uint8_t i, uint8_t* x, uint8_t* y);
 
 // Row indices get bigger going up, but tracks are layed out with 0 at the top,
 // so flip it around.
@@ -93,9 +93,9 @@ u8 index_to_pad(u8 i, u8* x, u8* y);
 #define send_midi(s, d1, d2)    (hal_send_midi(lp_midi_port, (s), (d1), (d2)))
 
 // Handles tracking which modifier buttons are currently held.
-extern u32 lp_modifiers;
+extern uint32_t lp_modifiers;
 #define modifier_held(m)        (flag_is_set(lp_modifiers, m##_FLAG))
-void modifier_index_assign(u8 index, u8 value);
+void modifier_index_assign(uint8_t index, uint8_t value);
 
 // Shortcuts for clearing all the leds at once.
 void clear_leds();

@@ -1,17 +1,17 @@
 
 #include "number.h"
 
-void number_draw(Number n, u8 pos, u8 bits, const u8* color)
+void number_draw(Number n, uint8_t pos, uint8_t bits, const uint8_t* color)
 {
-    for (s8 i = bits - 1; i >= 0; i--)
+    for (int8_t i = bits - 1; i >= 0; i--)
     {
-        u8 dimness = 5 * ((n & (1 << i)) == 0);
+        uint8_t dimness = 5 * ((n & (1 << i)) == 0);
         plot_pad_dim(pos, color, dimness);
         pos++;
     }
 }
 
-u8 number_handle_press(Number* n, u8 index, u8 value, u8 pos, u8 bits)
+uint8_t number_handle_press(Number* n, uint8_t index, uint8_t value, uint8_t pos, uint8_t bits)
 {
     if (value > 0 && index >= pos && index < pos + bits)
     {

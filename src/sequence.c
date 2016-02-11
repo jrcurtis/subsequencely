@@ -15,7 +15,7 @@ void note_init(Note* n)
     n->flags = 0x00;
 }
 
-void note_play(Note* n, u8 channel, u8 full_velocity)
+void note_play(Note* n, uint8_t channel, uint8_t full_velocity)
 {
     // Set the nte_on flag so that we remember to turn it off. Make sure that
     // a 0 velocity note on is not sent, as it gets interpreted as a note off.
@@ -33,7 +33,7 @@ void note_control(Note* n, Sequence* s)
 {
     if (n->velocity != -1)
     {
-        s8 value = n->velocity;
+        int8_t value = n->velocity;
 
         if (value < -s->control_offset)
         {
@@ -57,7 +57,7 @@ void note_control(Note* n, Sequence* s)
     }
 }
 
-void note_kill(Note* n, u8 channel)
+void note_kill(Note* n, uint8_t channel)
 {
     if (flag_is_set(n->flags, NTE_ON))
     {
@@ -72,7 +72,7 @@ void note_kill(Note* n, u8 channel)
  * Sequence functions
  ******************************************************************************/
 
-void sequence_init(Sequence* s, u8 channel, Note* notes)
+void sequence_init(Sequence* s, uint8_t channel, Note* notes)
 {
     s->channel = channel;
 
@@ -94,12 +94,12 @@ void sequence_init(Sequence* s, u8 channel, Note* notes)
     sequence_clear_notes(s);
 }
 
-Note* sequence_get_note(Sequence* s, u8 playhead)
+Note* sequence_get_note(Sequence* s, uint8_t playhead)
 {
     return &s->notes[playhead];
 }
 
-u8 sequence_get_channel(Sequence* s, u8 note_number)
+uint8_t sequence_get_channel(Sequence* s, uint8_t note_number)
 {
     if (flag_is_set(s->flags, SEQ_DRUM_MULTICHANNEL))
     {
@@ -111,9 +111,9 @@ u8 sequence_get_channel(Sequence* s, u8 note_number)
     }
 }
 
-u8 sequence_get_last_linked(Sequence* s)
+uint8_t sequence_get_last_linked(Sequence* s)
 {
-    u8 linked_sequence = 1;
+    uint8_t linked_sequence = 1;
 
     while (flag_is_set(s[linked_sequence].flags, SEQ_LINKED_TO))
     {
@@ -123,26 +123,26 @@ u8 sequence_get_last_linked(Sequence* s)
     return linked_sequence;
 }
 
-u8 sequence_get_next_playhead(Sequence* s)
+uint8_t sequence_get_next_playhead(Sequence* s)
 {
     if (s->jump_step >= 0)
     {
         return s->jump_step;
     }
 
-    s8 direction = flag_is_set(s->flags, SEQ_REVERSED) ? -1 : 1;
-    u8 next_playhead = s->playhead;
-    u8 is_linked_to = flag_is_set(s->flags, SEQ_LINKED_TO);
+    int8_t direction = flag_is_set(s->flags, SEQ_REVERSED) ? -1 : 1;
+    uint8_t next_playhead = s->playhead;
+    uint8_t is_linked_to = flag_is_set(s->flags, SEQ_LINKED_TO);
 
-    u8 last_seq_i = sequence_get_last_linked(s);
+    uint8_t last_seq_i = sequence_get_last_linked(s);
 
     // Check at most the number of notes in all the sequences linked to this
     // one, and if none of them are valid, just return the same playhead we're
     // already on.
-    for (u8 i = 0; i < (last_seq_i + 1) * SEQUENCE_LENGTH; i++)
+    for (uint8_t i = 0; i < (last_seq_i + 1) * SEQUENCE_LENGTH; i++)
     {
-        u8 linked_seq_i = next_playhead / SEQUENCE_LENGTH;
-        u8 linked_playhead = next_playhead % SEQUENCE_LENGTH;
+        uint8_t linked_seq_i = next_playhead / SEQUENCE_LENGTH;
+        uint8_t linked_playhead = next_playhead % SEQUENCE_LENGTH;
         Sequence* linked_seq = &s[linked_seq_i];
 
         // If we're at the beginning, wrap around
@@ -205,8 +205,8 @@ void sequence_prepare_mod_wheel(Sequence* s)
 {
     // When the mod wheel is visible, the notes are flipped negative so they
     // won't be mistaken for real notes when light_note is called.
-    s8 mul = flag_is_set(s->flags, SEQ_MOD_WHEEL) ? -1 : 1;
-    for (u8 i = 0; i < MW_SIZE; i++)
+    int8_t mul = flag_is_set(s->flags, SEQ_MOD_WHEEL) ? -1 : 1;
+    for (uint8_t i = 0; i < MW_SIZE; i++)
     {
         lp_pad_notes[MOD_WHEEL_Y + i][MOD_WHEEL_X] =
             mul * abs(lp_pad_notes[MOD_WHEEL_Y + i][MOD_WHEEL_X]);
@@ -282,7 +282,7 @@ void sequence_play_current_note(Sequence* s)
     sequence_play_note(s, sequence_get_note(s, s->playhead));
 }
 
-void sequence_clear_note(Sequence* s, u8 step)
+void sequence_clear_note(Sequence* s, uint8_t step)
 {
     Note* n = sequence_get_note(s, step);
     sequence_kill_note(s, n);
@@ -292,10 +292,10 @@ void sequence_clear_note(Sequence* s, u8 step)
 void sequence_clear_notes(Sequence* s)
 {
     Sequence* linked_seq = s;
-    u8 i = 0;
+    uint8_t i = 0;
     while (1)
     {
-        u8 seq_end = i + SEQUENCE_LENGTH;
+        uint8_t seq_end = i + SEQUENCE_LENGTH;
         for (; i < seq_end; i++)
         {
             // clear_note must be called on original s so that noteoff is sent
@@ -316,10 +316,10 @@ void sequence_clear_notes(Sequence* s)
 
 void sequence_kill_voices(Sequence* s)
 {
-    for (u8 i = 0; i < voices_get_num_active(&lp_voices); i++)
+    for (uint8_t i = 0; i < voices_get_num_active(&lp_voices); i++)
     {
-        u8 note_number = lp_voices.voices[i].note_number;
-        u8 channel = sequence_get_channel(s, note_number);
+        uint8_t note_number = lp_voices.voices[i].note_number;
+        uint8_t channel = sequence_get_channel(s, note_number);
 
         send_midi(NOTEOFF | channel, note_number, lp_voices.velocity);
     }
@@ -329,15 +329,15 @@ void sequence_kill_voices(Sequence* s)
 
 void sequence_send_pitch_bend(Sequence* s)
 {
-    u16 bend = mod_wheel_get_value(lp_mod_wheel);
+    uint16_t bend = mod_wheel_get_value(lp_mod_wheel);
     send_midi(PITCHBEND | s->channel,
               bend & 0x7F,
               (bend >> 7) & 0x7F);
 }
 
-void sequence_send_aftertouch(Sequence *s, s8 note_number, s8 value)
+void sequence_send_aftertouch(Sequence *s, int8_t note_number, int8_t value)
 {
-    u8 channel = sequence_get_channel(s, note_number);
+    uint8_t channel = sequence_get_channel(s, note_number);
 
     if (note_number >= 0)
     {
@@ -364,13 +364,13 @@ void sequence_send_aftertouch(Sequence *s, s8 note_number, s8 value)
     send_midi(CC | channel, s->control_code, value);
 }
 
-void sequence_transpose(Sequence* s, s8 amt)
+void sequence_transpose(Sequence* s, int8_t amt)
 {
     sequence_kill_current_note(s);
 
     while (1)
     {
-        for (u8 i = 0; i < SEQUENCE_LENGTH; i++)
+        for (uint8_t i = 0; i < SEQUENCE_LENGTH; i++)
         {
             s->notes[i].note_number += amt;
         }
@@ -386,7 +386,7 @@ void sequence_transpose(Sequence* s, s8 amt)
     }
 }
 
-void sequence_set_skip(Sequence* s, u8 step, u8 skip)
+void sequence_set_skip(Sequence* s, uint8_t step, uint8_t skip)
 {
     Note* n = sequence_get_note(s, step);
     n->flags = assign_flag(n->flags, NTE_SKIP, skip);
@@ -413,12 +413,12 @@ Sequence* sequence_get_supersequence(Sequence* s)
     return s;
 }
 
-void sequence_queue(Sequence* s, u8 queue_mode)
+void sequence_queue(Sequence* s, uint8_t queue_mode)
 {
     sequence_queue_at(s, s->playhead, queue_mode);
 }
 
-void sequence_queue_at(Sequence* s, u8 step, u8 queue_mode)
+void sequence_queue_at(Sequence* s, uint8_t step, uint8_t queue_mode)
 {
     while (flag_is_set(s->flags, SEQ_LINKED))
     {
@@ -432,7 +432,7 @@ void sequence_queue_at(Sequence* s, u8 step, u8 queue_mode)
     s->playhead = step;
 }
 
-void sequence_jump_to(Sequence* s, u8 step)
+void sequence_jump_to(Sequence* s, uint8_t step)
 {
     while (flag_is_set(s->flags, SEQ_LINKED))
     {
@@ -443,7 +443,7 @@ void sequence_jump_to(Sequence* s, u8 step)
     s->jump_step = step;
 }
 
-void sequence_queue_or_jump(Sequence* s, u8 step, u8 queue_mode)
+void sequence_queue_or_jump(Sequence* s, uint8_t step, uint8_t queue_mode)
 {
     if (flag_is_set(s->flags, SEQ_PLAYING))
     {
@@ -469,7 +469,7 @@ void sequence_reverse(Sequence* s)
     s->flags = toggle_flag(s->flags, SEQ_REVERSED);
 }
 
-void sequence_handle_record(Sequence* s, u8 press)
+void sequence_handle_record(Sequence* s, uint8_t press)
 {
     if (!flag_is_set(lp_flags, LP_ARMED)
         || !flag_is_set(s->flags, SEQ_ACTIVE)
@@ -478,13 +478,13 @@ void sequence_handle_record(Sequence* s, u8 press)
         return;
     }
 
-    u16 s_step_millis = s->clock_div * lp_sequencer.swung_step_millis;
-    u8 quantize_ahead = lp_sequencer.step_timer > (s_step_millis / 4);
+    uint16_t s_step_millis = s->clock_div * lp_sequencer.swung_step_millis;
+    uint8_t quantize_ahead = lp_sequencer.step_timer > (s_step_millis / 4);
     Note* current_n = sequence_get_note(s, s->playhead);
     Note* record_n = quantize_ahead
         ? sequence_get_note(s, sequence_get_next_playhead(s))
         : current_n;
-    s8 played_note = voices_get_newest(&lp_voices);
+    int8_t played_note = voices_get_newest(&lp_voices);
 
     if (played_note > -1)
     {
@@ -492,7 +492,7 @@ void sequence_handle_record(Sequence* s, u8 press)
         {
             sequence_kill_note(s, current_n);
 
-            u8 slide = voices_get_num_active(&lp_voices) > 1;
+            uint8_t slide = voices_get_num_active(&lp_voices) > 1;
             record_n->flags = assign_flag(record_n->flags, NTE_SLIDE, slide);
 
             s->flags = assign_flag(
@@ -510,9 +510,9 @@ void sequence_handle_record(Sequence* s, u8 press)
     }
 }
 
-void sequence_step(Sequence* s, u8 audible, u8 queue_flags)
+void sequence_step(Sequence* s, uint8_t audible, uint8_t queue_flags)
 {
-    u8 queued = seq_get_queued(s->flags);
+    uint8_t queued = seq_get_queued(s->flags);
 
     // If this sequence is not playing and not about to start playing
     // skip it.
@@ -539,7 +539,7 @@ void sequence_step(Sequence* s, u8 audible, u8 queue_flags)
     // before killing the current one.
     else
     {
-        u8 next_playhead = sequence_get_next_playhead(s);
+        uint8_t next_playhead = sequence_get_next_playhead(s);
         s->jump_step = -1;
 
         Note* n = sequence_get_note(s, s->playhead);
@@ -617,7 +617,7 @@ void sequence_off_step(Sequence* s)
 {
     if (flag_is_set(s->flags, SEQ_PLAYING))
     {
-        u8 next_playhead = sequence_get_next_playhead(s);
+        uint8_t next_playhead = sequence_get_next_playhead(s);
         Note* n = sequence_get_note(s, s->playhead);
         Note* next_n = sequence_get_note(s, next_playhead);
 
@@ -645,7 +645,7 @@ void sequence_draw(Sequence* s)
  * Button handling
  ******************************************************************************/
 
-u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
+uint8_t sequence_handle_press(Sequence* s, uint8_t index, uint8_t value)
 {
     if (flag_is_set(s->flags, SEQ_MOD_WHEEL)
         && mod_wheel_handle_press(
@@ -664,12 +664,12 @@ u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
         return 1;
     }
 
-    s8 note_number = layout_get_note_number(&s->layout, index);
+    int8_t note_number = layout_get_note_number(&s->layout, index);
 
     if (note_number > -1)
     {
-        u8 channel = sequence_get_channel(s, note_number);
-        u8 midi_message;
+        uint8_t channel = sequence_get_channel(s, note_number);
+        uint8_t midi_message;
 
         if (value > 0)
         {
@@ -717,13 +717,13 @@ u8 sequence_handle_press(Sequence* s, u8 index, u8 value)
     return 1;
 }
 
-u8 sequence_handle_aftertouch(Sequence* s, u8 index, s8 value)
+uint8_t sequence_handle_aftertouch(Sequence* s, uint8_t index, int8_t value)
 {
-    s8 note_number = -1;
+    int8_t note_number = -1;
 
     if (flag_is_set(s->flags, SEQ_MOD_WHEEL))
     {
-        u8 handled = mod_wheel_handle_press(
+        uint8_t handled = mod_wheel_handle_press(
             &lp_mod_wheel, index, value, MOD_WHEEL_POS);
 
         if (flag_is_set(s->flags, SEQ_MOD_CC))

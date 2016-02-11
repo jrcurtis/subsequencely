@@ -8,7 +8,7 @@
 
 /// A checkbox is a single bit in a bitfield that can be drawn as a red or green
 /// pad, and pressed on to flip the bit.
-typedef u8 Checkbox;
+typedef uint8_t Checkbox;
 
 #define CHECKBOX_ON_COLOR         (number_colors[2])
 #define CHECKBOX_OFF_COLOR        (number_colors[0])

@@ -68,7 +68,7 @@ buttons, but can be harmessly sent in hal_set_led.
  * @param green - green colour value, in [0, MAXLED]
  * @param blue - blue colour value, in [0, MAXLED]
  */
-void hal_plot_led(u8 type, u8 index, u8 red, u8 green, u8 blue);
+void hal_plot_led(uint8_t type, uint8_t index, uint8_t red, uint8_t green, uint8_t blue);
 
 /**
  * Send a MIDI message to either USB port or to the DIN output.
@@ -80,7 +80,7 @@ void hal_plot_led(u8 type, u8 index, u8 red, u8 green, u8 blue);
  *
  * There is little error checking in this code - if you send invalid MIDI, the results are undefined!
  */
-void hal_send_midi(u8 port, u8 status, u8 data1, u8 data2);
+void hal_send_midi(uint8_t port, uint8_t status, uint8_t data1, uint8_t data2);
 
 /**
  * Send system exclusive to USB or DIN.  Messages must be correctly formatted
@@ -90,7 +90,7 @@ void hal_send_midi(u8 port, u8 status, u8 data1, u8 data2);
  * @param data - pointer to array containing sysex data. Can be on the stack.
  * @param length - must not exceed 320 bytes, behaviour undefined if it does.
  */
-void hal_send_sysex(u8 port, const u8* data, u16 length);
+void hal_send_sysex(uint8_t port, const uint8_t* data, uint16_t length);
 
 // ____________________________________________________________________________
 //
@@ -118,7 +118,7 @@ void app_timer_event();
  * @param data1 - first MIDI data byte
  * @param data2 - second MIDI data byte
  */
-void app_midi_event(u8 port, u8 status, u8 d1, u8 d2);
+void app_midi_event(uint8_t port, uint8_t status, uint8_t d1, uint8_t d2);
 
 /**
  * As above, but for system exclusive messages.  Low level hardware buffering sets
@@ -128,7 +128,7 @@ void app_midi_event(u8 port, u8 status, u8 d1, u8 d2);
  * @param data - pointer to array containing sysex data.  Only valid in the scope of this callback.
  * @param length - the amount of data received.
  */
-void app_sysex_event(u8 port, u8 * data, u16 count);
+void app_sysex_event(uint8_t port, uint8_t * data, uint16_t count);
 
 /**
  * Called when a MIDI DIN breakout cable is connected or disconnected.  Note that
@@ -137,7 +137,7 @@ void app_sysex_event(u8 port, u8 * data, u16 count);
  * @param type - which cable was connected/disconnected - MIDI_IN_CABLE or MIDI_OUT_CABLE.
  * @param value - 0 = disconnected, nonzero = connected.
  */
-void app_cable_event(u8 type, u8 value);
+void app_cable_event(uint8_t type, uint8_t value);
 
 /**
  * Called when the user presses or releases any button or pad on the control surface.
@@ -146,7 +146,7 @@ void app_cable_event(u8 type, u8 value);
  * @param index - The index of the button, as detailed at the start of this file.
  * @param value - 0 for release, nonzero for press.
  */
-void app_surface_event(u8 type, u8 index, u8 value);
+void app_surface_event(uint8_t type, uint8_t index, uint8_t value);
 
 /**
  * Called when the low level pad scanning reports an aftertouch (pad pressure) event.
@@ -158,7 +158,7 @@ void app_surface_event(u8 type, u8 index, u8 value);
  * @param index - The index of the pad, as detailed at the start of this file.
  * @param value - the aftertouch value in [0, 127]
  */
-void app_aftertouch_event(u8 index, u8 value);
+void app_aftertouch_event(uint8_t index, uint8_t value);
 
 
 #endif

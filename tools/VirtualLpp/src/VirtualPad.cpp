@@ -1,6 +1,8 @@
 
 #include "VirtualPad.h"
 
+using namespace cinder;
+
 Color VirtualPad::defaultColor = Color(0.7, 0.7, 0.7);
 Font VirtualPad::font;
 gl::TextureFontRef VirtualPad::textureFont;

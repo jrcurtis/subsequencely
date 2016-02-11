@@ -3,13 +3,13 @@
 
 #include "buttons.h"
 
-u32 lp_modifiers = 0x00000000;
+uint32_t lp_modifiers = 0x00000000;
 
-u8 index_to_pad(u8 i, u8* x, u8* y)
+uint8_t index_to_pad(uint8_t i, uint8_t* x, uint8_t* y)
 {
-    static u8 last_i = 0xFF;
-    static u8 last_x = 0;
-    static u8 last_y = 0;
+    static uint8_t last_i = 0xFF;
+    static uint8_t last_x = 0;
+    static uint8_t last_y = 0;
 
     if (i == last_i)
     {
@@ -22,7 +22,7 @@ u8 index_to_pad(u8 i, u8* x, u8* y)
         return 0;
     }
 
-    u8 mod = i % (ROW_SIZE);
+    uint8_t mod = i % (ROW_SIZE);
 
     if (mod == 0 || mod == ROW_SIZE - 1)
     {
@@ -41,7 +41,7 @@ u8 index_to_pad(u8 i, u8* x, u8* y)
 
 void clear_leds()
 {
-    for (u8 i = LP_FIRST_BUTTON; i <= LP_LAST_BUTTON; i++)
+    for (uint8_t i = LP_FIRST_BUTTON; i <= LP_LAST_BUTTON; i++)
     {
         hal_plot_led(TYPEPAD, i, 0x00, 0x00, 0x00);
     }
@@ -49,9 +49,9 @@ void clear_leds()
 
 void clear_pad_leds()
 {
-    u8 index = FIRST_PAD;
+    uint8_t index = FIRST_PAD;
 
-    for (u8 i = 0; i < GRID_SIZE * GRID_SIZE; i++)
+    for (uint8_t i = 0; i < GRID_SIZE * GRID_SIZE; i++)
     {
         if (i > 0 && i % GRID_SIZE == 0)
         {
@@ -64,9 +64,9 @@ void clear_pad_leds()
     }
 }
 
-void modifier_index_assign(u8 index, u8 value)
+void modifier_index_assign(uint8_t index, uint8_t value)
 {
-    u32 flag = 1;
+    uint32_t flag = 1;
 
     if (index <= LP_STOP_CLIP)
     {

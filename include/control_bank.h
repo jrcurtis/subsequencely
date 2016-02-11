@@ -18,7 +18,7 @@ typedef enum
 
 typedef struct
 {
-    u8 flags;
+    uint8_t flags;
 
     // User controls
     Slider sliders[GRID_SIZE];
@@ -41,13 +41,13 @@ void control_bank_setup_draw(ControlBank* cb);
 
 /// Draws one slider that has been changed. Used on aftertouch events to avoid
 /// redrawing every slider.
-void control_bank_draw_slider(ControlBank* cb, u8 index);
+void control_bank_draw_slider(ControlBank* cb, uint8_t index);
 
 /// A press in the normal control mode.
-u8 control_bank_handle_press(
-    ControlBank* cb, u8 index, u8 value, u8 aftertouch);
+uint8_t control_bank_handle_press(
+    ControlBank* cb, uint8_t index, uint8_t value, uint8_t aftertouch);
 
 /// A press on the configure screen.
-u8 control_bank_setup_handle_press(ControlBank* cb, u8 index, u8 value);
+uint8_t control_bank_setup_handle_press(ControlBank* cb, uint8_t index, uint8_t value);
 
 #endif

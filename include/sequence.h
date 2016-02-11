@@ -68,9 +68,9 @@ typedef enum
 /// the velocity field while the note is held.
 typedef struct
 {
-    s8 note_number;
-    s8 velocity;
-    u8 flags;
+    int8_t note_number;
+    int8_t velocity;
+    uint8_t flags;
 } Note;
 
 /// The number of notes needed for all 8 sequences. Two of these are used: one
@@ -79,22 +79,22 @@ typedef Note NoteBank[GRID_SIZE * SEQUENCE_LENGTH];
 
 typedef struct Sequence_
 {
-    u16 flags;
+    uint16_t flags;
     Layout layout; // The layout to use in notes mode when this sequence is active.
-    u8 channel; // The channel to send midi on (or the base channel, when in multichannel mode)
+    uint8_t channel; // The channel to send midi on (or the base channel, when in multichannel mode)
 
-    u8 control_code; // The midi CC that aftertouch is sent on.
-    u8 control_div; // The sensitivity divider for aftertouch values (see cc_div in util.h)
-    s8 control_sgn; // Whether CC is positive or negative.
-    s8 control_offset; // Value added to all CCs sent
+    uint8_t control_code; // The midi CC that aftertouch is sent on.
+    uint8_t control_div; // The sensitivity divider for aftertouch values (see cc_div in util.h)
+    int8_t control_sgn; // Whether CC is positive or negative.
+    int8_t control_offset; // Value added to all CCs sent
 
-    u8 playhead; // The position of the playhead/the currently playing note.
-    s8 jump_step; // Set to >= 0 to make the playhead jump there on the next step.
-    u8 clock_div; // The amount to divide the global tempo clock.
+    uint8_t playhead; // The position of the playhead/the currently playing note.
+    int8_t jump_step; // Set to >= 0 to make the playhead jump there on the next step.
+    uint8_t clock_div; // The amount to divide the global tempo clock.
 
-    u8 zoom; // Zoom level in sequencer mode.
-    u8 x; // X location of view in sequencer mode.
-    u8 y; // Y location of view in sequencer mode.
+    uint8_t zoom; // Zoom level in sequencer mode.
+    uint8_t x; // X location of view in sequencer mode.
+    uint8_t y; // Y location of view in sequencer mode.
 
     Note* notes; // Pointer to the beginning of this sequence's notes in the NoteBank.
 } Sequence;
@@ -103,13 +103,13 @@ typedef struct Sequence_
 void note_init(Note* n);
 
 /// Initializes sequence to empty/off.
-void sequence_init(Sequence* s, u8 channel, Note* notes);
+void sequence_init(Sequence* s, uint8_t channel, Note* notes);
 
 /// Gets the note at the playhead.
-Note* sequence_get_note(Sequence* s, u8 playhead);
+Note* sequence_get_note(Sequence* s, uint8_t playhead);
 
 /// Gets the channel. Has special logic for multichannel mode.
-u8 sequence_get_channel(Sequence* s, u8 note_number);
+uint8_t sequence_get_channel(Sequence* s, uint8_t note_number);
 
 /// Handler for when the active sequence changes.
 void sequence_become_active(Sequence* s);
@@ -129,7 +129,7 @@ void sequence_kill_current_note(Sequence* s);
 void sequence_play_current_note(Sequence* s);
 
 /// Clear note data at given step.
-void sequence_clear_note(Sequence* s, u8 step);
+void sequence_clear_note(Sequence* s, uint8_t step);
 
 /// Clear all note data in the sequence. Includes linked sequences.
 void sequence_clear_notes(Sequence* s);
@@ -139,10 +139,10 @@ void sequence_clear_notes(Sequence* s);
 void sequence_kill_voices(Sequence* s);
 
 /// Transpose all the notes in the sequence by the given amount.
-void sequence_transpose(Sequence* s, s8 amt);
+void sequence_transpose(Sequence* s, int8_t amt);
 
 /// Set a note to be skipped over.
-void sequence_set_skip(Sequence* s, u8 step, u8 skip);
+void sequence_set_skip(Sequence* s, uint8_t step, uint8_t skip);
 
 /// Called when this sequence becomes the supersequence to the next sequence.
 void sequence_toggle_linked_to(Sequence* s);
@@ -157,19 +157,19 @@ Sequence* sequence_get_supersequence(Sequence* s);
 /// Set the sequence to start playing at a time based on queue_mode.
 /// queue_mode is one of SEQ_QUEUED_STEP/BEAT/START and determines when the
 /// sequence should become unqueued.
-void sequence_queue(Sequence* s, u8 queue_mode);
+void sequence_queue(Sequence* s, uint8_t queue_mode);
 
 /// Sets the sequence to start playing from the given step.
-void sequence_queue_at(Sequence* s, u8 step, u8 queue_mode);
+void sequence_queue_at(Sequence* s, uint8_t step, uint8_t queue_mode);
 
 /// Immediately jumps the playhead to the given step, assuming the sequence is
 /// already playing.
-void sequence_jump_to(Sequence* s, u8 step);
+void sequence_jump_to(Sequence* s, uint8_t step);
 
 /// Chooses between sequence_queue_at or sequence_jump_to based on whether
 /// the sequence is already playing.
 /// queue_mode does not affect sequence_jump_to.
-void sequence_queue_or_jump(Sequence* s, u8 step, u8 queue_mode);
+void sequence_queue_or_jump(Sequence* s, uint8_t step, uint8_t queue_mode);
 
 /// Immediately stops the sequence and kills any playing note.
 void sequence_stop(Sequence* s);
@@ -178,20 +178,20 @@ void sequence_stop(Sequence* s);
 void sequence_reverse(Sequence* s);
 
 /// Handles the logic of writing new notes/aftertouch values in the sequence.
-void sequence_handle_record(Sequence* s, u8 press);
+void sequence_handle_record(Sequence* s, uint8_t press);
 
 /// Draws stuff in notes mode, although not responsible for drawing the layout.
 void sequence_draw(Sequence* s);
 
 /// Handles when notes are played in notes mode.
-u8 sequence_handle_press(Sequence* s, u8 index, u8 value);
+uint8_t sequence_handle_press(Sequence* s, uint8_t index, uint8_t value);
 
 /// Handles aftertouch in notes mode.
-u8 sequence_handle_aftertouch(Sequence* s, u8 index, s8 value);
+uint8_t sequence_handle_aftertouch(Sequence* s, uint8_t index, int8_t value);
 
 /// Logic to step the sequence forward, handling note on/off for the appropriate
 /// steps.
-void sequence_step(Sequence* s, u8 audible, u8 queue_flags);
+void sequence_step(Sequence* s, uint8_t audible, uint8_t queue_flags);
 
 /// Called in between calls to sequence_step. If there is currently a note
 /// playing, and the upcoming note in the sequence is NOT a slide note, the

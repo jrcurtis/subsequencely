@@ -11,7 +11,7 @@
 #define FIRST_KEYBOARD_PAD (FIRST_PAD)
 #define LAST_KEYBOARD_PAD  (FIRST_KEYBOARD_PAD + NUM_KEYBOARD_PADS - 1)
 
-extern const u8 diatonic_notes[NUM_NOTES];
+extern const uint8_t diatonic_notes[NUM_NOTES];
 
 /// Represents an onscreen keyboard that can be transposed up or down, and have
 /// keys toggled on or off. Used to select which notes to enable in a scale.
@@ -23,14 +23,14 @@ typedef struct
 
     /// Cache of which pad index corresponds to which key on the keyboard
     /// (0-11 <=> C-B). -1 indicates no key at that index.
-    s8 index_to_note[NUM_KEYBOARD_PADS];
+    int8_t index_to_note[NUM_KEYBOARD_PADS];
 } Keyboard;
 
 /// Initializes the keyboard data.
 void keyboard_init(Keyboard* k, Layout* l);
 
 /// Toggles a note on or off and updates the layout and scale to match.
-u8 keyboard_handle_press(Keyboard* k, u8 index, u8 value);
+uint8_t keyboard_handle_press(Keyboard* k, uint8_t index, uint8_t value);
 
 /// Draws the keyboard to the grid.
 void keyboard_draw(Keyboard* k);

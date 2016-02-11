@@ -6,16 +6,16 @@
  ******************************************************************************/
 
 // Global settings
-u8 lp_midi_port = USBMIDI;
-u8 lp_rcv_clock_port = USBMIDI;
+uint8_t lp_midi_port = USBMIDI;
+uint8_t lp_rcv_clock_port = USBMIDI;
 
 // Program state
 LpState lp_state = LP_NUM_MODES;
-u16 lp_flags = 0x0000;
+uint16_t lp_flags = 0x0000;
 
-u16 lp_tap_tempo_timer = 1000;
-u16 lp_tap_tempo_sum = 0;
-u8 lp_tap_tempo_counter = 0;
+uint16_t lp_tap_tempo_timer = 1000;
+uint16_t lp_tap_tempo_sum = 0;
+uint8_t lp_tap_tempo_counter = 0;
 
 // Data
 Scale lp_scale;
@@ -43,14 +43,14 @@ ModWheel lp_mod_wheel;
  * App functionality
  ******************************************************************************/
 
-u8 tap_tempo_handle_press(u8 index, u8 value)
+uint8_t tap_tempo_handle_press(uint8_t index, uint8_t value)
 {
     if (index != LP_CLICK || value == 0)
     {
         return 0;
     }
 
-    u8 success = 0;
+    uint8_t success = 0;
 
     if (lp_tap_tempo_timer < 1000)
     {
@@ -105,7 +105,7 @@ void session_mode_draw()
 
 void session_setup_draw()
 {
-    for (u8 i = 0; i < GRID_SIZE; i++)
+    for (uint8_t i = 0; i < GRID_SIZE; i++)
     {
         number_draw(lp_sequencer.sequences[i].channel,
                     coord_to_index(CHANNEL_X, row_to_seq(i)),
@@ -114,7 +114,7 @@ void session_setup_draw()
     }
 }
 
-u8 session_mode_handle_press(u8 index, u8 value)
+uint8_t session_mode_handle_press(uint8_t index, uint8_t value)
 {
     if (session_handle_press(&lp_sequencer, index, value)) { }
     else
@@ -125,11 +125,11 @@ u8 session_mode_handle_press(u8 index, u8 value)
     return 1;
 }
 
-u8 session_setup_handle_press(u8 index, u8 value)
+uint8_t session_setup_handle_press(uint8_t index, uint8_t value)
 {
-    for (u8 i = 0; i < GRID_SIZE; i++)
+    for (uint8_t i = 0; i < GRID_SIZE; i++)
     {
-        u8 pos = coord_to_index(CHANNEL_X, row_to_seq(i));
+        uint8_t pos = coord_to_index(CHANNEL_X, row_to_seq(i));
         Sequence* s = &lp_sequencer.sequences[i];
 
         // Pre-detect if the press will be handled so that we can turn off any
@@ -193,7 +193,7 @@ void sequencer_setup_draw()
     checkbox_draw(lp_flags, LP_RCV_CLOCK_PORT, RCV_CLOCK_PORT_CHECKBOX_POS);
 }
 
-u8 sequencer_mode_handle_press(u8 index, u8 value)
+uint8_t sequencer_mode_handle_press(uint8_t index, uint8_t value)
 {
     if (grid_handle_press(&lp_sequencer, index, value)) { }
     else
@@ -204,7 +204,7 @@ u8 sequencer_mode_handle_press(u8 index, u8 value)
     return 1;
 }
 
-u8 sequencer_setup_handle_press(u8 index, u8 value)
+uint8_t sequencer_setup_handle_press(uint8_t index, uint8_t value)
 {
     if (slider_handle_press(&lp_tempo_slider, index, value, TEMPO_POS))
     {
@@ -339,7 +339,7 @@ void notes_setup_draw()
                 CC_OFFSET_COLOR);
 }
 
-u8 notes_mode_handle_press(u8 index, u8 value)
+uint8_t notes_mode_handle_press(uint8_t index, uint8_t value)
 {
     Sequence* s = sequencer_get_active(&lp_sequencer);
     Layout* l = &s->layout;
@@ -357,13 +357,13 @@ u8 notes_mode_handle_press(u8 index, u8 value)
             && value > 0
             && !flag_is_set(s->flags, SEQ_PLAYING))
         {
-            u8 beat = lp_tap_tempo_counter % GRID_SIZE;
+            uint8_t beat = lp_tap_tempo_counter % GRID_SIZE;
             Note* n = sequence_get_note(s, beat * STEPS_PER_PAD);
             n->note_number = voices_get_newest(&lp_voices);
             n->velocity = lp_voices.velocity;
             n->flags = 0x00;
 
-            u8 tempo_set = tap_tempo_handle_press(LP_CLICK, 0x7F);
+            uint8_t tempo_set = tap_tempo_handle_press(LP_CLICK, 0x7F);
             if (tempo_set && beat == GRID_SIZE - 1)
             {
                 // Set did_record_ahead so that the just-entered note is not
@@ -386,7 +386,7 @@ u8 notes_mode_handle_press(u8 index, u8 value)
     return 1;
 }
 
-u8 notes_setup_handle_press(u8 index, u8 value)
+uint8_t notes_setup_handle_press(uint8_t index, uint8_t value)
 {
     Sequence* s = sequencer_get_active(&lp_sequencer);
     Layout* l = &s->layout;
@@ -458,7 +458,7 @@ u8 notes_setup_handle_press(u8 index, u8 value)
     else if (slider_handle_press(
                  &lp_control_offset_slider, index, value, CC_OFFSET_POS))
     {
-        u8 slider_value = slider_get_value(&lp_control_offset_slider);
+        uint8_t slider_value = slider_get_value(&lp_control_offset_slider);
         s->control_offset = slider_value;
 
         // Send midi from the offset slider so that you can test the value
@@ -511,7 +511,7 @@ void user_setup_draw()
     control_bank_setup_draw(&lp_user_control_bank);
 }
 
-u8 user_mode_handle_press(u8 index, u8 value)
+uint8_t user_mode_handle_press(uint8_t index, uint8_t value)
 {
     if (control_bank_handle_press(&lp_user_control_bank, index, value, 0)) { }
     else
@@ -522,7 +522,7 @@ u8 user_mode_handle_press(u8 index, u8 value)
     return 1;
 }
 
-u8 user_setup_handle_press(u8 index, u8 value)
+uint8_t user_setup_handle_press(uint8_t index, uint8_t value)
 {
     if (control_bank_setup_handle_press(&lp_user_control_bank, index, value)) { }
     else
@@ -538,7 +538,7 @@ u8 user_setup_handle_press(u8 index, u8 value)
  * State management
  ******************************************************************************/
 
-void set_state(LpState st, u8 setup)
+void set_state(LpState st, uint8_t setup)
 {
     if (lp_state == st && flag_is_set(lp_flags, LP_IS_SETUP) == setup)
     {

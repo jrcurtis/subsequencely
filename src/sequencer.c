@@ -30,14 +30,14 @@ void sequencer_init(Sequencer* sr)
 
     scale_init(&lp_scale);
 
-    for (u8 i = 0; i < GRID_SIZE; i++)
+    for (uint8_t i = 0; i < GRID_SIZE; i++)
     {
         Sequence* s = &sr->sequences[i];
         sequence_init(s, i, lp_note_bank + i * SEQUENCE_LENGTH);
         layout_init(&s->layout);
     }
 
-    for (u16 i = 0; i < SEQUENCE_LENGTH * GRID_SIZE; i++)
+    for (uint16_t i = 0; i < SEQUENCE_LENGTH * GRID_SIZE; i++)
     {
         note_init(&lp_note_storage[i]);
     }
@@ -45,11 +45,11 @@ void sequencer_init(Sequencer* sr)
     sequencer_set_active(sr, 0);
 }
 
-void sequencer_set_tempo_millis(Sequencer* sr, u8 millis)
+void sequencer_set_tempo_millis(Sequencer* sr, uint8_t millis)
 {
     // Remember the swing in a tempo-independent format so
     // the millis can be recalculated after the tempo change.
-    s8 swing = 6 * sr->swing_millis / sr->step_millis;
+    int8_t swing = 6 * sr->swing_millis / sr->step_millis;
 
     sr->step_millis = millis;
     sr->clock_millis = sr->step_millis / TICKS_PER_STEP;
@@ -58,17 +58,17 @@ void sequencer_set_tempo_millis(Sequencer* sr, u8 millis)
     sequencer_set_swing(sr, swing);
 }
 
-void sequencer_set_tempo(Sequencer* sr, u8 bpm)
+void sequencer_set_tempo(Sequencer* sr, uint8_t bpm)
 {
     sequencer_set_tempo_millis(sr, bpm_to_millis(bpm));
 }
 
-void sequencer_set_swing(Sequencer* sr, s8 swing)
+void sequencer_set_swing(Sequencer* sr, int8_t swing)
 {
     sr->swing_millis = sr->step_millis * swing / 6;
 }
 
-void sequencer_set_active(Sequencer* sr, u8 i)
+void sequencer_set_active(Sequencer* sr, uint8_t i)
 {
     sequence_become_inactive(sequencer_get_active(sr));
 
@@ -99,7 +99,7 @@ void sequencer_find_master_sequence(Sequencer* sr)
 {
     sr->master_sequence = 0xFF;
 
-    for (u8 i = 0; i < GRID_SIZE; i++)
+    for (uint8_t i = 0; i < GRID_SIZE; i++)
     {
         if (flag_is_set(sr->sequences[i].flags, SEQ_PLAYING))
         {
@@ -128,22 +128,22 @@ Layout* sequencer_get_layout(Sequencer* sr)
 
 void sequencer_kill_current_notes(Sequencer* sr)
 {
-    for (u8 i = 0; i < GRID_SIZE; i++)
+    for (uint8_t i = 0; i < GRID_SIZE; i++)
     {
         sequence_kill_current_note(&sr->sequences[i]);
     }
 }
 
-void sequencer_copy(Sequencer* sr, u8 i, u8 swap)
+void sequencer_copy(Sequencer* sr, uint8_t i, uint8_t swap)
 {
     sr->copied_sequence = (swap ? SQR_COPY_SWAP : 0x00)
         | (i & SQR_COPY_MASK);
 }
 
-void sequencer_paste(Sequencer* sr, u8 i)
+void sequencer_paste(Sequencer* sr, uint8_t i)
 {
-    u8 copied_sequence = sr->copied_sequence & SQR_COPY_MASK;
-    u8 swap = (sr->copied_sequence & SQR_COPY_SWAP) != 0;
+    uint8_t copied_sequence = sr->copied_sequence & SQR_COPY_MASK;
+    uint8_t swap = (sr->copied_sequence & SQR_COPY_SWAP) != 0;
 
     if (copied_sequence == SQR_COPY_MASK)
     {
@@ -177,7 +177,7 @@ void sequencer_paste(Sequencer* sr, u8 i)
     if (swap)
     {
         Note temp;
-        for (u8 note_i = 0; note_i < SEQUENCE_LENGTH; note_i++)
+        for (uint8_t note_i = 0; note_i < SEQUENCE_LENGTH; note_i++)
         {
             temp = from[note_i];
             from[note_i] = to[note_i];
@@ -190,7 +190,7 @@ void sequencer_paste(Sequencer* sr, u8 i)
     }
 }
 
-void sequencer_copy_or_paste(Sequencer* sr, u8 i)
+void sequencer_copy_or_paste(Sequencer* sr, uint8_t i)
 {
     if ((sr->copied_sequence & SQR_COPY_MASK) == SQR_COPY_MASK)
     {
@@ -208,11 +208,11 @@ void sequencer_copy_or_paste(Sequencer* sr, u8 i)
 
 void sequencer_play_draw(Sequencer* sr)
 {
-    u8 play_index = LP_LAST_PLAY;
-    const u8* color = off_color;
-    u8 active_flags = 0;
+    uint8_t play_index = LP_LAST_PLAY;
+    const uint8_t* color = off_color;
+    uint8_t active_flags = 0;
 
-    for (u8 i = 0; i < GRID_SIZE; i++)
+    for (uint8_t i = 0; i < GRID_SIZE; i++)
     {
         Sequence* s = &sr->sequences[i];
 
@@ -272,9 +272,9 @@ void sequencer_play_draw(Sequencer* sr)
 
 }
 
-void sequencer_blink_draw(Sequencer* sr, u8 blink, u8 position)
+void sequencer_blink_draw(Sequencer* sr, uint8_t blink, uint8_t position)
 {
-    u8 step;
+    uint8_t step;
     if (sr->master_sequence < GRID_SIZE)
     {
         step = sr->sequences[sr->master_sequence].playhead;
@@ -296,9 +296,9 @@ void sequencer_blink_draw(Sequencer* sr, u8 blink, u8 position)
     {
         step = (step % SEQUENCE_LENGTH) / STEPS_PER_PAD;
 
-        for (u8 i = 0; i < GRID_SIZE; i++)
+        for (uint8_t i = 0; i < GRID_SIZE; i++)
         {
-            const u8* color;
+            const uint8_t* color;
 
             if (step == i)
             {
@@ -318,7 +318,7 @@ void sequencer_blink_draw(Sequencer* sr, u8 blink, u8 position)
     }
 }
 
-void sequencer_blink_clear(Sequencer* sr, u8 blink, u8 position)
+void sequencer_blink_clear(Sequencer* sr, uint8_t blink, uint8_t position)
 {
     if (blink)
     {
@@ -327,9 +327,9 @@ void sequencer_blink_clear(Sequencer* sr, u8 blink, u8 position)
 
     if (position)
     {
-        for (u8 i = 0; i < GRID_SIZE; i++)
+        for (uint8_t i = 0; i < GRID_SIZE; i++)
         {
-            const u8* color = off_color;
+            const uint8_t* color = off_color;
 
             if (lp_state == i - 4)
             {
@@ -347,7 +347,7 @@ void sequencer_blink_clear(Sequencer* sr, u8 blink, u8 position)
  ******************************************************************************/
 
 
-u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
+uint8_t sequencer_handle_play(Sequencer* sr, uint8_t index, uint8_t value)
 {
     if (index == LP_RECORD_ARM && value > 0)
     {
@@ -355,7 +355,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
         return 1;
     }
 
-    s8 si = index_to_play(index);
+    int8_t si = index_to_play(index);
     if (value == 0 || si == -1)
     {
         return 0;
@@ -388,7 +388,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
         {
             if (sr->soloed_sequences == 1)
             {
-                for (u8 i = 0; i < GRID_SIZE; i++)
+                for (uint8_t i = 0; i < GRID_SIZE; i++)
                 {
                     Sequence* sk = &sr->sequences[i];
                     if (i != si
@@ -430,7 +430,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
             sr->master_sequence = si;
         }
 
-        u8 queue_mode = sr->master_sequence == si ? SEQ_QUEUED_STEP
+        uint8_t queue_mode = sr->master_sequence == si ? SEQ_QUEUED_STEP
             : modifier_held(LP_SHIFT) ? SEQ_QUEUED_START
             : SEQ_QUEUED_BEAT;
         sequence_queue(s, queue_mode);
@@ -443,7 +443,7 @@ u8 sequencer_handle_play(Sequencer* sr, u8 index, u8 value)
  * Time handling
  ******************************************************************************/
 
-void sequencer_tick(Sequencer* sr, u8 clock_tick)
+void sequencer_tick(Sequencer* sr, uint8_t clock_tick)
 {
     // If we just received a clock tick, immediately jump to the next clock
     // increment.
@@ -487,7 +487,7 @@ void sequencer_tick(Sequencer* sr, u8 clock_tick)
     {
         if (sr->step_timer == sr->swung_step_millis / 2)
         {
-            for (u8 i = 0; i < GRID_SIZE; i++)
+            for (uint8_t i = 0; i < GRID_SIZE; i++)
             {
                 sequence_off_step(&sr->sequences[i]);
             }
@@ -511,16 +511,16 @@ void sequencer_tick(Sequencer* sr, u8 clock_tick)
 
     // Tick the master sequence first so that all subsequent sequences can
     // be told if they're on the start of a beat or not.
-    u8 master_offset = (sr->master_sequence < GRID_SIZE)
+    uint8_t master_offset = (sr->master_sequence < GRID_SIZE)
         ? sr->master_sequence : 0;
-    u8 queue_flags = 1 << SEQ_QUEUED_STEP;
+    uint8_t queue_flags = 1 << SEQ_QUEUED_STEP;
 
-    for (u8 i = 0; i < GRID_SIZE; i++)
+    for (uint8_t i = 0; i < GRID_SIZE; i++)
     {
-        u8 seq_i = (i + master_offset) % GRID_SIZE;
+        uint8_t seq_i = (i + master_offset) % GRID_SIZE;
         Sequence* s = &sr->sequences[seq_i];
 
-        u8 audible = !flag_is_set(s->flags, SEQ_MUTED)
+        uint8_t audible = !flag_is_set(s->flags, SEQ_MUTED)
             && (sr->soloed_sequences == 0
                 || flag_is_set(s->flags, SEQ_SOLOED));
 

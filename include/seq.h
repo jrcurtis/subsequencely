@@ -28,7 +28,7 @@
  * App functionality
  ******************************************************************************/
 
-u8 tap_tempo_handle_press(u8 index, u8 value);
+uint8_t tap_tempo_handle_press(uint8_t index, uint8_t value);
 
 /// All the handlers for all the modes.
 
@@ -48,8 +48,8 @@ void session_setup_become_active();
 void session_setup_become_inactive();
 void session_mode_draw();
 void session_setup_draw();
-u8 session_mode_handle_press(u8 index, u8 value);
-u8 session_setup_handle_press(u8 index, u8 value);
+uint8_t session_mode_handle_press(uint8_t index, uint8_t value);
+uint8_t session_setup_handle_press(uint8_t index, uint8_t value);
 
 void sequencer_mode_become_active();
 void sequencer_mode_become_inactive();
@@ -57,8 +57,8 @@ void sequencer_setup_become_active();
 void sequencer_setup_become_inactive();
 void sequencer_mode_draw();
 void sequencer_setup_draw();
-u8 sequencer_mode_handle_press(u8 index, u8 value);
-u8 sequencer_setup_handle_press(u8 index, u8 value);
+uint8_t sequencer_mode_handle_press(uint8_t index, uint8_t value);
+uint8_t sequencer_setup_handle_press(uint8_t index, uint8_t value);
 
 void notes_mode_become_active();
 void notes_mode_become_inactive();
@@ -66,8 +66,8 @@ void notes_setup_become_active();
 void notes_setup_become_inactive();
 void notes_mode_draw();
 void notes_setup_draw();
-u8 notes_mode_handle_press(u8 index, u8 value);
-u8 notes_setup_handle_press(u8 index, u8 value);
+uint8_t notes_mode_handle_press(uint8_t index, uint8_t value);
+uint8_t notes_setup_handle_press(uint8_t index, uint8_t value);
 
 void user_mode_become_active();
 void user_mode_become_inactive();
@@ -75,14 +75,14 @@ void user_setup_become_active();
 void user_setup_become_inactive();
 void user_mode_draw();
 void user_setup_draw();
-u8 user_mode_handle_press(u8 index, u8 value);
-u8 user_setup_handle_press(u8 index, u8 value);
+uint8_t user_mode_handle_press(uint8_t index, uint8_t value);
+uint8_t user_setup_handle_press(uint8_t index, uint8_t value);
 
 /*******************************************************************************
  * State management
  ******************************************************************************/
 
 /// Switch the mode or switch between normal and setup modes.
-void set_state(LpState st, u8 setup);
+void set_state(LpState st, uint8_t setup);
 
 #endif

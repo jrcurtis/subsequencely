@@ -23,12 +23,12 @@
 /// The 14 least significant bits store the most recent aftertouch value
 /// for the coarse and fine control, and the extra two bits indicate whether
 /// the most recent press was on the positive or negative side.
-typedef u16 ModWheel;
+typedef uint16_t ModWheel;
 
-int mod_wheel_handle_press(ModWheel* m, u8 index, u8 value, u8 position);
-void mod_wheel_draw(ModWheel m, u8 position);
+int16_t mod_wheel_handle_press(ModWheel* m, uint8_t index, uint8_t value, uint8_t position);
+void mod_wheel_draw(ModWheel m, uint8_t position);
 
 /// Combines the two bytes of the mod wheel into one good value.
-u16 mod_wheel_get_value(ModWheel m);
+uint16_t mod_wheel_get_value(ModWheel m);
 
 #endif

@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 
+#include "cinder/app/App.h"
 #include "cinder/Cinder.h"
 #include "cinder/Font.h"
 #include "cinder/GeomIo.h"
