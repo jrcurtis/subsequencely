@@ -29,12 +29,16 @@
 
 # Debug files
 *.dSYM/
+Debug
 
 # Environment
 .vagrant
 build
 .project
 .cproject
+.vs
+*.opendb
+*.vcxproj.user
 
 *.xcworkspacedata
 
