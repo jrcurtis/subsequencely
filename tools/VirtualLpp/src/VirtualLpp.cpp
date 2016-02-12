@@ -2,6 +2,8 @@
 #include <iostream>
 #include <glm/glm.hpp>
 
+#include <cinder/Log.h>
+
 #include "VirtualLpp.h"
 
 using namespace glm;
@@ -9,7 +11,7 @@ using namespace std::placeholders;
 
 void handleMidiError(RtMidiError::Type type, const string& errorText)
 {
-    cout << "midi error: " << errorText << endl;
+    CI_LOG_I("midi error: " << errorText << "\n");
 }
 
 void receiveMidiCallback(double timestamp, vector<unsigned char>* message, void* userData)
@@ -24,9 +26,15 @@ void receiveMidiControlCallback(double timestamp, vector<unsigned char>* message
 
 VirtualLpp* VirtualLpp::instance = nullptr;
 
+const char* VirtualLpp::VIRTUAL_IN_NAME = "VirtualLpp Input";
+const char* VirtualLpp::VIRTUAL_OUT_NAME = "VirtualLpp Output";
+
+
 VirtualLpp::VirtualLpp(int width)
     : heldIndex(-1),
       heldVelocity(-1),
+      midiOut(MidiConnection::OUTPUT, "VirtualLpp Output"),
+      midiIn(MidiConnection::INPUT, "VirtualLpp Input"),
       pads{
         nullptr,   "Arm", "Select",  "Mute",  "Solo",  "Volume",   "Pan",  "Sends",  "Stop",  "",
             "O", nullptr,  nullptr, nullptr, nullptr,   nullptr, nullptr,  nullptr, nullptr, ">",
@@ -43,16 +51,18 @@ VirtualLpp::VirtualLpp(int width)
     VirtualLpp::instance = this;
     setWidth(width);
 
-    midiOut = make_shared<RtMidiOut>(RtMidi::Api::UNSPECIFIED, "VirtualLpp");
-    midiOut->setErrorCallback(handleMidiError);
-    midiOut->openVirtualPort("VirtualLppOut");
+    midiOut.getOutPort()->setErrorCallback(handleMidiError);
 
-    midiIn = make_shared<RtMidiIn>(RtMidi::Api::UNSPECIFIED, "VirtualLpp");
-    midiIn->setErrorCallback(handleMidiError);
-    midiIn->setCallback(receiveMidiCallback, this);
-    midiIn->ignoreTypes(true, false, true);
-    midiIn->openVirtualPort("VirtualLppIn");
+    shared_ptr<RtMidiIn> inPort = midiIn.getInPort();
+    inPort->setErrorCallback(handleMidiError);
+    inPort->setCallback(receiveMidiCallback, this);
+    inPort->ignoreTypes(true, false, true);
     
+#ifndef __WINDOWS_MM__
+    midiOut.connect(MidiConnection::VIRTUAL);
+    midiIn.connect(MidiConnection::VIRTUAL);
+#endif
+
     midiLightsOut = make_shared<RtMidiOut>(RtMidi::Api::UNSPECIFIED, "VirtualLpp");
     midiLightsOut->setErrorCallback(handleMidiError);
     for (int i = 0; i < midiLightsOut->getPortCount(); i++)
@@ -107,7 +117,7 @@ void VirtualLpp::plotLed(u8 type, u8 index, u8 red, u8 green, u8 blue)
 void VirtualLpp::sendMidi(u8 port, u8 status, u8 data1, u8 data2)
 {
     vector<unsigned char> msg {status, data1, data2};
-    midiOut->sendMessage(&msg);
+    midiOut.getOutPort()->sendMessage(&msg);
 }
 
 void VirtualLpp::sendSysex(u8 port, const u8* data, u16 length)

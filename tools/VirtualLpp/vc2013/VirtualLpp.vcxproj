@@ -51,7 +51,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\include;..\..\..\..\cinder\include;..\..\..\include;..\imgui;..\rtmidi</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WIN32_WINNT=0x0601;_WINDOWS;NOMINMAX;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN32_WINNT=0x0601;_WINDOWS;NOMINMAX;_DEBUG;__WINDOWS_MM__;VIRTUAL_LPP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -78,7 +78,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\include;..\..\..\..\cinder\include;..\..\..\include;..\rtmidi;..\imgui</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WIN32_WINNT=0x0601;_WINDOWS;NOMINMAX;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN32_WINNT=0x0601;_WINDOWS;NOMINMAX;NDEBUG;__WINDOWS_MM__;VIRTUAL_LPP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
@@ -130,6 +130,7 @@
     <ClCompile Include="..\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\imgui\imgui_impl_cinder_gl3.cpp" />
     <ClCompile Include="..\rtmidi\RtMidi.cpp" />
+    <ClCompile Include="..\src\MidiConnection.cpp" />
     <ClCompile Include="..\src\VirtualHal.cpp" />
     <ClCompile Include="..\src\VirtualLpp.cpp" />
     <ClCompile Include="..\src\VirtualLppApp.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="..\imgui\stb_rect_pack.h" />
     <ClInclude Include="..\imgui\stb_textedit.h" />
     <ClInclude Include="..\imgui\stb_truetype.h" />
+    <ClInclude Include="..\include\MidiConnection.h" />
     <ClInclude Include="..\include\Resources.h" />
     <ClInclude Include="..\rtmidi\RtMidi.h" />
   </ItemGroup>

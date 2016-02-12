@@ -1,17 +1,20 @@
 
 #include <thread>
 #include <utility>
+#include <cstring>
 
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "cinder/ip/Fill.h"
+#include "cinder/Log.h"
 #include "cinder/Rand.h"
 #include "cinder/Utilities.h"
 
 #include "imgui.h"
 #include "imgui_impl_cinder_gl3.h"
 
+#include "MidiConnection.h"
 #include "VirtualLpp.h"
 #include "Timer.h"
 
@@ -24,6 +27,8 @@ using namespace std::chrono;
 using namespace glm;
 
 const int defaultSize = 800;
+const int portNameLength = 128;
+const int maxPorts = 32;
 
 const ImGuiWindowFlags windowFlags =
     ImGuiWindowFlags_NoTitleBar
@@ -56,6 +61,7 @@ private:
     void drawGui();
     void drawBottomPanel();
     void drawSidePanel();
+    void drawMidiConnectionMenu(const char* label, MidiConnection& con);
     void drawSequenceNotes(Sequence& s);
     void drawSequenceInfo(Sequence& s);
     
@@ -189,8 +195,8 @@ void VirtualLppApp::drawBottomPanel()
     ImGui::SetNextWindowPos(bottomPanelPos);
     ImGui::SetNextWindowSize(bottomPanelSize);
     ImGui::Begin(
-                 "bottom panel", NULL,
-                 windowFlags | ImGuiWindowFlags_HorizontalScrollbar);
+        "bottom panel", NULL,
+        windowFlags | ImGuiWindowFlags_HorizontalScrollbar);
     
     string scaleSteps = "";
     int lastOffset = 0;
@@ -257,8 +263,31 @@ void VirtualLppApp::drawSidePanel()
             ImGui::TreePop();
         }
     }
-    
+
+    drawMidiConnectionMenu("Midi In", lpp.getMidiIn());
+    drawMidiConnectionMenu("Midi Out", lpp.getMidiOut());
+
     ImGui::End();
+}
+
+void VirtualLppApp::drawMidiConnectionMenu(const char* label, MidiConnection& con)
+{
+    int portChoice = con.getId();
+    const vector<string>& portNames = con.getPortNames();
+
+    bool (*portNameFn)(void*, int, const char**) =
+        [](void* data, int i, const char** text)->bool
+        {
+            vector<string>* names = (vector<string>*)data;
+            *text = (*names)[i].c_str();
+            return true;
+        };
+
+    if (ImGui::Combo(label, &portChoice,
+                     portNameFn, (void*)&portNames, portNames.size()))
+    {
+        con.connect(portChoice);
+    }
 }
 
 void VirtualLppApp::drawSequenceNotes(Sequence& s)

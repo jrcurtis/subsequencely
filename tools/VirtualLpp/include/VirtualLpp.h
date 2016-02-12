@@ -9,6 +9,7 @@
 #include "cinder/gl/gl.h"
 #include "RtMidi.h"
 
+#include "MidiConnection.h"
 #include "seq.h"
 #include "VirtualPad.h"
 
@@ -21,6 +22,9 @@ using namespace glm;
 class VirtualLpp
 {
 public:
+    static const char* VIRTUAL_IN_NAME;
+    static const char* VIRTUAL_OUT_NAME;
+
     VirtualLpp(int width=300);
 
     static VirtualLpp* getInstance()
@@ -45,7 +49,11 @@ public:
     void mouseUp();
     void mouseDrag(MouseEvent event);
 
+    MidiConnection& getMidiOut() { return midiOut; }
+    MidiConnection& getMidiIn() { return midiIn; }
+
 private:
+
     static VirtualLpp* instance;
 
     int pixelToIndex(int x, int y, int* v=nullptr);
@@ -57,8 +65,8 @@ private:
     int heldIndex;
     int heldVelocity;
     
-    shared_ptr<RtMidiOut> midiOut;
-    shared_ptr<RtMidiIn> midiIn;
+    MidiConnection midiOut;
+    MidiConnection midiIn;
     
     shared_ptr<RtMidiOut> midiLightsOut;
     shared_ptr<RtMidiIn> midiControlIn;
