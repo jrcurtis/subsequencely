@@ -10,14 +10,6 @@ MidiConnection::MidiConnection(InOut inout, const string& virtualPortName)
       portNumber(-1),
       isVirtual(false)
 {
-    if (portNames.size() == 0)
-    {
-        portNames.push_back("None");
-        #ifndef __WINDOWS_MM__
-        portNames.push_back(virtualPortName);
-        #endif
-    }
-
     if (inout == INPUT)
     {
         port.reset(new RtMidiIn());
@@ -59,10 +51,17 @@ const vector<string>& MidiConnection::getPortNames()
 {
     portNames.resize(port->getPortCount() + EXTRA_PORTS);
 
+    portNames[0] = "None";
+
+#ifndef __WINDOWS_MM__
+    portNames[1] = virtualPortName;
+#endif
+
     for (int i = 0; i < port->getPortCount(); i++)
     {
         portNames[i + EXTRA_PORTS] = port->getPortName(i);
     }
+
 
     return portNames;
 }

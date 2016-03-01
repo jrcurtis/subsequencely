@@ -81,6 +81,7 @@ VirtualLpp::VirtualLpp(int width)
     for (int i = 0; i < midiControlIn->getPortCount(); i++)
     {
         string name = midiLightsOut->getPortName(i);
+        CI_LOG_I("found midi port: " << name);
         if (midiControlIn->getPortName(i) == "Launchpad Open Standalone Port")
         {
             midiControlIn->openPort(i);

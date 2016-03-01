@@ -43,6 +43,7 @@
 		8CAC381E1BD2FFE300BBDB05 /* shaders in Resources */ = {isa = PBXBuildFile; fileRef = 8CAC381D1BD2FFE300BBDB05 /* shaders */; };
 		8CB76CBA1BE959F200EF166E /* mod_wheel.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CB76CB91BE959F200EF166E /* mod_wheel.c */; };
 		8CC751761BD0F08C005CD976 /* voices.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CC751751BD0F08C005CD976 /* voices.c */; };
+		8CF68E361C82C59700BC5D1F /* MidiConnection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8CF68E351C82C59700BC5D1F /* MidiConnection.cpp */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		A3896E2F25B9485FBC4A26A3 /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 450E15B07B6049D29E23AF2B /* CinderApp.icns */; };
 		BD92F027A4EE47F886B1F960 /* VirtualLppApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 63433217FDB540E9A4DD1DDC /* VirtualLppApp.cpp */; };
@@ -125,6 +126,8 @@
 		8CC751731BD04B94005CD976 /* Timer.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; name = Timer.h; path = ../include/Timer.h; sourceTree = "<group>"; };
 		8CC751741BD0F062005CD976 /* voices.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = voices.h; path = ../../../include/voices.h; sourceTree = "<group>"; };
 		8CC751751BD0F08C005CD976 /* voices.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = voices.c; path = ../../../src/voices.c; sourceTree = "<group>"; };
+		8CF68E341C82C58900BC5D1F /* MidiConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MidiConnection.h; path = ../include/MidiConnection.h; sourceTree = "<group>"; };
+		8CF68E351C82C59700BC5D1F /* MidiConnection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MidiConnection.cpp; path = ../src/MidiConnection.cpp; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* VirtualLpp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VirtualLpp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -161,6 +164,7 @@
 		080E96DDFE201D6D7F000001 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				8CF68E351C82C59700BC5D1F /* MidiConnection.cpp */,
 				8CB76CB91BE959F200EF166E /* mod_wheel.c */,
 				8C27CEB81BDB555000F415F5 /* seq.c */,
 				8C27CEB51BDAF25800F415F5 /* control_bank.c */,
@@ -238,6 +242,7 @@
 		29B97315FDCFA39411CA2CEA /* Headers */ = {
 			isa = PBXGroup;
 			children = (
+				8CF68E341C82C58900BC5D1F /* MidiConnection.h */,
 				8CB76CBB1BE959FF00EF166E /* mod_wheel.h */,
 				8C27CEBA1BDB57D400F415F5 /* data.h */,
 				8C27CEB71BDB26E000F415F5 /* interface.h */,
@@ -381,6 +386,7 @@
 			files = (
 				8C4FBD291BCE04560030F8F9 /* util.c in Sources */,
 				BD92F027A4EE47F886B1F960 /* VirtualLppApp.cpp in Sources */,
+				8CF68E361C82C59700BC5D1F /* MidiConnection.cpp in Sources */,
 				8C4FBD271BCE04560030F8F9 /* sequencer.c in Sources */,
 				8C4FBD0A1BCE036D0030F8F9 /* RtMidi.cpp in Sources */,
 				8C51F9B31BD5A3280032CE68 /* session.c in Sources */,
