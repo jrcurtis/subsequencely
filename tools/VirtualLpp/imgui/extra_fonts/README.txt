@@ -2,6 +2,8 @@
  The code in imgui.cpp embeds a copy of 'ProggyClean.ttf' that you can use without any external files.
  Those are only provided as a convenience, you can load your own .TTF files.
 
+ Fonts are rasterized in a single texture at the time of calling either of io.Fonts.GetTexDataAsAlpha8()/GetTexDataAsRGBA32()/Build().
+
 ---------------------------------
  LOADING INSTRUCTIONS
 ---------------------------------
@@ -20,9 +22,16 @@
 
    ImFontConfig config;
    config.OversampleH = 3;
-   config.OversampleV = 3;
+   config.OversampleV = 1;
    config.GlyphExtraSpacing.x = 1.0f;
    io.Fonts->AddFontFromFileTTF("font.ttf", size_pixels, &config);
+
+ If you have very large number of glyphs or multiple fonts:
+
+  - Mind the fact that some graphics drivers have texture size limitation.
+  - Set io.Fonts.TexDesiredWidth to specify a texture width to minimize texture height (see comment in ImFontAtlas::Build function).
+  - You may reduce oversampling, e.g. config.OversampleH = 2 or 1.
+  - Reduce glyphs ranges, consider calculating them based on your source data if this is possible.
 
  Combine two fonts into one:
 
@@ -30,11 +39,13 @@
    io.Fonts->AddFontDefault();
 
    // Add character ranges and merge into main font
-   ImWchar ranges[] = { 0xf000, 0xf3ff, 0 };
+   // The ranges array is not copied by the AddFont* functions and is used lazily
+   // so ensure it is available for duration of font usage
+   static const ImWchar icons_ranges[] = { 0xf000, 0xf3ff, 0 }; // will not be copied by AddFont* so keep in scope.
    ImFontConfig config;
    config.MergeMode = true;
-   io.Fonts->AddFontFromFileTTF("fontawesome-webfont.ttf", 16.0f, &config, ranges);
-   io.Fonts->AddFontFromFileTTF("font.ttf", size_pixels, &config, io.Fonts->GetGlyphRangesJapanese());
+   io.Fonts->AddFontFromFileTTF("DroidSans.ttf", 18.0f, &config, io.Fonts->GetGlyphRangesJapanese());
+   io.Fonts->AddFontFromFileTTF("fontawesome-webfont.ttf", 18.0f, &config, icons_ranges);
 
  Add a fourth parameter to bake specific font ranges only:
 
@@ -94,6 +105,10 @@
 ---------------------------------
  LINKS
 ---------------------------------
+
+ Icon fonts
+   https://fortawesome.github.io/Font-Awesome/
+   https://github.com/SamBrishes/kenney-icon-font
 
  Typefaces for source code beautification
    https://github.com/chrissimpkins/codeface
