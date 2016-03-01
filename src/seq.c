@@ -154,7 +154,7 @@ uint8_t session_setup_handle_press(uint8_t index, uint8_t value)
 
 void sequencer_mode_become_active()
 {
-    
+    grid_update_cache(&lp_sequencer, 0);
 }
 
 void sequencer_mode_become_inactive()

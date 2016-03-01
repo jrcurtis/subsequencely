@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "data.h"
+#include "grid.h"
 
 #include "sequencer.h"
 
@@ -86,6 +87,11 @@ void sequencer_set_active(Sequencer* sr, uint8_t i)
                      s->control_offset);
 
     voices_reset(&lp_voices);
+
+    if (lp_state == LP_SEQUENCER_MODE)
+    {
+        grid_update_cache(sr, 0);
+    }
 
     lp_mod_wheel = 0;
 }

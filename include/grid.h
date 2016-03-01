@@ -16,4 +16,7 @@ uint8_t grid_handle_zoom(Sequencer* sr, uint8_t index, uint8_t value);
 /// Handles all the presses.
 uint8_t grid_handle_press(Sequencer* sr, uint8_t index, uint8_t value);
 
+/// 
+void grid_update_cache(Sequencer* sr, int8_t translation);
+
 #endif
