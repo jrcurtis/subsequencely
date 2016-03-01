@@ -13,7 +13,6 @@ resources/subsequencely.syx to your Launchpad Pro and try it out.
 ![Session mode](http://i.imgur.com/FSUyeEX.jpg) ![Step sequencer](http://i.imgur.com/qDviuut.jpg)
 
 # Videos
-
 * [Feature overview](https://youtu.be/_G3-Z9f-Xr0)
 * [Jam with Volcas](https://www.youtube.com/watch?v=Dphug-y7MXQ)
 * [Dev update](https://www.youtube.com/watch?v=skxym4i0RlE)
