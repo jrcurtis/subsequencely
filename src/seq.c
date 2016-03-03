@@ -540,6 +540,8 @@ uint8_t user_setup_handle_press(uint8_t index, uint8_t value)
 
 void set_state(LpState st, uint8_t setup)
 {
+    serialize_app();
+    
     if (lp_state == st && flag_is_set(lp_flags, LP_IS_SETUP) == setup)
     {
         return;

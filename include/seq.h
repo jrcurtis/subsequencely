@@ -18,6 +18,7 @@
 #include "scale.h"
 #include "sequence.h"
 #include "sequencer.h"
+#include "serializer.h"
 #include "session.h"
 #include "slider.h"
 #include "util.h"

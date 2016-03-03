@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <memory>
 #include <glm/glm.hpp>
 
 #include <cinder/Log.h>
@@ -46,7 +47,8 @@ VirtualLpp::VirtualLpp(int width)
         "Click", nullptr,  nullptr, nullptr, nullptr,   nullptr, nullptr,  nullptr, nullptr, ">",
         "Shift", nullptr,  nullptr, nullptr, nullptr,   nullptr, nullptr,  nullptr, nullptr, ">",
         "Setup",     "^",      "v",     "<",     ">", "Session",  "Note", "Device",  "User"
-      }
+      },
+      userArea()
 {
     VirtualLpp::instance = this;
     setWidth(width);
@@ -94,11 +96,18 @@ VirtualLpp::VirtualLpp(int width)
     {
         pads[i].setIndex(i);
     }
+
+    loadUserArea();
     
     app_init();
 }
 
-void VirtualLpp::plotLed(u8 type, u8 index, u8 red, u8 green, u8 blue)
+VirtualLpp::~VirtualLpp()
+{
+    saveUserArea();
+}
+
+void VirtualLpp::plotLed(uint8_t type, uint8_t index, uint8_t red, uint8_t green, uint8_t blue)
 {
     if (type == TYPESETUP)
     {
@@ -109,21 +118,37 @@ void VirtualLpp::plotLed(u8 type, u8 index, u8 red, u8 green, u8 blue)
     
     vector<unsigned char> msg {
         0xF0, 0x00, 0x20, 0x29,
-        index, (u8)(red & 0x7F), (u8)(green & 0x7F), (u8)(blue & 0x7F),
+        index, (uint8_t)(red & 0x7F), (uint8_t)(green & 0x7F), (uint8_t)(blue & 0x7F),
         0xF7
     };
     midiLightsOut->sendMessage(&msg);
 }
 
-void VirtualLpp::sendMidi(u8 port, u8 status, u8 data1, u8 data2)
+void VirtualLpp::sendMidi(uint8_t port, uint8_t status, uint8_t data1, uint8_t data2)
 {
     vector<unsigned char> msg {status, data1, data2};
     midiOut.getOutPort()->sendMessage(&msg);
 }
 
-void VirtualLpp::sendSysex(u8 port, const u8* data, u16 length)
+void VirtualLpp::sendSysex(uint8_t port, const uint8_t* data, uint16_t length)
 {
     
+}
+
+void VirtualLpp::readFlash(uint32_t offset, uint8_t* data, uint32_t length)
+{
+    for (int i = 0; i < length; i++)
+    {
+        data[i] = userArea[i + offset];
+    }
+}
+
+void VirtualLpp::writeFlash(uint32_t offset, const uint8_t* data, uint32_t length)
+{
+    for (int i = 0; i < length; i++)
+    {
+        userArea[i + offset] = data[i];
+    }
 }
 
 void VirtualLpp::receiveMidi(double timestamp, vector<unsigned char>* message, void* userData)
@@ -137,7 +162,7 @@ void VirtualLpp::receiveMidi(double timestamp, vector<unsigned char>* message, v
 
 void VirtualLpp::receiveMidiControl(double timestamp, vector<unsigned char>* message, void* userData)
 {
-    u8 type = (*message)[0] & 0xF0;
+    uint8_t type = (*message)[0] & 0xF0;
     if (type == NOTEON)
     {
         pads[(*message)[1]].press((*message)[2], false);
@@ -276,4 +301,21 @@ int VirtualLpp::pixelToIndex(int px, int py, int* v)
     }
 
     return y * ROW_SIZE + x;
+}
+
+void VirtualLpp::loadUserArea()
+{
+    auto path = getHomeDirectory() / ".virtual_lpp_user_area";
+    auto stream = ifstream(path.string(), ios::binary);
+    if (stream.is_open())
+    {
+        stream.read((char*)&userArea[0], USER_AREA_SIZE);
+    }
+}
+
+void VirtualLpp::saveUserArea()
+{
+    auto path = getHomeDirectory() / ".virtual_lpp_user_area";
+    auto stream = ofstream(path.string(), ios::binary);
+    stream.write((char*)&userArea[0], USER_AREA_SIZE);
 }

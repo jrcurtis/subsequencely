@@ -110,7 +110,7 @@ void hal_send_sysex(uint8_t port, const uint8_t* data, uint16_t length);
  * Note that your first ever read from a new device will contain 0xFF's until
  * you overwrite them.
  */
-void hal_read_flash(u32 offset, u8 *data, u32 length);
+void hal_read_flash(uint32_t offset, uint8_t *data, uint32_t length);
 
 /**
  * Write data to flash
@@ -124,7 +124,7 @@ void hal_read_flash(u32 offset, u8 *data, u32 length);
  *
  * Attempts to write beyond the end of the block will fail silently
  */
-void hal_write_flash(u32 offset,const u8 *data, u32 length);
+void hal_write_flash(uint32_t offset,const uint8_t *data, uint32_t length);
 
 // ____________________________________________________________________________
 //

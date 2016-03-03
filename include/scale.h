@@ -24,7 +24,12 @@ typedef struct
 /// Initializes the scale data to a chromatic scale.
 void scale_init(Scale* s);
 
+/// Returns true or false depending on whether then nth note (counted from the
+/// root note) is contained in the scale.
 uint8_t scale_contains_note(Scale* s, uint8_t note);
+
+/// Sets all the notes of the scale at once.
+void scale_set_notes(Scale* s, uint16_t notes);
 
 /// Toggles the nth note in the scale. Automatically updates num_notes and
 /// offsets.

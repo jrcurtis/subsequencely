@@ -311,6 +311,8 @@ void app_init()
 
     lp_mod_wheel = 0;
 
+    deserialize_app();
+
     set_state(LP_NOTES_MODE, 0);
 #else
     for (uint8_t i = 0; i < 100; i++)

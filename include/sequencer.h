@@ -51,6 +51,9 @@ void sequencer_set_tempo_millis(Sequencer* sr, uint8_t millis);
 /// Sets the tempo in beats per minute.
 void sequencer_set_tempo(Sequencer* sr, uint8_t bpm);
 
+/// Sets the swing in absolute milliseconds.
+void sequencer_set_swing_millis(Sequencer* sr, int8_t swing_millis);
+
 /// Sets the swing in 6ths of a step (positive or negative).
 void sequencer_set_swing(Sequencer* sr, int8_t swing);
 

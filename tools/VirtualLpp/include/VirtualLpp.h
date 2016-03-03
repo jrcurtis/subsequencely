@@ -6,6 +6,7 @@
 #include <array>
 
 #include "cinder/Cinder.h"
+#include "cinder/Utilities.h"
 #include "cinder/gl/gl.h"
 #include "RtMidi.h"
 
@@ -26,15 +27,18 @@ public:
     static const char* VIRTUAL_OUT_NAME;
 
     VirtualLpp(int width=300);
+    ~VirtualLpp();
 
     static VirtualLpp* getInstance()
     {
         return VirtualLpp::instance;
     }
 
-    void plotLed(u8 type, u8 index, u8 red, u8 green, u8 blue);
-    void sendMidi(u8 port, u8 status, u8 data1, u8 data2);
-    void sendSysex(u8 port, const u8* data, u16 length);
+    void plotLed(uint8_t type, uint8_t index, uint8_t red, uint8_t green, uint8_t blue);
+    void sendMidi(uint8_t port, uint8_t status, uint8_t data1, uint8_t data2);
+    void sendSysex(uint8_t port, const uint8_t* data, uint16_t length);
+    void readFlash(uint32_t offset, uint8_t* data, uint32_t length);
+    void writeFlash(uint32_t offset, const uint8_t* data, uint32_t length);
 
     void update();
     void draw();
@@ -58,6 +62,9 @@ private:
 
     int pixelToIndex(int x, int y, int* v=nullptr);
 
+    void loadUserArea();
+    void saveUserArea();
+
     Rectd lpRect;
     float padSize;
     float padPadding;
@@ -72,4 +79,5 @@ private:
     shared_ptr<RtMidiIn> midiControlIn;
     
     array<VirtualPad, LP_LAST_BUTTON + 1> pads;
+    array<uint8_t, USER_AREA_SIZE> userArea;
 };

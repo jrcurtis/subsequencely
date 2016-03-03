@@ -64,6 +64,11 @@ void sequencer_set_tempo(Sequencer* sr, uint8_t bpm)
     sequencer_set_tempo_millis(sr, bpm_to_millis(bpm));
 }
 
+void sequencer_set_swing_millis(Sequencer* sr, int8_t swing_millis)
+{
+    sr->swing_millis = swing_millis;
+}
+
 void sequencer_set_swing(Sequencer* sr, int8_t swing)
 {
     sr->swing_millis = sr->step_millis * swing / 6;

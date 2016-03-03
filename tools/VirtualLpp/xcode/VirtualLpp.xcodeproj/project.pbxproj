@@ -17,6 +17,7 @@
 		00B9955A1B128DF400A5C623 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B995581B128DF400A5C623 /* IOKit.framework */; };
 		00B9955B1B128DF400A5C623 /* IOSurface.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B995591B128DF400A5C623 /* IOSurface.framework */; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
+		8C00B3D11C86DEEF0009E9A5 /* serializer.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C00B3D01C86DEEF0009E9A5 /* serializer.c */; };
 		8C27CEB61BDAF25800F415F5 /* control_bank.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C27CEB51BDAF25800F415F5 /* control_bank.c */; };
 		8C27CEB91BDB555000F415F5 /* seq.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C27CEB81BDB555000F415F5 /* seq.c */; };
 		8C2CC7A41BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C2CC7A21BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp */; };
@@ -68,6 +69,8 @@
 		450E15B07B6049D29E23AF2B /* CinderApp.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = CinderApp.icns; path = ../resources/CinderApp.icns; sourceTree = "<group>"; };
 		5323E6B10EAFCA74003A9687 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = /System/Library/Frameworks/CoreVideo.framework; sourceTree = "<absolute>"; };
 		63433217FDB540E9A4DD1DDC /* VirtualLppApp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = VirtualLppApp.cpp; path = ../src/VirtualLppApp.cpp; sourceTree = "<group>"; };
+		8C00B3CF1C86DEDF0009E9A5 /* serializer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = serializer.h; path = ../../../include/serializer.h; sourceTree = "<group>"; };
+		8C00B3D01C86DEEF0009E9A5 /* serializer.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = serializer.c; path = ../../../src/serializer.c; sourceTree = "<group>"; };
 		8C27CEB41BDAF24900F415F5 /* control_bank.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = control_bank.h; path = ../../../include/control_bank.h; sourceTree = "<group>"; };
 		8C27CEB51BDAF25800F415F5 /* control_bank.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = control_bank.c; path = ../../../src/control_bank.c; sourceTree = "<group>"; };
 		8C27CEB71BDB26E000F415F5 /* interface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface.h; path = ../../../include/interface.h; sourceTree = "<group>"; };
@@ -164,6 +167,7 @@
 		080E96DDFE201D6D7F000001 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				8C00B3D01C86DEEF0009E9A5 /* serializer.c */,
 				8CF68E351C82C59700BC5D1F /* MidiConnection.cpp */,
 				8CB76CB91BE959F200EF166E /* mod_wheel.c */,
 				8C27CEB81BDB555000F415F5 /* seq.c */,
@@ -242,6 +246,7 @@
 		29B97315FDCFA39411CA2CEA /* Headers */ = {
 			isa = PBXGroup;
 			children = (
+				8C00B3CF1C86DEDF0009E9A5 /* serializer.h */,
 				8CF68E341C82C58900BC5D1F /* MidiConnection.h */,
 				8CB76CBB1BE959FF00EF166E /* mod_wheel.h */,
 				8C27CEBA1BDB57D400F415F5 /* data.h */,
@@ -394,6 +399,7 @@
 				8C4FBD281BCE04560030F8F9 /* slider.c in Sources */,
 				8CC751761BD0F08C005CD976 /* voices.c in Sources */,
 				8C4FBD251BCE04560030F8F9 /* layout.c in Sources */,
+				8C00B3D11C86DEEF0009E9A5 /* serializer.c in Sources */,
 				8C64BB3F1BCEEBD800E0D655 /* VirtualPad.cpp in Sources */,
 				8CB76CBA1BE959F200EF166E /* mod_wheel.c in Sources */,
 				8C27CEB61BDAF25800F415F5 /* control_bank.c in Sources */,

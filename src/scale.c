@@ -42,6 +42,20 @@ uint8_t scale_contains_note(Scale* s, uint8_t note)
     return flag_is_set(s->notes, 1 << note);
 }
 
+void scale_set_notes(Scale* s, uint16_t notes)
+{
+    s->notes = notes;
+    s->num_notes = 0;
+
+    for (uint8_t i = 0; i < NUM_NOTES; i++)
+    {
+        s->num_notes += notes & 1;
+        notes >>= 1;
+    }
+
+    scale_update_offsets(s);
+}
+
 void scale_toggle_note(Scale* s, uint8_t note)
 {
     if (note < 1 || note >= NUM_NOTES)

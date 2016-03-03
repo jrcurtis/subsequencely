@@ -16,3 +16,13 @@ void hal_send_sysex(uint8_t port, const uint8_t* data, uint16_t length)
 {
     VirtualLpp::getInstance()->sendSysex(port, data, length);
 }
+
+void hal_read_flash(uint32_t offset, uint8_t *data, uint32_t length)
+{
+    VirtualLpp::getInstance()->readFlash(offset, data, length);
+}
+
+void hal_write_flash(uint32_t offset,const uint8_t *data, uint32_t length)
+{
+    VirtualLpp::getInstance()->writeFlash(offset, data, length);
+}
