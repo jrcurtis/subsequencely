@@ -200,7 +200,15 @@ void deserialize_app()
     for (uint8_t i = 0; i < GRID_SIZE; i++)
     {
         Sequence* s = &lp_sequencer.sequences[i];
-        read_bytes(s->flags);
+
+        // Some flags don't make sense to restore, or would require extra
+        // work to avoid creating an inconsistent state on load.
+        const uint16_t bad_flags =
+            SEQ_PLAYING | SEQ_SOLOED | SEQ_QUEUED_MASK
+            | SEQ_ACTIVE | SEQ_DID_RECORD_AHEAD;
+        read_bytes(temp16);
+        s->flags = (s->flags & bad_flags) | (temp16 & ~bad_flags);
+
         read_bytes(s->layout.root_note);
         read_bytes(s->layout.octave);
         read_bytes(s->layout.row_offset);
