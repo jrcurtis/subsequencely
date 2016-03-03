@@ -90,7 +90,7 @@ void session_mode_become_inactive()
 
 void session_setup_become_active()
 {
-    
+    plot_pad(SAVE_BUTTON_INDEX, number_colors[0]);
 } 
 
 void session_setup_become_inactive()
@@ -149,7 +149,25 @@ uint8_t session_setup_handle_press(uint8_t index, uint8_t value)
         }
     }
 
-    return 0;
+    if (index == SAVE_BUTTON_INDEX)
+    {
+        if (value > 0)
+        {
+            plot_pad(SAVE_BUTTON_INDEX, on_color);
+            serialize_app();
+        }
+        else
+        {
+            plot_pad(SAVE_BUTTON_INDEX, number_colors[1]);
+        }
+    }
+    else
+    {
+        return 0;
+    }
+
+
+    return 1;
 }
 
 void sequencer_mode_become_active()
@@ -540,8 +558,6 @@ uint8_t user_setup_handle_press(uint8_t index, uint8_t value)
 
 void set_state(LpState st, uint8_t setup)
 {
-    serialize_app();
-    
     if (lp_state == st && flag_is_set(lp_flags, LP_IS_SETUP) == setup)
     {
         return;

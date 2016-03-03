@@ -20,6 +20,8 @@
 #define CHANNEL_BITS               (4)
 #define CHANNEL_X                  (4)
 
+#define SAVE_BUTTON_INDEX          (81)
+
 #define CHECKBOX_ROW               (7)
 #define CHECKBOX_ROW_INDEX         (81)
 #define CHECKBOX_CHECKBOX_X        (0)
