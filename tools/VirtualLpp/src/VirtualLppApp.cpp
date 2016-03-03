@@ -264,8 +264,8 @@ void VirtualLppApp::drawSidePanel()
         }
     }
 
-    drawMidiConnectionMenu("Midi In", lpp.getMidiIn());
-    drawMidiConnectionMenu("Midi Out", lpp.getMidiOut());
+    // drawMidiConnectionMenu("Midi In", lpp.getMidiIn());
+    // drawMidiConnectionMenu("Midi Out", lpp.getMidiOut());
 
     ImGui::End();
 }
