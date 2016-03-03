@@ -21,6 +21,7 @@
 #define CHANNEL_X                  (4)
 
 #define SAVE_BUTTON_INDEX          (81)
+#define CLEAR_BUTTON_INDEX         (11)
 
 #define CHECKBOX_ROW               (7)
 #define CHECKBOX_ROW_INDEX         (81)

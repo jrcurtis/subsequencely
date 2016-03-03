@@ -90,7 +90,8 @@ void session_mode_become_inactive()
 
 void session_setup_become_active()
 {
-    plot_pad(SAVE_BUTTON_INDEX, number_colors[0]);
+    plot_pad(SAVE_BUTTON_INDEX, number_colors[1]);
+    plot_pad(CLEAR_BUTTON_INDEX, number_colors[1]);
 } 
 
 void session_setup_become_inactive()
@@ -158,7 +159,19 @@ uint8_t session_setup_handle_press(uint8_t index, uint8_t value)
         }
         else
         {
-            plot_pad(SAVE_BUTTON_INDEX, number_colors[1]);
+            plot_pad(SAVE_BUTTON_INDEX, number_colors[2]);
+        }
+    }
+    else if (index == CLEAR_BUTTON_INDEX)
+    {
+        if (value > 0)
+        {
+            plot_pad(CLEAR_BUTTON_INDEX, on_color);
+            serialize_clear();
+        }
+        else
+        {
+            plot_pad(CLEAR_BUTTON_INDEX, number_colors[0]);
         }
     }
     else

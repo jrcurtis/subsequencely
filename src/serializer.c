@@ -84,6 +84,25 @@ const uint16_t DATA_VERSION = 1;
 #define read_bytes(d)   { hal_read_flash(offset, (uint8_t*)&(d), sizeof(d));   \
                           offset += sizeof(d); }
 
+uint8_t is_data_saved()
+{
+    uint16_t temp;
+
+    hal_read_flash(0, (uint8_t*)&temp, sizeof(temp));
+    if (temp != APP_ID)
+    {
+        return 0;
+    }
+
+    hal_read_flash(sizeof(temp), (uint8_t*)&temp, sizeof(temp));
+    if (temp != DATA_VERSION)
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
 /*******************************************************************************
  * Serializer
  ******************************************************************************/
@@ -138,27 +157,32 @@ void serialize_app()
     write_bytes(lp_note_bank);
 }
 
+void serialize_clear()
+{
+    if (!is_data_saved())
+    {
+        return;
+    }
+
+    uint16_t temp = 0;
+    hal_write_flash(0, (uint8_t*)&temp, sizeof(temp));
+    hal_write_flash(sizeof(temp), (uint8_t*)&temp, sizeof(temp));
+}
+
 /*******************************************************************************
  * Deserializer
  ******************************************************************************/
 
 void deserialize_app()
 {
-    uint32_t offset = 0;
+    if (!is_data_saved())
+    {
+        return;
+    }
+
+    uint32_t offset = sizeof(APP_ID) + sizeof(DATA_VERSION);
     uint16_t temp16 = 0;
     uint8_t temp8 = 0;
-
-    read_bytes(temp16);
-    if (temp16 != APP_ID)
-    {
-        return;
-    }
-
-    read_bytes(temp16);
-    if (temp16 != DATA_VERSION)
-    {
-        return;
-    }
 
     read_bytes(lp_midi_port);
     read_bytes(lp_rcv_clock_port);
