@@ -11,9 +11,16 @@
 #include <cinder/gl/gl.h>
 #include "imgui_impl_cinder_gl3.h"
 
+enum ImGui_ImplCinder_MouseState
+{
+    MouseState_None,
+    MouseState_Pressed,
+    MouseState_Released
+};
+
 // Data
 static double       g_Time = 0.0f;
-static bool         g_MousePressed[3] = { false, false, false };
+static ImGui_ImplCinder_MouseState g_MousePressed[3] = { MouseState_None, MouseState_None, MouseState_None };
 static ImVec2       g_MousePos;
 static float        g_MouseWheel = 0.0f;
 static GLuint       g_FontTexture = 0;
@@ -90,7 +97,7 @@ void ImGui_ImplCinder_RenderDrawLists(ImDrawData* draw_data)
             {
                 glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
                 glScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
-                glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, GL_UNSIGNED_SHORT, idx_buffer_offset);
+                glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer_offset);
             }
             idx_buffer_offset += pcmd->ElemCount;
         }
@@ -122,12 +129,13 @@ static void ImGui_ImplCinder_SetClipboardText(const char* text)
 
 void ImGui_ImplCinder_MouseButtonCallback(ci::app::MouseEvent e, bool isDown)
 {
+    ImGui_ImplCinder_MouseState state = isDown ? MouseState_Pressed : MouseState_Released;
     if (e.isLeft())
-        g_MousePressed[0] = isDown;
+        g_MousePressed[0] = state;
     else if (e.isRight())
-        g_MousePressed[1] = isDown;
+        g_MousePressed[1] = state;
     else if (e.isMiddle())
-        g_MousePressed[2] = isDown;
+        g_MousePressed[2] = state;
 }
 
 void ImGui_ImplCinder_MouseMoveCallback(ci::app::MouseEvent e)
@@ -159,7 +167,7 @@ void ImGui_ImplCinder_CharCallback(ci::app::KeyEvent e)
         io.AddInputCharacter((unsigned short)e.getCharUtf32());
 }
 
-void ImGui_ImplCinder_CreateFontsTexture()
+bool ImGui_ImplCinder_CreateFontsTexture()
 {
     ImGuiIO& io = ImGui::GetIO();
 
@@ -169,6 +177,8 @@ void ImGui_ImplCinder_CreateFontsTexture()
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bits for OpenGL3 demo because it is more likely to be compatible with user's existing shader.
 
 	// Create OpenGL texture
+    GLint last_texture;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
     glGenTextures(1, &g_FontTexture);
     glBindTexture(GL_TEXTURE_2D, g_FontTexture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -178,9 +188,9 @@ void ImGui_ImplCinder_CreateFontsTexture()
     // Store our identifier
     io.Fonts->TexID = (void *)(intptr_t)g_FontTexture;
 
-    // Cleanup (don't clear the input data if you want to append new fonts later)
-    io.Fonts->ClearInputData();
-    io.Fonts->ClearTexData();
+    glBindTexture(GL_TEXTURE_2D, last_texture);
+
+    return true;
 }
 
 bool ImGui_ImplCinder_CreateDeviceObjects()
@@ -260,6 +270,32 @@ bool ImGui_ImplCinder_CreateDeviceObjects()
     return true;
 }
 
+void ImGui_ImplCinder_InvalidateDeviceObjects()
+{
+    if (g_VaoHandle) glDeleteVertexArrays(1, &g_VaoHandle);
+    if (g_VboHandle) glDeleteBuffers(1, &g_VboHandle);
+    if (g_ElementsHandle) glDeleteBuffers(1, &g_ElementsHandle);
+    g_VaoHandle = g_VboHandle = g_ElementsHandle = 0;
+
+    glDetachShader(g_ShaderHandle, g_VertHandle);
+    glDeleteShader(g_VertHandle);
+    g_VertHandle = 0;
+
+    glDetachShader(g_ShaderHandle, g_FragHandle);
+    glDeleteShader(g_FragHandle);
+    g_FragHandle = 0;
+
+    glDeleteProgram(g_ShaderHandle);
+    g_ShaderHandle = 0;
+
+    if (g_FontTexture)
+    {
+        glDeleteTextures(1, &g_FontTexture);
+        ImGui::GetIO().Fonts->TexID = 0;
+        g_FontTexture = 0;
+    }
+}
+
 bool    ImGui_ImplCinder_Init(bool install_callbacks)
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -321,28 +357,7 @@ bool    ImGui_ImplCinder_Init(bool install_callbacks)
 
 void ImGui_ImplCinder_Shutdown()
 {
-    if (g_VaoHandle) glDeleteVertexArrays(1, &g_VaoHandle);
-    if (g_VboHandle) glDeleteBuffers(1, &g_VboHandle);
-    if (g_ElementsHandle) glDeleteBuffers(1, &g_ElementsHandle);
-    g_VaoHandle = g_VboHandle = g_ElementsHandle = 0;
-
-    glDetachShader(g_ShaderHandle, g_VertHandle);
-    glDeleteShader(g_VertHandle);
-    g_VertHandle = 0;
-
-    glDetachShader(g_ShaderHandle, g_FragHandle);
-    glDeleteShader(g_FragHandle);
-    g_FragHandle = 0;
-
-    glDeleteProgram(g_ShaderHandle);
-    g_ShaderHandle = 0;
-
-    if (g_FontTexture)
-    {
-        glDeleteTextures(1, &g_FontTexture);
-        ImGui::GetIO().Fonts->TexID = 0;
-        g_FontTexture = 0;
-    }
+    ImGui_ImplCinder_InvalidateDeviceObjects();
     ImGui::Shutdown();
 }
 
@@ -384,8 +399,11 @@ void ImGui_ImplCinder_NewFrame()
 
     for (int i = 0; i < 3; i++)
     {
-        io.MouseDown[i] = g_MousePressed[i];    // If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
-        //g_MousePressed[i] = false;
+        io.MouseDown[i] = g_MousePressed[i] != MouseState_None; // If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
+        if (g_MousePressed[i] == MouseState_Released)
+        {
+            g_MousePressed[i] = MouseState_None;
+        }
     }
 
     io.MouseWheel = g_MouseWheel;
