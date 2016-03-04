@@ -386,6 +386,39 @@ void sequence_transpose(Sequence* s, int8_t amt)
     }
 }
 
+void sequence_arpeggiate(Sequence* s, uint8_t pingpong)
+{
+    uint8_t i;
+    uint8_t num_voices = voices_get_num_active(&lp_voices);
+
+    for (i = 0; i < num_voices; i++)
+    {
+        Note* n = &s->notes[i];
+        n->note_number = lp_voices.voices[i].note_number;
+        n->velocity = 0x7F;
+        n->flags = 0x00;
+    }
+
+    if (pingpong)
+    {
+        for (; i < 2 * num_voices - 2; i++)
+        {
+            Note* n = &s->notes[i];
+            uint8_t pong_i = 2 * num_voices - i - 2;
+            n->note_number = lp_voices.voices[pong_i].note_number;
+            n->velocity = 0x7F;
+            n->flags = 0x00;
+        }
+    }
+
+    for (; i < SEQUENCE_LENGTH; i++)
+    {
+        Note* n = &s->notes[i];
+        note_init(n);
+        n->flags = NTE_SKIP;
+    }
+}
+
 void sequence_set_skip(Sequence* s, uint8_t step, uint8_t skip)
 {
     Note* n = sequence_get_note(s, step);
@@ -708,6 +741,10 @@ uint8_t sequence_handle_press(Sequence* s, uint8_t index, uint8_t value)
     else if (index == LP_UNDO)
     {
         sequence_reverse(s);
+    }
+    else if (index == LP_RECORD)
+    {
+        sequence_arpeggiate(s, modifier_held(LP_SHIFT));
     }
     else
     {
