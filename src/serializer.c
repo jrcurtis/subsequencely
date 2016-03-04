@@ -78,11 +78,11 @@ const uint16_t DATA_VERSION = 1;
  * Utility
  ******************************************************************************/
 
-#define write_bytes(d)  { hal_write_flash(offset, (uint8_t*)&(d), sizeof(d));  \
-                          offset += sizeof(d); }
+#define write_bytes(d)   hal_write_flash(offset, (uint8_t*)&(d), sizeof(d));  \
+                         offset += sizeof(d); 
 
-#define read_bytes(d)   { hal_read_flash(offset, (uint8_t*)&(d), sizeof(d));   \
-                          offset += sizeof(d); }
+#define read_bytes(d)    hal_read_flash(offset, (uint8_t*)&(d), sizeof(d));   \
+                         offset += sizeof(d);
 
 uint8_t is_data_saved()
 {
