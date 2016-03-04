@@ -702,7 +702,7 @@ uint8_t sequence_handle_press(Sequence* s, uint8_t index, uint8_t value)
     if (note_number > -1)
     {
         uint8_t channel = sequence_get_channel(s, note_number);
-        uint8_t midi_message;
+        uint8_t midi_message = 0;
 
         if (value > 0)
         {
@@ -710,18 +710,25 @@ uint8_t sequence_handle_press(Sequence* s, uint8_t index, uint8_t value)
             voices_add(&lp_voices, note_number, value);
             sequence_handle_record(s, 1);
         }
-        else
+        else if (!modifier_held(LP_SHIFT))
         {
             midi_message = NOTEOFF;
             voices_remove(&lp_voices, note_number);
         }
 
-        send_midi(
-            midi_message | channel,
-            note_number,
-            flag_is_set(s->flags, SEQ_FULL_VELOCITY) ? 127 : value);
+        if (midi_message != 0)
+        {
+            send_midi(
+                midi_message | channel,
+                note_number,
+                flag_is_set(s->flags, SEQ_FULL_VELOCITY) ? 127 : value);
+        }
 
         layout_light_note(&s->layout, note_number, value > 0);
+    }
+    else if (index == LP_SHIFT && value == 0)
+    {
+        sequence_kill_voices(s);
     }
     else if (value == 0)
     {
