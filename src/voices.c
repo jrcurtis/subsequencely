@@ -4,6 +4,7 @@
 void voices_init(Voices* vs)
 {
     vs->num_active = 0;
+    vs->num_sustained = 0;
     vs->velocity = 0;
     vs->aftertouch = 0;
 
@@ -59,6 +60,29 @@ void voices_remove(Voices* vs, uint8_t note_number)
     vs->aftertouch = max_aftertouch;
 }
 
+void voices_sustain(Voices* vs, uint8_t enable)
+{
+    if (enable)
+    {
+        vs->num_sustained = vs->num_active;
+    }
+    else
+    {
+        vs->num_sustained = 0;
+    }
+}
+
+void voices_remove_sustained(Voices* vs)
+{
+    for (uint8_t i = 0; i < vs->num_active - vs->num_sustained; i++)
+    {
+        vs->voices[i] = vs->voices[i + vs->num_sustained];
+    }
+
+    vs->num_active -= vs->num_sustained;
+    vs->num_sustained = 0;
+}
+
 uint8_t voices_handle_aftertouch(Voices* vs, int8_t note_number, int8_t aftertouch)
 {
     int8_t max_aftertouch = aftertouch;
@@ -97,9 +121,28 @@ uint8_t voices_get_num_active(Voices* vs)
     return vs->num_active;
 }
 
+uint8_t voices_get_num_sustained(Voices* vs)
+{
+    return vs->num_sustained;
+}
+
+uint8_t voices_is_sustained(Voices* vs, uint8_t note_number)
+{
+    for (uint8_t i = 0; i < vs->num_sustained; i++)
+    {
+        if (vs->voices[i].note_number == note_number)
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 void voices_reset(Voices* vs)
 {
     vs->num_active = 0;
+    vs->num_sustained = 0;
     vs->velocity = 0;
     vs->aftertouch = 0;
 }

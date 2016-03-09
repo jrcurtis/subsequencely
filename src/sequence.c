@@ -314,9 +314,13 @@ void sequence_clear_notes(Sequence* s)
     }
 }
 
-void sequence_kill_voices(Sequence* s)
+void sequence_kill_voices(Sequence* s, uint8_t sustained)
 {
-    for (uint8_t i = 0; i < voices_get_num_active(&lp_voices); i++)
+    uint8_t num_voices = sustained
+        ? voices_get_num_sustained(&lp_voices)
+        : voices_get_num_active(&lp_voices);
+
+    for (uint8_t i = 0; i < num_voices; i++)
     {
         uint8_t note_number = lp_voices.voices[i].note_number;
         uint8_t channel = sequence_get_channel(s, note_number);
@@ -324,7 +328,14 @@ void sequence_kill_voices(Sequence* s)
         send_midi(NOTEOFF | channel, note_number, lp_voices.velocity);
     }
 
-    voices_reset(&lp_voices);
+    if (sustained)
+    {
+        voices_remove_sustained(&lp_voices);
+    }
+    else
+    {
+        voices_reset(&lp_voices);
+    }
 }
 
 void sequence_send_pitch_bend(Sequence* s)
@@ -710,7 +721,7 @@ uint8_t sequence_handle_press(Sequence* s, uint8_t index, uint8_t value)
             voices_add(&lp_voices, note_number, value);
             sequence_handle_record(s, 1);
         }
-        else if (!modifier_held(LP_SHIFT))
+        else if (!voices_is_sustained(&lp_voices, note_number))
         {
             midi_message = NOTEOFF;
             voices_remove(&lp_voices, note_number);
@@ -726,9 +737,17 @@ uint8_t sequence_handle_press(Sequence* s, uint8_t index, uint8_t value)
 
         layout_light_note(&s->layout, note_number, value > 0);
     }
-    else if (index == LP_SHIFT && value == 0)
+    else if (index == LP_SHIFT)
     {
-        sequence_kill_voices(s);
+        if (value > 0)
+        {
+            voices_sustain(&lp_voices, 1);
+        }
+        else
+        {
+            sequence_kill_voices(s, 1);
+            voices_sustain(&lp_voices, 0);
+        }
     }
     else if (value == 0)
     {

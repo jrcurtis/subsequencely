@@ -150,17 +150,12 @@ uint8_t session_setup_handle_press(uint8_t index, uint8_t value)
         }
     }
 
-    if (index == SAVE_BUTTON_INDEX)
+    if (index == SAVE_BUTTON_INDEX && value > 0)
     {
-        if (value > 0)
-        {
-            plot_pad(SAVE_BUTTON_INDEX, on_color);
-            serialize_app();
-        }
-        else
-        {
-            plot_pad(SAVE_BUTTON_INDEX, number_colors[2]);
-        }
+        clear_leds();
+        serialize_app();
+        session_setup_draw();
+        plot_pad(SAVE_BUTTON_INDEX, number_colors[2]);
     }
     else if (index == CLEAR_BUTTON_INDEX)
     {
@@ -324,7 +319,7 @@ void notes_mode_become_active()
 void notes_mode_become_inactive()
 {
     Sequence* s = sequencer_get_active(&lp_sequencer);
-    sequence_kill_voices(s);
+    sequence_kill_voices(s, 0);
 }
 
 void notes_setup_become_active()
@@ -377,7 +372,7 @@ uint8_t notes_mode_handle_press(uint8_t index, uint8_t value)
 
     if (layout_handle_transpose(l, index, value))
     {
-        sequence_kill_voices(s);
+        sequence_kill_voices(s, 0);
         layout_draw(l);
         keyboard_update_indices(&lp_keyboard);
     }
