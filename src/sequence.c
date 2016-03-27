@@ -150,24 +150,31 @@ void sequence_prepare_mod_wheel(Sequence* s)
 
 void sequence_kill_note(Sequence* s, Note* n)
 {
+    uint8_t active_note = n->note_number >= 0 && flag_is_set(n->flags, NTE_ON);
+
     // If this is the active sequence, live playing should preempt the
     // sequence, but any sequence notes that were already playing still need to
     // be turned off, and if an arpeggio is active, that needs to be handled.
-    if (flag_is_set(s->flags, SEQ_ACTIVE)
-        && lp_voices.num_active > 0
-        && flag_is_set(lp_flags, LP_IS_ARP))
+    if (flag_is_set(s->flags, SEQ_ACTIVE))
     {
-        uint8_t arp_index =
-            (lp_sequencer.step_counter + lp_voices.num_active - 1)
-            % lp_voices.num_active;
-        Note* arp_n = &lp_voices.voices[arp_index];
-        layout_light_note(&s->layout, arp_n->note_number, 0);
-        note_kill(arp_n, sequence_get_channel(s, n->note_number));
+        if (lp_voices.num_active > 0 && flag_is_set(lp_flags, LP_IS_ARP))
+        {
+            uint8_t arp_index =
+                (lp_sequencer.step_counter + lp_voices.num_active - 1)
+                % lp_voices.num_active;
+            Note* arp_n = &lp_voices.voices[arp_index];
+            layout_light_note(&s->layout, arp_n->note_number, 0);
+            note_kill(arp_n, sequence_get_channel(s, n->note_number));
+        }
+
+        if (active_note)
+        {
+            layout_light_note(&s->layout, n->note_number, 0);
+        }
     }
 
-    if (n->note_number >= 0 && flag_is_set(n->flags, NTE_ON))
+    if (active_note)
     {
-        layout_light_note(&s->layout, n->note_number, 0);
         note_kill(n, sequence_get_channel(s, n->note_number));
     }
 }
@@ -179,26 +186,37 @@ void sequence_kill_current_note(Sequence* s)
 
 void sequence_play_note(Sequence* s, Note* n)
 {
+    uint8_t active_note = n->note_number >= 0 && !flag_is_set(n->flags, NTE_ON);
+
     // If this is the active sequence, then any active live-played notes
-    // override the sequence, so don't turn them on or light them up.
-    if (flag_is_set(s->flags, SEQ_ACTIVE)
-        && lp_voices.num_active > 0)
+    // override the sequence, so don't turn them on or light them up. But if
+    // arpeggiator is on, then the arpeggio note acts as a stand-in for the
+    // normal sequence note.
+    if (flag_is_set(s->flags, SEQ_ACTIVE))
     {
-        if (flag_is_set(lp_flags, LP_IS_ARP))
+        if (lp_voices.num_active > 0)
         {
-            uint8_t arp_index = lp_sequencer.step_counter
-                % lp_voices.num_active;
-            n = &lp_voices.voices[arp_index];
+            if (flag_is_set(lp_flags, LP_IS_ARP))
+            {
+                uint8_t arp_index = lp_sequencer.step_counter
+                    % lp_voices.num_active;
+                n = &lp_voices.voices[arp_index];
+                active_note = 1;
+            }
+            else
+            {
+                return;
+            }
         }
-        else
+
+        if (active_note)
         {
-            return;
+            layout_light_note(&s->layout, n->note_number, 1);
         }
     }
 
-    if (n->note_number >= 0 && !flag_is_set(n->flags, NTE_ON))
+    if (active_note)
     {
-        layout_light_note(&s->layout, n->note_number, 1);
         note_play(n, sequence_get_channel(s, n->note_number),
                   flag_is_set(s->flags, SEQ_FULL_VELOCITY));
     }
