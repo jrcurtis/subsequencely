@@ -202,7 +202,6 @@ void deserialize_app()
 
     read_bytes(temp16);
     scale_set_notes(&lp_scale, temp16);
-    layout_assign_pads(&sequencer_get_active(&lp_sequencer)->layout);
 
     read_bytes(temp8);
     sequencer_set_tempo_millis(&lp_sequencer, temp8);
@@ -238,6 +237,8 @@ void deserialize_app()
         read_bytes(s->x);
         read_bytes(s->y);
     }
+
+    layout_assign_pads(&sequencer_get_active(&lp_sequencer)->layout);
 
     for (uint8_t i = 0; i < GRID_SIZE; i++)
     {
