@@ -155,7 +155,7 @@ void sequence_kill_note(Sequence* s, Note* n)
     // be turned off, and if an arpeggio is active, that needs to be handled.
     if (flag_is_set(s->flags, SEQ_ACTIVE)
         && lp_voices.num_active > 0
-        && lp_is_arp())
+        && flag_is_set(lp_flags, LP_IS_ARP))
     {
         uint8_t arp_index =
             (lp_sequencer.step_counter + lp_voices.num_active - 1)
@@ -184,7 +184,7 @@ void sequence_play_note(Sequence* s, Note* n)
     if (flag_is_set(s->flags, SEQ_ACTIVE)
         && lp_voices.num_active > 0)
     {
-        if (lp_is_arp())
+        if (flag_is_set(lp_flags, LP_IS_ARP))
         {
             uint8_t arp_index = lp_sequencer.step_counter
                 % lp_voices.num_active;
@@ -249,9 +249,10 @@ void sequence_kill_voices(Sequence* s, uint8_t sustained)
 
     for (uint8_t i = 0; i < num_voices; i++)
     {
-        uint8_t channel = sequence_get_channel(
-            s, lp_voices.voices[i].note_number);
-        note_kill(&lp_voices.voices[i], channel);
+        Note* n = &lp_voices.voices[i];
+        uint8_t channel = sequence_get_channel(s, n->note_number);
+        note_kill(n, channel);
+        layout_light_note(&s->layout, n->note_number, 0);
     }
 
     if (sustained)
@@ -523,7 +524,7 @@ void sequence_step(Sequence* s, uint8_t audible, uint8_t queue_flags)
             // a step ahead, then it was already heard when it was played
             // and doesn't need to be played again.
         }
-        else if (lp_is_arp() && lp_voices.num_active > 0)
+        else if (flag_is_set(lp_flags, LP_IS_ARP) && lp_voices.num_active > 0)
         {
             sequence_kill_note(s, n);
             sequence_play_note(s, next_n);
@@ -629,7 +630,7 @@ uint8_t sequence_handle_press(Sequence* s, uint8_t index, uint8_t value)
         {
             n = voices_add(&lp_voices, note_number, value);
 
-            if (!lp_is_arp())
+            if (!flag_is_set(lp_flags, LP_IS_ARP))
             {
                 Note* current_n = sequence_get_note(s, s->playhead);
                 sequence_kill_note(s, current_n);

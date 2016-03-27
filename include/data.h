@@ -33,22 +33,8 @@ typedef enum
     LP_ARMED          = 1 << 6,
     LP_RCV_CLOCK      = 1 << 7,
     LP_RCV_CLOCK_PORT = 1 << 8,
-    LP_ARP_MASK       = 0x3 << 9
+    LP_IS_ARP         = 1 << 9
 } LpFlags;
-
-#define LP_ARP_OFFSET (9)
-#define lp_is_arp()   (flag_is_set(lp_flags, LP_ARP_MASK))
-#define lp_get_arp()  (get_masked(lp_flags, LP_ARP_MASK, LP_ARP_OFFSET))
-#define lp_set_arp(m) (set_masked(lp_flags, LP_ARP_MASK, LP_ARP_OFFSET, (m)))
-
-typedef enum
-{
-    LP_ARP_OFF,
-    LP_ARP_ASC,
-    LP_ARP_PING,
-    LP_ARP_PLAYED,
-    LP_ARP_MAX
-} LpArpMode;
 
 /*******************************************************************************
  * Global data

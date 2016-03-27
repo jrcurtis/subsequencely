@@ -85,19 +85,15 @@ uint8_t arp_handle_press(uint8_t index, uint8_t value)
         return 0;
     }
 
-    uint8_t arp_mode = lp_get_arp();
-    arp_mode = (arp_mode + 1) % LP_ARP_MAX;
-    lp_flags = lp_set_arp(arp_mode);
+    lp_flags = toggle_flag(lp_flags, LP_IS_ARP);
 
     return 1;
 }
 
 void arp_draw()
 {
-    uint8_t arp_mode = lp_get_arp();
-    const uint8_t* color = arp_mode == LP_ARP_OFF
-        ? off_color : number_colors[arp_mode - 1];
-    plot_pad(LP_RECORD, color);
+    plot_pad(LP_RECORD,
+             flag_is_set(lp_flags, LP_IS_ARP) ? c_note_color : off_color);
 }
 
 void session_mode_become_active()

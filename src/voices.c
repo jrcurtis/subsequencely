@@ -1,4 +1,8 @@
 
+#include "data.h"
+#include "sequence.h"
+#include "sequencer.h"
+
 #include "voices.h"
 
 void voices_init(Voices* vs)
@@ -20,6 +24,10 @@ Note* voices_add(Voices* vs, uint8_t note_number, uint8_t velocity)
 {
     if (vs->num_active == NUM_VOICES)
     {
+        Sequence* s = sequencer_get_active(&lp_sequencer);
+        note_kill(&vs->voices[0],
+                  sequence_get_channel(s, vs->voices[0].note_number));
+
         for (uint8_t i = 0; i < NUM_VOICES - 1; i++)
         {
             vs->voices[i] = vs->voices[i + 1];
