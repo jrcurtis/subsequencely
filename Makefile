@@ -6,7 +6,7 @@ TOOLS = tools
 SOURCES += src/app.c src/scale.c src/layout.c src/keyboard.c src/colors.c      \
            src/util.c src/slider.c src/sequencer.c src/voices.c src/sequence.c \
            src/serializer.c src/session.c src/grid.c src/number.c              \
-           src/control_bank.c src/seq.c src/mod_wheel.c
+           src/control_bank.c src/seq.c src/mod_wheel.c src/note.c
            
 
 INCLUDES += -Iinclude -I

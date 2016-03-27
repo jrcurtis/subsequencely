@@ -3,71 +3,6 @@
 
 #include "sequence.h"
 
-
-/*******************************************************************************
- * Note functions
- ******************************************************************************/
-
-void note_init(Note* n)
-{
-    n->note_number = -1;
-    n->velocity = 0;
-    n->flags = 0x00;
-}
-
-void note_play(Note* n, uint8_t channel, uint8_t full_velocity)
-{
-    // Set the nte_on flag so that we remember to turn it off. Make sure that
-    // a 0 velocity note on is not sent, as it gets interpreted as a note off.
-    if (!flag_is_set(n->flags, NTE_ON))
-    {
-        n->flags = set_flag(n->flags, NTE_ON);
-        send_midi(
-            NOTEON | channel,
-            n->note_number,
-            full_velocity ? 127 : max(1, n->velocity));
-    }
-}
-
-void note_control(Note* n, Sequence* s)
-{
-    if (n->velocity != -1)
-    {
-        int8_t value = n->velocity;
-
-        if (value < -s->control_offset)
-        {
-            value = -s->control_offset;
-        }
-        else if (value > 127 - s->control_offset)
-        {
-            value = 127 - s->control_offset;
-        }
-
-        value = cc_div(
-            value,
-            s->control_sgn,
-            s->control_div,
-            s->control_offset);
-
-        send_midi(
-            CC | sequence_get_channel(s, n->note_number),
-            s->control_code,
-            value);
-    }
-}
-
-void note_kill(Note* n, uint8_t channel)
-{
-    if (flag_is_set(n->flags, NTE_ON))
-    {
-        n->flags = clear_flag(n->flags, NTE_ON);
-        send_midi(
-            NOTEOFF | channel,
-            n->note_number, n->velocity);
-    }
-}
-
 /*******************************************************************************
  * Sequence functions
  ******************************************************************************/
@@ -215,37 +150,26 @@ void sequence_prepare_mod_wheel(Sequence* s)
 
 void sequence_kill_note(Sequence* s, Note* n)
 {
-    if (n->note_number == -1)
-    {
-        return;
-    }
     // If this is the active sequence, live playing should preempt the
-    // sequence and live-played notes shouldn't be killed by the sequence.
-    else if (flag_is_set(s->flags, SEQ_ACTIVE))
+    // sequence, but any sequence notes that were already playing still need to
+    // be turned off, and if an arpeggio is active, that needs to be handled.
+    if (flag_is_set(s->flags, SEQ_ACTIVE)
+        && lp_voices.num_active > 0
+        && lp_is_arp())
     {
-        if (flag_is_set(n->flags, NTE_ON))
-        {
-            // If the user live-plays the same note the sequencer has already
-            // played, then don't send a note off, but do mark the note as being
-            // off, as it is the layout's responsibility to send the off
-            // message.
-            if (voices_get_newest(&lp_voices) == n->note_number)
-            {
-                n->flags = clear_flag(n->flags, NTE_ON);
-                return;
-            }
-            else
-            {
-                layout_light_note(&s->layout, n->note_number, 0);
-            }
-        }
-        else
-        {
-            return;
-        }
+        uint8_t arp_index =
+            (lp_sequencer.step_counter + lp_voices.num_active - 1)
+            % lp_voices.num_active;
+        Note* arp_n = &lp_voices.voices[arp_index];
+        layout_light_note(&s->layout, arp_n->note_number, 0);
+        note_kill(arp_n, sequence_get_channel(s, n->note_number));
     }
 
-    note_kill(n, sequence_get_channel(s, n->note_number));
+    if (n->note_number >= 0 && flag_is_set(n->flags, NTE_ON))
+    {
+        layout_light_note(&s->layout, n->note_number, 0);
+        note_kill(n, sequence_get_channel(s, n->note_number));
+    }
 }
 
 void sequence_kill_current_note(Sequence* s)
@@ -255,26 +179,29 @@ void sequence_kill_current_note(Sequence* s)
 
 void sequence_play_note(Sequence* s, Note* n)
 {
-    if (n->note_number == -1)
-    {
-        return;
-    }
     // If this is the active sequence, then any active live-played notes
     // override the sequence, so don't turn them on or light them up.
-    else if (flag_is_set(s->flags, SEQ_ACTIVE))
+    if (flag_is_set(s->flags, SEQ_ACTIVE)
+        && lp_voices.num_active > 0)
     {
-        if (voices_get_newest(&lp_voices) != -1)
+        if (lp_is_arp())
         {
-            return;
+            uint8_t arp_index = lp_sequencer.step_counter
+                % lp_voices.num_active;
+            n = &lp_voices.voices[arp_index];
         }
         else
         {
-           layout_light_note(&s->layout, n->note_number, 1);
+            return;
         }
     }
 
-    note_play(n, sequence_get_channel(s, n->note_number),
-              flag_is_set(s->flags, SEQ_FULL_VELOCITY));
+    if (n->note_number >= 0 && !flag_is_set(n->flags, NTE_ON))
+    {
+        layout_light_note(&s->layout, n->note_number, 1);
+        note_play(n, sequence_get_channel(s, n->note_number),
+                  flag_is_set(s->flags, SEQ_FULL_VELOCITY));
+    }
 }
 
 void sequence_play_current_note(Sequence* s)
@@ -322,10 +249,9 @@ void sequence_kill_voices(Sequence* s, uint8_t sustained)
 
     for (uint8_t i = 0; i < num_voices; i++)
     {
-        uint8_t note_number = lp_voices.voices[i].note_number;
-        uint8_t channel = sequence_get_channel(s, note_number);
-
-        send_midi(NOTEOFF | channel, note_number, lp_voices.velocity);
+        uint8_t channel = sequence_get_channel(
+            s, lp_voices.voices[i].note_number);
+        note_kill(&lp_voices.voices[i], channel);
     }
 
     if (sustained)
@@ -515,43 +441,35 @@ void sequence_reverse(Sequence* s)
 
 void sequence_handle_record(Sequence* s, uint8_t press)
 {
-    if (!flag_is_set(lp_flags, LP_ARMED)
+    if (lp_voices.num_active == 0
+        || !flag_is_set(lp_flags, LP_ARMED)
         || !flag_is_set(s->flags, SEQ_ACTIVE)
         || !flag_is_set(s->flags, SEQ_PLAYING))
     {
         return;
     }
 
-    uint16_t s_step_millis = s->clock_div * lp_sequencer.swung_step_millis;
-    uint8_t quantize_ahead = lp_sequencer.step_timer > (s_step_millis / 4);
+    Note* played_n = &lp_voices.voices[lp_voices.num_active - 1];
     Note* current_n = sequence_get_note(s, s->playhead);
-    Note* record_n = quantize_ahead
-        ? sequence_get_note(s, sequence_get_next_playhead(s))
-        : current_n;
-    int8_t played_note = voices_get_newest(&lp_voices);
+    Note* record_n = current_n;
+    uint8_t slide = 1;
 
-    if (played_note > -1)
+    if (press)
     {
-        if (press)
+        uint16_t s_step_millis = s->clock_div * lp_sequencer.swung_step_millis;
+        uint8_t quantize_ahead = lp_sequencer.step_timer > (s_step_millis / 4);
+        if (quantize_ahead)
         {
-            sequence_kill_note(s, current_n);
-
-            uint8_t slide = voices_get_num_active(&lp_voices) > 1;
-            record_n->flags = assign_flag(record_n->flags, NTE_SLIDE, slide);
-
-            s->flags = assign_flag(
-                s->flags, SEQ_DID_RECORD_AHEAD, quantize_ahead);
-
-            record_n->velocity = lp_voices.velocity;
-        }
-        else
-        {
-            current_n->flags = set_flag(current_n->flags, NTE_SLIDE);
-            record_n->velocity = lp_voices.aftertouch;
+            record_n = sequence_get_note(s, sequence_get_next_playhead(s));
+            s->flags = set_flag(s->flags, SEQ_DID_RECORD_AHEAD);
         }
 
-        record_n->note_number = played_note;
+        slide = voices_get_num_active(&lp_voices) > 1;
     }
+
+    record_n->flags = assign_flag(record_n->flags, NTE_SLIDE, slide);
+    record_n->velocity = played_n->velocity;
+    record_n->note_number = played_n->note_number;
 }
 
 void sequence_step(Sequence* s, uint8_t audible, uint8_t queue_flags)
@@ -605,29 +523,21 @@ void sequence_step(Sequence* s, uint8_t audible, uint8_t queue_flags)
             // a step ahead, then it was already heard when it was played
             // and doesn't need to be played again.
         }
-        else if (flag_is_set(n->flags, NTE_ON))
+        else if (lp_is_arp() && lp_voices.num_active > 0)
         {
-            if (flag_is_set(next_n->flags, NTE_SLIDE))
-            {
-                if (n->note_number == next_n->note_number)
-                {
-                    n->flags = clear_flag(n->flags, NTE_ON);
-                    next_n->flags = set_flag(next_n->flags, NTE_ON);
-                }
-                else
-                {
-                    sequence_play_note(s, next_n);
-                    sequence_kill_note(s, n);
-                }
-            }
-            else
-            {
-                sequence_kill_note(s, n);
-                sequence_play_note(s, next_n);
-            }
+            sequence_kill_note(s, n);
+            sequence_play_note(s, next_n);
+        }
+        else if (flag_is_set(n->flags, NTE_ON)
+                 && flag_is_set(next_n->flags, NTE_SLIDE)
+                 && n->note_number == next_n->note_number)
+        {
+            n->flags = clear_flag(n->flags, NTE_ON);
+            next_n->flags = set_flag(next_n->flags, NTE_ON);
         }
         else
         {
+            sequence_kill_note(s, n);
             sequence_play_note(s, next_n);
         }
 
@@ -713,29 +623,30 @@ uint8_t sequence_handle_press(Sequence* s, uint8_t index, uint8_t value)
     if (note_number > -1)
     {
         uint8_t channel = sequence_get_channel(s, note_number);
-        uint8_t midi_message = 0;
+        Note* n;
 
         if (value > 0)
         {
-            midi_message = NOTEON;
-            voices_add(&lp_voices, note_number, value);
-            sequence_handle_record(s, 1);
+            n = voices_add(&lp_voices, note_number, value);
+
+            if (!lp_is_arp())
+            {
+                Note* current_n = sequence_get_note(s, s->playhead);
+                sequence_kill_note(s, current_n);
+                note_play(n, channel,
+                          flag_is_set(s->flags, SEQ_FULL_VELOCITY));
+                layout_light_note(&s->layout, note_number, 1);
+
+                sequence_handle_record(s, 1);
+            }
         }
         else if (!voices_is_sustained(&lp_voices, note_number))
         {
-            midi_message = NOTEOFF;
-            voices_remove(&lp_voices, note_number);
+            n = voices_remove(&lp_voices, note_number);
+            note_kill(n, channel);
+            layout_light_note(&s->layout, note_number, 0);
         }
 
-        if (midi_message != 0)
-        {
-            send_midi(
-                midi_message | channel,
-                note_number,
-                flag_is_set(s->flags, SEQ_FULL_VELOCITY) ? 127 : value);
-        }
-
-        layout_light_note(&s->layout, note_number, value > 0);
     }
     else if (index == LP_SHIFT)
     {
@@ -767,10 +678,6 @@ uint8_t sequence_handle_press(Sequence* s, uint8_t index, uint8_t value)
     else if (index == LP_UNDO)
     {
         sequence_reverse(s);
-    }
-    else if (index == LP_RECORD)
-    {
-        sequence_arpeggiate(s, modifier_held(LP_SHIFT));
     }
     else
     {

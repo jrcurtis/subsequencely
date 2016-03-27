@@ -3,15 +3,10 @@
 #define VOICES_H
 
 #include "app.h"
+#include "note.h"
 #include "util.h"
 
 #define NUM_VOICES          (GRID_SIZE)
-
-typedef struct
-{
-    int8_t note_number;
-    int8_t aftertouch;
-} Voice;
 
 /// Voices manages keeping track of which notes are being held down, so that
 /// when one is released, the next most recent one can take over, and so that
@@ -23,17 +18,17 @@ typedef struct
     int8_t num_sustained;
     uint8_t velocity;
     int8_t aftertouch;
-    Voice voices[GRID_SIZE];
+    Note voices[NUM_VOICES];
 } Voices;
 
 /// Initializes voices to an empty state.
 void voices_init(Voices* vs);
 
 /// Called when a new note is pressed down.
-void voices_add(Voices* vs, uint8_t note_number, uint8_t velocity);
+Note* voices_add(Voices* vs, uint8_t note_number, uint8_t velocity);
 
 /// Called when a note is released.
-void voices_remove(Voices* vs, uint8_t note_number);
+Note* voices_remove(Voices* vs, uint8_t note_number);
 
 /// Enables or disables sustaining the voices that are currently active.
 void voices_sustain(Voices* vs, uint8_t enable);

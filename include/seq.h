@@ -30,6 +30,8 @@
  ******************************************************************************/
 
 uint8_t tap_tempo_handle_press(uint8_t index, uint8_t value);
+uint8_t arp_handle_press(uint8_t index, uint8_t value);
+void arp_draw();
 
 /// All the handlers for all the modes.
 

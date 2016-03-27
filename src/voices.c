@@ -11,11 +11,12 @@ void voices_init(Voices* vs)
     for (uint8_t i = 0; i < NUM_VOICES; i++)
     {
         vs->voices[i].note_number = -1;
-        vs->voices[i].aftertouch = 0;
+        vs->voices[i].velocity = 0;
+        vs->voices[i].flags = 0x00;
     }
 }
 
-void voices_add(Voices* vs, uint8_t note_number, uint8_t velocity)
+Note* voices_add(Voices* vs, uint8_t note_number, uint8_t velocity)
 {
     if (vs->num_active == NUM_VOICES)
     {
@@ -31,13 +32,17 @@ void voices_add(Voices* vs, uint8_t note_number, uint8_t velocity)
 
     vs->velocity = velocity;
     vs->voices[vs->num_active - 1].note_number = note_number;
-    vs->voices[vs->num_active - 1].aftertouch = 0;
+    vs->voices[vs->num_active - 1].velocity = velocity;
+    vs->voices[vs->num_active - 1].flags = 0x00;
+    return &vs->voices[vs->num_active - 1];
 }
 
-void voices_remove(Voices* vs, uint8_t note_number)
+Note* voices_remove(Voices* vs, uint8_t note_number)
 {
     int8_t max_aftertouch = 0;
     uint8_t removed = 0;
+    Note removed_note;
+
     for (uint8_t i = 0; i < vs->num_active; i++)
     {
         if (removed)
@@ -47,17 +52,20 @@ void voices_remove(Voices* vs, uint8_t note_number)
         else if (vs->voices[i].note_number == note_number)
         {
             removed = 1;
+            removed_note = vs->voices[i];
             continue;
         }
 
-        if (abs(vs->voices[i].aftertouch) > abs(max_aftertouch))
+        if (abs(vs->voices[i].velocity) > abs(max_aftertouch))
         {
-            max_aftertouch = vs->voices[i].aftertouch;
+            max_aftertouch = vs->voices[i].velocity;
         }
     }
 
     vs->num_active -= removed;
     vs->aftertouch = max_aftertouch;
+    vs->voices[NUM_VOICES - 1] = removed_note;
+    return &vs->voices[NUM_VOICES - 1];
 }
 
 void voices_sustain(Voices* vs, uint8_t enable)
@@ -91,12 +99,12 @@ uint8_t voices_handle_aftertouch(Voices* vs, int8_t note_number, int8_t aftertou
     {
         if (vs->voices[i].note_number == note_number)
         {
-            vs->voices[i].aftertouch = aftertouch;
+            vs->voices[i].velocity = aftertouch;
         }
 
-        if (abs(vs->voices[i].aftertouch) > abs(max_aftertouch))
+        if (abs(vs->voices[i].velocity) > abs(max_aftertouch))
         {
-            max_aftertouch = vs->voices[i].aftertouch;
+            max_aftertouch = vs->voices[i].velocity;
         }
     }
 

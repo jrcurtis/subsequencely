@@ -19,6 +19,12 @@
 #define SQR_COPY_SWAP    (0x80)
 #define SQR_COPY_MASK    (0x7F)
 
+/// The step counter is used to determine when to step clock divided sequences,
+/// and what note to play in arpeggios. Since clock divisions and number of
+/// notes in arpeggios may be anywhere from 1 to 8, the step counter wraps at
+/// the least common multiple of 2-8, so that all values can loop evenly.
+#define STEP_COUNTER_WRAP (840)
+
 typedef Sequence Sequences[GRID_SIZE];
 
 typedef struct
@@ -29,7 +35,7 @@ typedef struct
     int8_t swing_millis; // How many milliseconds of extra delay for swing notes.
     uint16_t swung_step_millis; // step_millis +/- swing_millis. Used to avoid repeatedly checking whether sequence is on a swing note.
     uint16_t step_timer; // Number of milliseconds since last step.
-    uint8_t step_counter; // Counts passing steps. Wraps at 8. Used for clock division.
+    uint16_t step_counter; // Counts passing steps. Wraps at 8. Used for clock division.
     uint8_t clock_timer; // Number of milliseconds since last midi clock message.
 
     // State

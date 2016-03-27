@@ -514,7 +514,7 @@ void sequencer_tick(Sequencer* sr, uint8_t clock_tick)
     sr->step_timer = 0;
     sr->clock_timer = 0;
     sr->step_counter++;
-    if (sr->step_counter >= GRID_SIZE)
+    if (sr->step_counter >= STEP_COUNTER_WRAP)
     {
         sr->step_counter = 0;
     }

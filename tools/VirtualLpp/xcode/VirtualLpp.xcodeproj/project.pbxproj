@@ -20,6 +20,7 @@
 		8C00B3D11C86DEEF0009E9A5 /* serializer.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C00B3D01C86DEEF0009E9A5 /* serializer.c */; };
 		8C27CEB61BDAF25800F415F5 /* control_bank.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C27CEB51BDAF25800F415F5 /* control_bank.c */; };
 		8C27CEB91BDB555000F415F5 /* seq.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C27CEB81BDB555000F415F5 /* seq.c */; };
+		8C2C920C1CA75EC600F2EC2E /* note.c in Sources */ = {isa = PBXBuildFile; fileRef = 8C2C920B1CA75EC600F2EC2E /* note.c */; };
 		8C2CC7A41BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C2CC7A21BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp */; };
 		8C42764F1BD2021100422293 /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4276471BD2021100422293 /* imgui_demo.cpp */; };
 		8C4276501BD2021100422293 /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C4276481BD2021100422293 /* imgui_draw.cpp */; };
@@ -76,6 +77,8 @@
 		8C27CEB71BDB26E000F415F5 /* interface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface.h; path = ../../../include/interface.h; sourceTree = "<group>"; };
 		8C27CEB81BDB555000F415F5 /* seq.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = seq.c; path = ../../../src/seq.c; sourceTree = "<group>"; };
 		8C27CEBA1BDB57D400F415F5 /* data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = data.h; path = ../../../include/data.h; sourceTree = "<group>"; };
+		8C2C920B1CA75EC600F2EC2E /* note.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = note.c; path = ../../../src/note.c; sourceTree = "<group>"; };
+		8C2C920D1CA75EEA00F2EC2E /* note.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = note.h; path = ../../../include/note.h; sourceTree = "<group>"; };
 		8C2CC7A21BD39108008EDAA0 /* imgui_impl_cinder_gl3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_impl_cinder_gl3.cpp; path = ../imgui/imgui_impl_cinder_gl3.cpp; sourceTree = "<group>"; };
 		8C2CC7A31BD39108008EDAA0 /* imgui_impl_cinder_gl3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui_impl_cinder_gl3.h; path = ../imgui/imgui_impl_cinder_gl3.h; sourceTree = "<group>"; };
 		8C4276461BD2021100422293 /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imconfig.h; path = ../imgui/imconfig.h; sourceTree = "<group>"; };
@@ -167,6 +170,7 @@
 		080E96DDFE201D6D7F000001 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				8C2C920B1CA75EC600F2EC2E /* note.c */,
 				8C00B3D01C86DEEF0009E9A5 /* serializer.c */,
 				8CF68E351C82C59700BC5D1F /* MidiConnection.cpp */,
 				8CB76CB91BE959F200EF166E /* mod_wheel.c */,
@@ -246,6 +250,7 @@
 		29B97315FDCFA39411CA2CEA /* Headers */ = {
 			isa = PBXGroup;
 			children = (
+				8C2C920D1CA75EEA00F2EC2E /* note.h */,
 				8C00B3CF1C86DEDF0009E9A5 /* serializer.h */,
 				8CF68E341C82C58900BC5D1F /* MidiConnection.h */,
 				8CB76CBB1BE959FF00EF166E /* mod_wheel.h */,
@@ -398,6 +403,7 @@
 				8C51F9B21BD5A3280032CE68 /* sequence.c in Sources */,
 				8C4FBD281BCE04560030F8F9 /* slider.c in Sources */,
 				8CC751761BD0F08C005CD976 /* voices.c in Sources */,
+				8C2C920C1CA75EC600F2EC2E /* note.c in Sources */,
 				8C4FBD251BCE04560030F8F9 /* layout.c in Sources */,
 				8C00B3D11C86DEEF0009E9A5 /* serializer.c in Sources */,
 				8C64BB3F1BCEEBD800E0D655 /* VirtualPad.cpp in Sources */,

@@ -49,6 +49,7 @@ void app_surface_event(uint8_t type, uint8_t index, uint8_t value)
     // The play buttons are active all the time, but they are drawn first
     // in case any mode needs to overwrite them with specific info.
     sequencer_play_draw(&lp_sequencer);
+    arp_draw();
 
     if (index == LP_SESSION)
     {
@@ -86,6 +87,7 @@ void app_surface_event(uint8_t type, uint8_t index, uint8_t value)
     // Don't let tap tempo be used when tempo is controlled by clock.
     else if (!flag_is_set(lp_flags, LP_RCV_CLOCK)
              && tap_tempo_handle_press(index, value)) { }
+    else if (arp_handle_press(index, value)) { }
     else if (!flag_is_set(lp_flags, LP_IS_SETUP))
     {
         if (lp_state == LP_SESSION_MODE)
@@ -310,6 +312,7 @@ void app_init()
     control_bank_init(&lp_user_control_bank);
 
     lp_mod_wheel = 0;
+    lp_flags = 0;
 
     deserialize_app();
 

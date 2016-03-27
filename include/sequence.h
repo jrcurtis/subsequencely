@@ -5,6 +5,7 @@
 #include "app.h"
 #include "layout.h"
 #include "mod_wheel.h"
+#include "note.h"
 
 #define zoom_to_sequence_x(sr)        (1 << (MAX_ZOOM - (sr)->zoom))
 
@@ -26,13 +27,6 @@
                                            ))
 
 #define mod_to_cc(m) ((mod_wheel_get_value((m)) >> (MW_BYTE_BITS - 1)) - 128)
-
-typedef enum
-{
-    NTE_ON = 1 << 0, // Set on when a note on is sent, and should always be turned off again!
-    NTE_SLIDE = 1 << 1, // Is this note tied to the previous, or individually articulated?
-    NTE_SKIP = 1 << 2 // Skip the playhead right over this note, taking 0 time.
-} NoteFlags;
 
 typedef enum
 {
@@ -62,17 +56,6 @@ typedef enum
 #define seq_set_queued(f, x) (set_masked(                                      \
                                   (f), SEQ_QUEUED_MASK, SEQ_QUEUED_OFFSET, (x)))
 
-/// The note storage structure for sequences. This used to store velocity and
-/// aftertouch separately, but had to be changed to save ram, so now velocity
-/// is recorded when a note is first pressed, but aftertouch is recorded into
-/// the velocity field while the note is held.
-typedef struct
-{
-    int8_t note_number;
-    int8_t velocity;
-    uint8_t flags;
-} Note;
-
 /// The number of notes needed for all 8 sequences. Two of these are used: one
 /// for the live sequences data, and one for extra storage.
 typedef Note NoteBank[GRID_SIZE * SEQUENCE_LENGTH];
@@ -98,9 +81,6 @@ typedef struct Sequence_
 
     Note* notes; // Pointer to the beginning of this sequence's notes in the NoteBank.
 } Sequence;
-
-/// Initializes note to empty/off.
-void note_init(Note* n);
 
 /// Initializes sequence to empty/off.
 void sequence_init(Sequence* s, uint8_t channel, Note* notes);
