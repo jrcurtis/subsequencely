@@ -1,4 +1,6 @@
 
+#include <string.h>
+
 #include "data.h"
 #include "scale.h"
 #include "sequencer.h"
@@ -6,9 +8,6 @@
 #include "control_bank.h"
 
 #include "serializer.h"
-
-const uint16_t APP_ID = ('S' << 8) | 'q';
-const uint16_t DATA_VERSION = 1;
 
 /*******************************************************************************
  * Data layout
@@ -19,6 +18,8 @@ const uint16_t DATA_VERSION = 1;
  * data_version                            2
  *                                   -------
  *                                         4
+ *
+ * lp_note_bank                          768
  *
  * lp_midi_port                            1
  * lp_rcv_clock_port                       1
@@ -67,8 +68,6 @@ const uint16_t DATA_VERSION = 1;
  *                                   -------
  *                                        18
  *
- * lp_note_bank                          768
- *
  *                                   =======
  *                                       916
  *
@@ -78,29 +77,39 @@ const uint16_t DATA_VERSION = 1;
  * Utility
  ******************************************************************************/
 
-#define write_bytes(d)   hal_write_flash(offset, (uint8_t*)&(d), sizeof(d));  \
+#define write_bytes(d)   memcpy(((uint8_t*)lp_note_storage) + offset, \
+                                (uint8_t*)&(d),                       \
+                                sizeof(d));                           \
                          offset += sizeof(d);
 
-#define read_bytes(d)    hal_read_flash(offset, (uint8_t*)&(d), sizeof(d));   \
+#define read_bytes(d)    memcpy((uint8_t*)&d,                         \
+                                ((uint8_t*)lp_note_storage) + offset, \
+                                sizeof(d));                           \
                          offset += sizeof(d);
 
 uint8_t is_data_saved()
 {
-    uint16_t temp;
+    uint32_t temp;
 
     hal_read_flash(0, (uint8_t*)&temp, sizeof(temp));
-    if (temp != APP_ID)
-    {
-        return 0;
-    }
-
-    hal_read_flash(sizeof(temp), (uint8_t*)&temp, sizeof(temp));
-    if (temp != DATA_VERSION)
+    if (temp != APP_HEADER)
     {
         return 0;
     }
 
     return 1;
+}
+
+// After the serializer has trashed the note storage bank, restore it with
+// empty notes.
+void reset_note_storage()
+{
+    for (uint16_t i = 0; i < GRID_SIZE * SEQUENCE_LENGTH; i++)
+    {
+        lp_note_storage[i].note_number = -1;
+        lp_note_storage[i].velocity = 0;
+        lp_note_storage[i].flags = 0x00;
+    }
 }
 
 /*******************************************************************************
@@ -111,8 +120,7 @@ void serialize_app()
 {
     uint32_t offset = 0;
 
-    write_bytes(APP_ID);
-    write_bytes(DATA_VERSION);
+    *lp_app_header = APP_HEADER;
 
     write_bytes(lp_midi_port);
     write_bytes(lp_rcv_clock_port);
@@ -154,7 +162,10 @@ void serialize_app()
     write_bytes(lp_user_control_bank.channel_numbers);
     write_bytes(lp_user_control_bank.bipolar_checkboxes);
 
-    write_bytes(lp_note_bank);
+    hal_write_flash(
+        0, lp_buffer, ((uint8_t*)lp_note_storage) + offset - lp_buffer);
+
+    reset_note_storage();
 }
 
 void serialize_clear()
@@ -164,9 +175,8 @@ void serialize_clear()
         return;
     }
 
-    uint16_t temp = 0;
+    uint32_t temp = 0;
     hal_write_flash(0, (uint8_t*)&temp, sizeof(temp));
-    hal_write_flash(sizeof(temp), (uint8_t*)&temp, sizeof(temp));
 }
 
 /*******************************************************************************
@@ -180,7 +190,9 @@ void deserialize_app()
         return;
     }
 
-    uint32_t offset = sizeof(APP_ID) + sizeof(DATA_VERSION);
+    hal_read_flash(0, lp_buffer, USER_AREA_SIZE);
+
+    uint32_t offset = 0;
     uint16_t temp16 = 0;
     uint8_t temp8 = 0;
 
@@ -190,6 +202,7 @@ void deserialize_app()
 
     read_bytes(temp16);
     scale_set_notes(&lp_scale, temp16);
+    layout_assign_pads(&sequencer_get_active(&lp_sequencer)->layout);
 
     read_bytes(temp8);
     sequencer_set_tempo_millis(&lp_sequencer, temp8);
@@ -236,6 +249,5 @@ void deserialize_app()
     read_bytes(lp_user_control_bank.channel_numbers);
     read_bytes(lp_user_control_bank.bipolar_checkboxes);
 
-    read_bytes(lp_note_bank);
-
+    reset_note_storage();
 }

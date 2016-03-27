@@ -18,11 +18,14 @@ uint16_t lp_tap_tempo_sum = 0;
 uint8_t lp_tap_tempo_counter = 0;
 
 // Data
+uint8_t lp_buffer[LP_BUFFER_SIZE];
+uint32_t* lp_app_header = (uint32_t*)lp_buffer;
+Note* lp_note_bank = (Note*)(lp_buffer + sizeof(uint32_t));
+Note* lp_note_storage = (Note*)(lp_buffer + sizeof(uint32_t)) + NOTE_BANK_SIZE;
+
 Scale lp_scale;
 Voices lp_voices;
 PadNotes lp_pad_notes;
-NoteBank lp_note_bank;
-NoteBank lp_note_storage;
 Sequencer lp_sequencer;
 
 // UI

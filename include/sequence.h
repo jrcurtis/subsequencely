@@ -56,10 +56,6 @@ typedef enum
 #define seq_set_queued(f, x) (set_masked(                                      \
                                   (f), SEQ_QUEUED_MASK, SEQ_QUEUED_OFFSET, (x)))
 
-/// The number of notes needed for all 8 sequences. Two of these are used: one
-/// for the live sequences data, and one for extra storage.
-typedef Note NoteBank[GRID_SIZE * SEQUENCE_LENGTH];
-
 typedef struct Sequence_
 {
     uint16_t flags;

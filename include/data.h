@@ -36,6 +36,19 @@ typedef enum
     LP_IS_ARP         = 1 << 9
 } LpFlags;
 
+/// The number of notes needed for all 8 sequences. Two of these are used: one
+/// for the live sequences data, and one for extra storage.
+#define NOTE_BANK_SIZE    (GRID_SIZE * SEQUENCE_LENGTH)
+
+/// The size of the block of memory where the app header, and the two note
+/// banks are stored, which is also used as a buffer for the serializer, which
+/// is why it needs to be declared as one block of memroy.
+#define LP_BUFFER_SIZE    (sizeof(uint32_t) + 2 * NOTE_BANK_SIZE * sizeof(Note))
+
+#define APP_ID        (('S' << 8) | 'q')
+#define DATA_VERSION  (2)
+#define APP_HEADER    ((APP_ID << 16) | (DATA_VERSION))
+
 /*******************************************************************************
  * Global data
  ******************************************************************************/
@@ -53,11 +66,14 @@ extern uint16_t lp_tap_tempo_sum;
 extern uint8_t lp_tap_tempo_counter;
 
 // Data
+extern uint8_t lp_buffer[LP_BUFFER_SIZE];
+extern uint32_t* lp_app_header;
+extern Note* lp_note_bank;
+extern Note* lp_note_storage;
+
 extern Scale lp_scale;
 extern Voices lp_voices;
 extern PadNotes lp_pad_notes;
-extern NoteBank lp_note_bank;
-extern NoteBank lp_note_storage;
 extern Sequencer lp_sequencer;
 
 // Setup UI elements

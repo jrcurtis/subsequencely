@@ -29,7 +29,7 @@ void note_init(Note* n);
 
 void note_play(Note* n, uint8_t channel, uint8_t full_velocity);
 
-void note_control(Note* n, Sequence_* s);
+void note_control(Note* n, struct Sequence_* s);
 
 void note_kill(Note* n, uint8_t channel);
 
