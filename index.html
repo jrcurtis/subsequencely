@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Subsequencely by jrcurtis</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-dark.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/jrcurtis/subsequencely">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/jrcurtis/subsequencely/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/jrcurtis/subsequencely/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Subsequencely</h1>
+          <p>Stand alone sequencer built on the Launchpad Pro open source firmware</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/jrcurtis">jrcurtis</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h3>
+<a id="a-fun-sequencer" class="anchor" href="#a-fun-sequencer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>A fun sequencer</h3>
+
+<p>Subsequencely's goal is to provide an immediate, hands on music making tool that lets you try out your ideas, or stumble across new ones, without barriers. It's inspired by instruments like Korg's Volca series that give you a broad palette of creative tools that encourage exploration and experimentation.</p>
+
+<p>Subsequencely's features include</p>
+
+<ul>
+<li>Play notes on the pad grid with customizable scale and layout settings.</li>
+<li>Record notes into 8 32-step patterns that can be played independently, or chained together.</li>
+<li>Edit patterns by hand in a step sequencer view.</li>
+<li>Perform patterns from the session view with features like queueing, reversing, beat skip, and clock division.</li>
+<li>More!</li>
+</ul>
+
+<h3>
+<a id="download" class="anchor" href="#download" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Download</h3>
+
+<p>The latest build is available <a href="https://github.com/jrcurtis/subsequencely/raw/master/resources/subsequencely.syx">here</a>. It is a file called subsequencely.syx, which is a midi sysex file that you can send to your Launchpad Pro with a program like <a href="http://www.snoize.com/SysExLibrarian/">Sysex Librarian</a> on OS X, and <a href="http://www.midiox.com/">MIDI OX</a> on Windows.</p>
+
+<p>To do this</p>
+
+<ol>
+<li>Plug the Launchpad into your computer.</li>
+<li>Turn it on while holding the setup button to start in bootloader mode.</li>
+<li>Choose the Launchpad as the destination in your sysex program and send the file subsequencely.syx.</li>
+<li>You will see big green letters reading "UPDATING" scroll across the Launchpad.</li>
+<li>Wait for this to finish, and the Launchpad will boot itself into Subsequencely.</li>
+<li>Now you have Subsequencely!</li>
+</ol>
+
+<h3>
+<a id="launchpad-pro" class="anchor" href="#launchpad-pro" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Launchpad pro</h3>
+
+<p>Subsequencely is a custom firmware for Novation's <a href="http://us.novationmusic.com/launch/launchpad-pro">Launchpad Pro</a> hardware. To install it, you simply plug your Launchpad Pro into your computer and send a sysex file to it. After that, Subsequencely can be used without a connection to a computer, by sending MIDI over the DIN port, or can be used to control software through USB.</p>
+
+<p>The Launchpad Pro is a versatile piece of hardware that offers loads of potential as a musical tool, including</p>
+
+<ul>
+<li>RGB leds under every pad and button provide a clear and versatile display for many types of interfaces.</li>
+<li>Velocity and pressure sensitive pads make it possible to play expressively.</li>
+<li>Stand alone operation means that you don't have to tether yourself to a computer, and Subsequencely works out of the box with almost any MIDI capable device.</li>
+<li>On board flash storage so that you don't lose your work in between sessions.</li>
+</ul>
+
+<h3>
+<a id="open-source" class="anchor" href="#open-source" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Open source</h3>
+
+<p>Subsequencely is built on top of the Launchpad Pro's open firmware, which means its source code is available and easy to modify. Bug reports and feature requests are encouraged on the <a href="https://github.com/jrcurtis/subsequencely/issues">issues page</a>.</p>
+
+<h3>
+<a id="documentation" class="anchor" href="#documentation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Documentation</h3>
+
+<p>Subsequencely should be easy to use. The <a href="https://github.com/jrcurtis/subsequencely/wiki">wiki</a> is kept up to date with descriptions of every feature.</p>
+
+<p>Here are some videos showing off some parts of the program. I plan to put together a more comprehensive video guide once some more features are completed. If you have a video or a piece of music that uses Subsequencely, I'd love to hear about it!</p>
+
+<ul>
+<li><a href="https://youtu.be/_G3-Z9f-Xr0">Feature overview</a></li>
+<li><a href="https://www.youtube.com/watch?v=Dphug-y7MXQ">Jam with Volcas</a></li>
+<li><a href="https://www.youtube.com/watch?v=skxym4i0RlE">Dev update</a></li>
+</ul>
+
+<h3>
+<a id="contact" class="anchor" href="#contact" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Contact</h3>
+
+<p>You can get in touch with me on twitter <a href="https://twitter.com/srankesports">@srankesports</a> or github <a href="https://github.com/jrcurtis" class="user-mention">@jrcurtis</a>.</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
