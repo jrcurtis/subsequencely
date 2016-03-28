@@ -671,14 +671,24 @@ uint8_t sequence_handle_press(Sequence* s, uint8_t index, uint8_t value)
     }
     else if (index == LP_SHIFT)
     {
-        if (value > 0)
+        if (flag_is_set(lp_flags, LP_IS_ARP))
         {
-            voices_sustain(&lp_voices, 1);
+            if (value > 0)
+            {
+                sequence_arpeggiate(s, 0);
+            }
         }
         else
         {
-            sequence_kill_voices(s, 1);
-            voices_sustain(&lp_voices, 0);
+            if (value > 0)
+            {
+                voices_sustain(&lp_voices, 1);
+            }
+            else
+            {
+                sequence_kill_voices(s, 1);
+                voices_sustain(&lp_voices, 0);
+            }
         }
     }
     else if (value == 0)
