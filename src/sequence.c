@@ -155,7 +155,8 @@ void sequence_kill_note(Sequence* s, Note* n)
     // If this is the active sequence, live playing should preempt the
     // sequence, but any sequence notes that were already playing still need to
     // be turned off, and if an arpeggio is active, that needs to be handled.
-    if (flag_is_set(s->flags, SEQ_ACTIVE))
+    if (flag_is_set(s->flags, SEQ_ACTIVE)
+        && lp_state == LP_NOTES_MODE)
     {
         if (lp_voices.num_active > 0 && flag_is_set(lp_flags, LP_IS_ARP))
         {
@@ -192,7 +193,8 @@ void sequence_play_note(Sequence* s, Note* n)
     // override the sequence, so don't turn them on or light them up. But if
     // arpeggiator is on, then the arpeggio note acts as a stand-in for the
     // normal sequence note.
-    if (flag_is_set(s->flags, SEQ_ACTIVE))
+    if (flag_is_set(s->flags, SEQ_ACTIVE)
+        && lp_state == LP_NOTES_MODE)
     {
         if (lp_voices.num_active > 0)
         {

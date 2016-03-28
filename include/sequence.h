@@ -97,6 +97,9 @@ void sequence_become_inactive(Sequence* s);
 /// location of the mod wheel to avoid them being lit up while playing.
 void sequence_prepare_mod_wheel(Sequence* s);
 
+/// Kills the given note if necessary and handles unlighting the pad.
+void sequence_kill_note(Sequence* s, Note* n);
+
 /// Send a note off/unlight lit pads/whatever else, if there is a note currently
 /// playing.
 void sequence_kill_current_note(Sequence* s);

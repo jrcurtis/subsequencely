@@ -1,5 +1,6 @@
 
 #include "data.h"
+#include "sequence.h"
 
 #include "grid.h"
 
@@ -59,8 +60,19 @@ void grid_draw(Sequencer* sr)
     for (uint8_t x = 0; x < GRID_SIZE; x++)
     {
         uint8_t seq_x = grid_to_sequence_x(s, x);
-        Note* n = sequence_get_note(s, seq_x);
+        Note* n;
         uint8_t y;
+
+        for (uint8_t n_i = 0; n_i < zoom; n_i++)
+        {
+            n = sequence_get_note(s, seq_x + n_i);
+
+            if (n->note_number >= note_numbers[0]
+                && n->note_number < note_numbers[GRID_SIZE])
+            {
+                break;
+            }
+        }
 
         for (y = 0; y < GRID_SIZE; y++)
         {
@@ -86,49 +98,6 @@ void grid_draw(Sequencer* sr)
             }
         }
     }
-
-    /* for (uint8_t y = 0; y < GRID_SIZE; y++) */
-    /* { */
-    /*     uint8_t note_number = lp_scale.offsets[scale_deg] */
-    /*         + s->layout.root_note */
-    /*         + NUM_NOTES * octave; */
-
-    /*     for (uint8_t x = 0; x < GRID_SIZE; x++) */
-    /*     { */
-    /*         uint8_t seq_x = grid_to_sequence_x(s, x); */
-    /*         Note* n = sequence_get_note(s, seq_x); */
-            
-    /*         if (n->note_number == note_number) */
-    /*         { */
-    /*             const uint8_t* color = number_colors[seq_x & 3]; */
-    /*             uint8_t dimness = min(100, 127 - n->velocity) / 25; */
-    /*             plot_pad_dim(index, color, dimness); */
-    /*         } */
-    /*         else if (s->playhead / zoom == x + s->x) */
-    /*         { */
-    /*             plot_pad(index, on_color); */
-    /*         } */
-    /*         else if (layout_is_root_note(&s->layout, note_number)) */
-    /*         { */
-    /*             plot_pad(index, root_note_color); */
-    /*         } */
-    /*         else */
-    /*         { */
-    /*             plot_pad(index, off_color); */
-    /*         } */
-
-    /*         index++; */
-    /*     } */
-
-    /*     scale_deg++; */
-    /*     if (scale_deg >= lp_scale.num_notes) */
-    /*     { */
-    /*         scale_deg = 0; */
-    /*         octave++; */
-    /*     } */
-
-    /*     index += ROW_GAP; */
-    /* } */
 }
 
 uint8_t grid_handle_translate(Sequencer* sr, uint8_t index, uint8_t value)
@@ -201,6 +170,11 @@ uint8_t grid_handle_zoom(Sequencer* sr, uint8_t index, uint8_t value)
         {
             s->zoom--;
             s->x /= 2;
+            uint8_t max_x = (GRID_SIZE << s->zoom) - GRID_SIZE;
+            if (s->x > max_x)
+            {
+                s->x = max_x;
+            }
         }
     }
     else
@@ -235,68 +209,105 @@ uint8_t grid_handle_press(Sequencer* sr, uint8_t index, uint8_t value)
         uint8_t min_note_number = note_numbers[y];
         uint8_t max_note_number = note_numbers[y + 1];
         
+        // Holding shift creates a slide note, or a slide delete. A slide
+        // note fills up all the empty steps from min_x to max_x with the
+        // same note tied together. A slide delete deletes all the consecutive
+        // notes with identical note number from min_x to max_x.
+        uint8_t slide = modifier_held(LP_SHIFT);
         uint8_t note_deleted = 0;
 
-        for (int i = min_x; i < max_x; i++)
+        for (uint8_t i = min_x; i < max_x; i++)
         {
             Note* n = sequence_get_note(s, i);
-            if (n->note_number >= min_note_number
-                && n->note_number < max_note_number)
+
+            if (s->playhead == i)
             {
+                sequence_kill_note(s, n);
+            }
+
+            // If a slide delete has already deleted one note and the next note
+            // is not a tied version of the same note, then stop deleting.
+            if (slide && note_deleted)
+            {
+                if (n->note_number == min_note_number
+                    && flag_is_set(n->flags, NTE_SLIDE))
+                {
+                    n->note_number = -1;
+                    n->velocity = 0;
+                    n->flags = 0x00;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            else if (n->note_number >= min_note_number
+                     && n->note_number < max_note_number)
+            {
+                if (slide)
+                {
+                    min_note_number = max_note_number = n->note_number;
+                }
+
                 n->note_number = -1;
                 n->velocity = 0;
                 n->flags = 0x00;
                 note_deleted = 1;
-            }
 
+                if (!slide)
+                {
+                    break;
+                }
+            }
         }
 
-        if (!note_deleted)
+        if (note_deleted)
         {
-            Note* n = sequence_get_note(s, min_x);
+            return 1;
+        }
+
+        uint8_t note_created = 0;
+
+        for (uint8_t i = min_x; i < max_x; i++)
+        {
+            Note* n = sequence_get_note(s, i);
+
+            // In slide mode, if a note has already been created, then keep
+            // writing into subsequent steps as long as they are either empty,
+            // or are the same held note as the previously overwritten value.
+            if (note_created)
+            {
+                if (n->note_number != -1
+                    && (n->note_number != max_note_number
+                        || !flag_is_set(n->flags, NTE_SLIDE)))
+                {
+                    break;
+                }
+            }
+            // If a note has not already been created, mark the value of the
+            // first note being overwritten, so that we can tell is subsequent
+            // notes are held over from this one, or are different.
+            else
+            {
+                max_note_number = n->note_number;
+            }
+
             n->note_number = min_note_number;
             n->velocity = value;
-            n->flags = modifier_held(LP_SHIFT) ? NTE_SLIDE : 0x00;
+            n->flags = slide ? NTE_SLIDE : 0x00;
+            note_created = 1;
+
+            // A non-slide write only overwrites one step.
+            if (!slide)
+            {
+                break;
+            }
         }
     }
     else
     {
         return 0;
     }
-
-
-    /*     Sequence* s = sequencer_get_active(sr); */
-    /*     uint8_t seq_x = grid_to_sequence_x(s, x); */
-    /*     Note* n = sequence_get_note(s, seq_x); */
-
-    /*     uint8_t note_number = grid_to_sequence_y(s, y); */
-
-    /*     if (s->playhead == seq_x) */
-    /*     { */
-    /*         sequence_kill_current_note(s); */
-    /*     } */
-
-    /*     if (value == 0) */
-    /*     { */
-
-    /*     } */
-    /*     else if (n->note_number == note_number) */
-    /*     { */
-    /*         n->note_number = -1; */
-    /*         n->velocity = 0; */
-    /*         n->flags = 0x00; */
-    /*     } */
-    /*     else */
-    /*     { */
-    /*         n->note_number = note_number; */
-    /*         n->velocity = value; */
-    /*         n->flags = modifier_held(LP_SHIFT) ? NTE_SLIDE : 0x00; */
-    /*     } */
-    /* } */
-    /* else */
-    /* { */
-    /*     return 0; */
-    /* } */
 
     return 1;
 }
