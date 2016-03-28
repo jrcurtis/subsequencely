@@ -32,17 +32,22 @@ void grid_update_cache(Sequencer* sr, int8_t translation)
         max_y = 1;
     }
 
-    uint8_t scale_deg = (s->y + min_y) % lp_scale.num_notes;
-    uint8_t octave = (s->y + min_y) / lp_scale.num_notes;
+    uint8_t drums = flag_is_set(s->layout.row_offset, LYT_DRUMS);
+    uint8_t num_notes = drums ? NUM_NOTES : lp_scale.num_notes;
+    uint8_t scale_deg;
+    uint8_t octave;
+
+    scale_deg = (s->y + min_y) % num_notes;
+    octave = (s->y + min_y) / num_notes;
 
     for (uint8_t i = min_y; i < max_y; i++)
     {
-        note_numbers[i] = lp_scale.offsets[scale_deg]
+        note_numbers[i] = (drums ? scale_deg : lp_scale.offsets[scale_deg])
             + s->layout.root_note
             + NUM_NOTES * octave;
 
         scale_deg++;
-        if (scale_deg >= lp_scale.num_notes)
+        if (scale_deg >= num_notes)
         {
             scale_deg = 0;
             octave++;
