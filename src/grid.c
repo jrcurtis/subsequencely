@@ -58,8 +58,6 @@ void grid_update_cache(Sequencer* sr, int8_t translation)
 void grid_draw(Sequencer* sr)
 {
     Sequence* s = sequencer_get_active(sr);
-    uint8_t scale_deg = s->y % lp_scale.num_notes;
-    uint8_t octave = s->y / lp_scale.num_notes;
     uint8_t zoom = zoom_to_sequence_x(s);
 
     for (uint8_t x = 0; x < GRID_SIZE; x++)
@@ -93,7 +91,8 @@ void grid_draw(Sequencer* sr)
             {
                 plot_pad(index, on_color);
             }
-            else if (layout_is_root_note(&s->layout, note_numbers[y]))
+            else if (layout_is_root_note(&s->layout, note_numbers[y])
+                     && x + 3 != note_numbers[y] / NUM_NOTES)
             {
                 plot_pad(index, root_note_color);
             }
