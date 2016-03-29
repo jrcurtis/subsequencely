@@ -556,6 +556,11 @@ void sequence_step(Sequence* s, uint8_t audible, uint8_t queue_flags)
             n->flags = clear_flag(n->flags, NTE_ON);
             next_n->flags = set_flag(next_n->flags, NTE_ON);
         }
+        else if (flag_is_set(next_n->flags, NTE_SLIDE))
+        {
+            sequence_play_note(s, next_n);
+            sequence_kill_note(s, n);
+        }
         else
         {
             sequence_kill_note(s, n);
