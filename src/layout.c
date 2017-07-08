@@ -119,7 +119,20 @@ void layout_toggle_note(Layout* l, uint8_t note)
 
 void layout_transpose(Layout* l, int8_t direction)
 {
-    l->root_note = clamp(l->root_note + direction, 0, NUM_NOTES - 1);
+    if (direction == -1 && l->root_note == 0 && l->octave > 0) 
+    {
+        l->octave -= 1;
+        l->root_note = NUM_NOTES -1;
+    }
+    else if (direction == 1 && l->root_note == NUM_NOTES -1 && l->octave < NUM_OCTAVES - 1)
+    {
+        l->octave += 1;
+        l->root_note = 0;
+    }
+    else
+    {
+        l->root_note = clamp(l->root_note + direction, 0, NUM_NOTES - 1);
+    }
     layout_assign_pads(l);
 }
 
