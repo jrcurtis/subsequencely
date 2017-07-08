@@ -30,10 +30,10 @@ typedef struct
 void keyboard_init(Keyboard* k, Layout* l);
 
 /// Toggles a note on or off and updates the layout and scale to match.
-uint8_t keyboard_handle_press(Keyboard* k, uint8_t index, uint8_t value);
+uint8_t keyboard_handle_press(Keyboard* k, uint8_t index, uint8_t value, uint8_t is_highlight_press);
 
 /// Draws the keyboard to the grid.
-void keyboard_draw(Keyboard* k);
+void keyboard_draw(Keyboard* k, uint8_t draw_highlighted);
 
 /// When a change is made to the layout or scale, this function updates the
 /// keyboard to reflect the current state.

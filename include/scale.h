@@ -15,6 +15,11 @@ typedef struct
     /// note) is enabled. [0] (the root note) is always on.
     uint16_t notes;
 
+    /// Bitfield indicating whether the nth note is lighted or not
+    /// which applies if the highlight setting is turned on
+    /// Otherwise, white keys are lighted and black keys are dark
+    uint16_t notes_highlighted;
+
     /// Array of ints indicating how many half steps the nth scale note is
     /// offset from the root note (only the first num_notes entries are set)
     int8_t offsets[NUM_NOTES];
@@ -28,11 +33,18 @@ void scale_init(Scale* s);
 /// root note) is contained in the scale.
 uint8_t scale_contains_note(Scale* s, uint8_t note);
 
+/// Returns true or false depending on whether then nth note (counted from the
+/// root note) is contained in the scale's highlight list
+uint8_t scale_contains_highlight(Scale* s, uint8_t note);
+
 /// Sets all the notes of the scale at once.
 void scale_set_notes(Scale* s, uint16_t notes);
 
 /// Toggles the nth note in the scale. Automatically updates num_notes and
 /// offsets.
 void scale_toggle_note(Scale* s, uint8_t note);
+
+/// Toggles the nth note's highlight
+void scale_toggle_highlight(Scale* s, uint8_t note);
 
 #endif

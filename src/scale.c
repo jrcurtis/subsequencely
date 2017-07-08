@@ -6,6 +6,7 @@ void scale_init(Scale* s)
 {
     s->num_notes = NUM_NOTES;
     s->notes = 0x0FFF;
+    s->notes_highlighted = 0x0AB5;
 
     for (uint8_t i = 0; i < NUM_NOTES; i++)
     {
@@ -42,6 +43,11 @@ uint8_t scale_contains_note(Scale* s, uint8_t note)
     return flag_is_set(s->notes, 1 << note);
 }
 
+uint8_t scale_contains_highlight(Scale* s, uint8_t note)
+{
+    return flag_is_set(s->notes_highlighted, 1 << note);
+}
+
 void scale_set_notes(Scale* s, uint16_t notes)
 {
     s->notes = notes;
@@ -54,6 +60,11 @@ void scale_set_notes(Scale* s, uint16_t notes)
     }
 
     scale_update_offsets(s);
+}
+
+void scale_set_highlights(Scale* s, uint16_t notes_highlighted)
+{
+    s->notes_highlighted = notes_highlighted;
 }
 
 void scale_toggle_note(Scale* s, uint8_t note)
@@ -78,5 +89,15 @@ void scale_toggle_note(Scale* s, uint8_t note)
 
     scale_update_offsets(s);
 }
+
+void scale_toggle_highlight(Scale* s, uint8_t note)
+{
+    if (note < 1 || note >= NUM_NOTES)
+    {
+        return;
+    }
+    s->notes_highlighted = toggle_flag(s->notes_highlighted, 1 << note);
+}
+
 
 

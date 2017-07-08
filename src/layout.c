@@ -9,7 +9,7 @@
 void layout_init(Layout* l)
 {
     l->root_note = 0;
-    l->octave = 2;
+    l->octave = LAYOUT_DEFAULT_OCTAVE;
     l->row_offset = 5;
 }
 
@@ -105,6 +105,7 @@ void layout_assign_scale(Layout* l)
             note_number += lp_scale.offsets[scale_deg];
 
             lp_pad_notes[y][x] = note_number;
+            lp_pad_highlights[y][x] = scale_contains_highlight(&lp_scale, lp_scale.offsets[scale_deg]);
         }
 
         start_scale_deg += l->row_offset;
@@ -117,9 +118,18 @@ void layout_toggle_note(Layout* l, uint8_t note)
     layout_assign_pads(l);
 }
 
+void layout_toggle_highlight(Layout* l, uint8_t note_highlight)
+{
+    scale_toggle_highlight(&lp_scale, note_highlight);
+    layout_assign_pads(l);
+}
+
 void layout_transpose(Layout* l, int8_t direction)
 {
-    if (direction == -1 && l->root_note == 0 && l->octave > 0) 
+    if (direction == 0) {
+        l->root_note = 0;
+    }
+    else if (direction == -1 && l->root_note == 0 && l->octave > 0) 
     {
         l->octave -= 1;
         l->root_note = NUM_NOTES -1;
@@ -138,7 +148,11 @@ void layout_transpose(Layout* l, int8_t direction)
 
 void layout_transpose_octave(Layout* l, int8_t direction)
 {
-    l->octave = clamp(l->octave + direction, 0, NUM_OCTAVES - 1);
+    if (direction == 0) {
+        l->octave = LAYOUT_DEFAULT_OCTAVE;
+    } else {
+        l->octave = clamp(l->octave + direction, 0, NUM_OCTAVES - 1);
+    }
     layout_assign_pads(l);
 }
 
@@ -196,18 +210,16 @@ void layout_light_scale(Layout* l, uint8_t note_number, uint8_t on)
 {
     uint8_t index = FIRST_PAD;
     const uint8_t* color = off_color;
+    uint8_t dimness = 3;
 
     if (on)
     {
         color = on_color;
+        dimness = 0;
     }
     else if (layout_is_root_note(l, note_number))
     {
         color = root_note_color;
-    }
-    else if (note_number % NUM_NOTES == 0)
-    {
-        color = c_note_color;
     }
     else if (diatonic_notes[note_number % NUM_NOTES])
     {
@@ -217,6 +229,14 @@ void layout_light_scale(Layout* l, uint8_t note_number, uint8_t on)
     {
         color = black_note_color;
     }
+
+    if (note_number < 0) {
+        color = invalid_note_color;
+    }
+    else if (note_number % NUM_NOTES == 0)
+    {
+        dimness = 0;
+    }    
 
     for (uint8_t y = 0; y < GRID_SIZE; y++)
     {
@@ -238,7 +258,7 @@ void layout_light_scale(Layout* l, uint8_t note_number, uint8_t on)
                 continue;
             }
 
-            plot_pad(coord_to_index(x, y), color);
+            plot_pad_dim(coord_to_index(x, y), color, dimness);
 
             index++;
         }
@@ -250,35 +270,53 @@ void layout_light_scale(Layout* l, uint8_t note_number, uint8_t on)
 /*******************************************************************************
  * Event handling functions
  ******************************************************************************/
-
+uint8_t last_pressed = 0;
 uint8_t layout_handle_transpose(Layout* l, uint8_t index, uint8_t value)
 {
     if (value == 0)
     {
+        last_pressed = 0;
         return 0;
     }
 
     if (index == LP_TRANSPOSE_UP)
     {
-        layout_transpose(l, 1);
+        if (last_pressed == LP_TRANSPOSE_DOWN) {
+            layout_transpose(l, 0); // Reset to default
+        } else {
+            layout_transpose(l, 1);
+        }
     }
     else if (index == LP_TRANSPOSE_DOWN)
     {
-        layout_transpose(l, -1);
+        if (last_pressed == LP_TRANSPOSE_UP) {
+            layout_transpose(l, 0); // Reset to default
+        } else {
+            layout_transpose(l, -1);
+        }
     }
     else if (index == LP_OCTAVE_UP)
     {
-        layout_transpose_octave(l, 1);
+        if (last_pressed == LP_OCTAVE_DOWN) {
+            layout_transpose_octave(l, 0); // Reset to default
+        } else {
+            layout_transpose_octave(l, 1);
+        }
     }
     else if (index == LP_OCTAVE_DOWN)
     {
-        layout_transpose_octave(l, -1);
+        if (last_pressed == LP_OCTAVE_UP) {
+            layout_transpose_octave(l, 0); // Reset to default
+        } else {
+            layout_transpose_octave(l, -1);
+        }
     }
     else
     {
+        last_pressed = 0;
         return 0;
     }
-
+    last_pressed = index;
     return 1;
 }
 
@@ -302,21 +340,30 @@ void layout_draw(Layout* l)
 void layout_draw_scale(Layout* l)
 {
     uint8_t index = FIRST_PAD;
+    uint8_t draw_using_highlights = flag_is_set(sequencer_get_active(&lp_sequencer)->flags, NOTE_HIGHLIGHT_ONLY);
 
     for (uint8_t y = 0; y < GRID_SIZE; y++)
     {
         for (uint8_t x = 0; x < GRID_SIZE; x++)
         {
             const uint8_t* color = off_color;
+            uint8_t dimness = 3;
             int8_t note_number = lp_pad_notes[y][x];
 
             if (layout_is_root_note(l, note_number))
             {
                 color = root_note_color;
             }
-            else if (note_number % NUM_NOTES == 0)
+            else if (draw_using_highlights)
             {
-                color = c_note_color;
+                if (lp_pad_highlights[y][x]) 
+                {
+                    color = white_note_color;
+                } 
+                else 
+                {
+                    color = black_note_color;
+                }
             }
             else if (diatonic_notes[note_number % NUM_NOTES])
             {
@@ -327,12 +374,26 @@ void layout_draw_scale(Layout* l)
                 color = black_note_color;
             }
 
-            plot_pad(index, color);
+            if (note_number < 0) {
+                color = invalid_note_color;
+            } 
+            else if (note_number % NUM_NOTES == 0)
+            {
+                dimness = 0;
+            }
+
+            plot_pad_dim(index, color, dimness);
             index++;
         }
 
         index += ROW_GAP;
     }
+
+    plot_pad(LP_OCTAVE_UP, note_octave_up_colors[l->octave]);
+    plot_pad(LP_OCTAVE_DOWN, note_octave_down_colors[l->octave]);
+    plot_pad(LP_TRANSPOSE_UP, note_transpose_up_colors[l->root_note]);
+    plot_pad(LP_TRANSPOSE_DOWN, note_transpose_down_colors[l->root_note]);
+
 }
 
 void layout_draw_drums(Layout* l)

@@ -10,6 +10,8 @@
 #include "voices.h"
 #include "util.h"
 
+#define LAYOUT_DEFAULT_OCTAVE 3
+
 /// The bits where row offset lives. Excludes the drum flag bit, so that
 /// the drums state doesn't get trashed when you use the row offset slider.
 #define ROW_OFFSET_MASK      (0x7F)
@@ -25,6 +27,9 @@ typedef enum
 /// Cache of which midi note numbers correspond to which pad. Used to avoid
 /// calculating every time a pad is pressed.
 typedef int8_t PadNotes[GRID_SIZE][GRID_SIZE];
+
+/// Cache of which pads are highlighted for note mode
+typedef int8_t PadHighlights[GRID_SIZE];
 
 /// Represents a layout of a scale on a grid. Determines which note and octave
 /// to start from, and the distance in scale steps between rows of the grid.
@@ -64,6 +69,8 @@ void layout_set_drums(Layout* l);
 
 /// Toggles the note in the scale, and updates the layout.
 void layout_toggle_note(Layout* l, uint8_t note);
+/// Toggles the note highlight
+void layout_toggle_highlight(Layout* l, uint8_t note_highlight);
 
 /// Draws the layout onto the grid.
 void layout_draw(Layout* l);

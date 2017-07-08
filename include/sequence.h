@@ -43,7 +43,8 @@ typedef enum
     SEQ_DRUM_MULTICHANNEL = 1 << 11, // Send each note on its own channel
     SEQ_FULL_VELOCITY  = 1 << 12, // Always send notes at full velocity
     SEQ_MOD_WHEEL      = 1 << 13, // Show the mod wheel in notes mode
-    SEQ_MOD_CC         = 1 << 14  // Send CC from mod wheel instead of aftertouch
+    SEQ_MOD_CC         = 1 << 14, // Send CC from mod wheel instead of aftertouch
+    NOTE_HIGHLIGHT_ONLY = 1 << 15 // Always show all notes and only highlight the ones in the scale
 } SequenceFlags;
 
 #define SEQ_QUEUED_OFFSET (4)

@@ -74,6 +74,7 @@ extern Note* lp_note_storage;
 extern Scale lp_scale;
 extern Voices lp_voices;
 extern PadNotes lp_pad_notes;
+extern PadNotes lp_pad_highlights;
 extern Sequencer lp_sequencer;
 
 // Setup UI elements

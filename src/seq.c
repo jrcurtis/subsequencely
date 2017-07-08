@@ -6,8 +6,8 @@
  ******************************************************************************/
 
 // Global settings
-uint8_t lp_midi_port = USBMIDI;
-uint8_t lp_rcv_clock_port = USBMIDI;
+uint8_t lp_midi_port = DINMIDI;
+uint8_t lp_rcv_clock_port = DINMIDI;
 
 // Program state
 LpState lp_state = LP_NUM_MODES;
@@ -26,6 +26,7 @@ Note* lp_note_storage = (Note*)(lp_buffer + sizeof(uint32_t)) + NOTE_BANK_SIZE;
 Scale lp_scale;
 Voices lp_voices;
 PadNotes lp_pad_notes;
+PadNotes lp_pad_highlights;
 Sequencer lp_sequencer;
 
 // UI
@@ -363,7 +364,7 @@ void notes_setup_draw()
     Sequence* s = sequencer_get_active(&lp_sequencer);
     Layout* l = &s->layout;
 
-    keyboard_draw(&lp_keyboard);
+    keyboard_draw(&lp_keyboard, flag_is_set(s->flags, NOTE_HIGHLIGHT_ONLY));
     slider_draw(&lp_row_offset_slider, ROW_OFFSET_POS, ROW_OFFSET_COLOR);
 
     checkbox_draw(s->flags, SEQ_RECORD_CONTROL, CONTROL_CHECKBOX_POS);
@@ -372,6 +373,7 @@ void notes_setup_draw()
     checkbox_draw(s->flags, SEQ_FULL_VELOCITY, VELOCITY_CHECKBOX_POS);
     checkbox_draw(s->flags, SEQ_MOD_WHEEL, MOD_WHEEL_CHECKBOX_POS);
     checkbox_draw(s->flags, SEQ_MOD_CC, MOD_CC_CHECKBOX_POS);
+    checkbox_draw(s->flags, NOTE_HIGHLIGHT_ONLY, NOTE_HIGHLIGHT_ONLY_POS);
 
     number_draw(s->control_code,
                 CC_POS, CC_BITS, CC_COLOR);
@@ -441,6 +443,12 @@ uint8_t notes_setup_handle_press(uint8_t index, uint8_t value)
     if (slider_handle_press(&lp_row_offset_slider, index, value, ROW_OFFSET_POS))
     {
         layout_set_row_offset(l, lp_row_offset_slider.value + 1);
+    }
+    else if (checkbox_handle_press(
+                 s->flags, NOTE_HIGHLIGHT_ONLY,
+                 index, value, NOTE_HIGHLIGHT_ONLY_POS))
+    {
+        
     }
     else if (checkbox_handle_press(
                  s->flags, SEQ_RECORD_CONTROL,
@@ -519,7 +527,10 @@ uint8_t notes_setup_handle_press(uint8_t index, uint8_t value)
     {
         keyboard_update_indices(&lp_keyboard);
     }
-    else if (keyboard_handle_press(&lp_keyboard, index, value)) { }
+    else if (keyboard_handle_press(&lp_keyboard, index, value, flag_is_set(s->flags, NOTE_HIGHLIGHT_ONLY))) 
+    { 
+        
+    }
     else
     {
         return 0;
