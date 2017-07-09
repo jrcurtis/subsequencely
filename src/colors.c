@@ -11,6 +11,7 @@ const uint8_t no_note_color[3] = {0x0F, 0x00, 0x00};
 
 const uint8_t layout_octave_color[3] = {0x00, 0x00, 0xFF};
 const uint8_t layout_transpose_color[3] = {0x00, 0xFF, 0x00};
+const uint8_t scale_button_color[3] = {0x3F, 0x1F, 0x00};
 
 const uint8_t white_key_color[3] = {0x0F, 0x2F, 0x7F};
 const uint8_t black_key_color[3] = {0x3F, 0x00, 0x17};

@@ -3,6 +3,7 @@
 #define UTIL_H
 
 #include "app.h"
+#include "colors.h"
 
 /*******************************************************************************
  * Defines/helpers
@@ -100,6 +101,31 @@ void modifier_index_assign(uint8_t index, uint8_t value);
 // Shortcuts for clearing all the leds at once.
 void clear_leds();
 void clear_pad_leds();
+
+const uint16_t font_4x4[64];
+
+typedef struct
+{
+    uint8_t active;
+    const char *text;
+    char text_visible[3];
+    uint8_t y; // 0-4 (0 is bottom, 4 is top)
+    const uint8_t *color;
+
+    uint8_t text_index;
+    uint8_t millis_per_frame; // Setting for how many milliseconds each 'frame' of the animation should last
+    uint8_t frame_millis_remain; // Counter for millisecons
+    uint8_t frame_offset; // Number from 0 to 3 indicating how many pixels left the current text has moved so far
+
+    void (*callback_finished)(void);
+} TextDisplayer;
+
+void text_display_init(TextDisplayer* td);
+void text_display_tick(TextDisplayer* td);
+void text_display(TextDisplayer* td, const char *text, uint8_t y, const uint8_t *color, void (*callback_finished)(void));
+void text_display_stop(TextDisplayer* td);
+void text_draw(TextDisplayer *td);
+void text_draw_letter(char c, int8_t x, int8_t y, const uint8_t *color);
 
 #ifdef VIRTUAL_LPP
 #include <stdio.h>

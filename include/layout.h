@@ -5,8 +5,6 @@
 #include "app.h"
 #include "buttons.h"
 #include "colors.h"
-#include "keyboard.h"
-#include "scale.h"
 #include "voices.h"
 #include "util.h"
 
@@ -76,6 +74,7 @@ void layout_toggle_highlight(Layout* l, uint8_t note_highlight);
 void layout_draw(Layout* l);
 void layout_draw_scale(Layout* l);
 void layout_draw_drums(Layout* l);
+void layout_draw_transpose_octave_buttons(Layout* l);
 
 /// Increases or decreases the root note by a half step.
 void layout_transpose(Layout* l, int8_t direction);

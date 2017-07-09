@@ -23,7 +23,7 @@ void sequence_init(Sequence* s, uint8_t channel, Note* notes)
     s->x = 0;
     s->y = 3 * NUM_NOTES;
     s->zoom = 0;
-    s->flags = 0x00;
+    s->flags = 0x8000; // Make note highlight mode default
 
     s->notes = notes;
     sequence_clear_notes(s);

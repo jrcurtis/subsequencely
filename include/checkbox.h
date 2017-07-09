@@ -20,6 +20,13 @@ typedef uint8_t Checkbox;
                                        ? CHECKBOX_ON_COLOR                     \
                                        : CHECKBOX_OFF_COLOR)))
 
+/// c: bitfield where the checkbox lives
+/// b: bit the checkbox represents (1 << x)
+/// p: the position to draw the checkbox
+#define checkbox_draw_inv(c, b, p)    (plot_pad((p), (flag_is_set((c), (b))        \
+                                          ? CHECKBOX_OFF_COLOR                     \
+                                          : CHECKBOX_ON_COLOR)))
+
 /// c: bitfield where the checkbox bit lives
 /// b: bit the checkbox represents (1 << x)
 /// i: index of button that was pressed

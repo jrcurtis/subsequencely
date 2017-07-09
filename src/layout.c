@@ -2,6 +2,8 @@
 #include "data.h"
 
 #include "layout.h"
+#include "scale.h"
+
 
 #define DRUM_RANGE    (4 * NUM_NOTES + (16 - NUM_NOTES))
 #define DRUM_SIZE     (GRID_SIZE / 2)
@@ -211,6 +213,7 @@ void layout_light_scale(Layout* l, uint8_t note_number, uint8_t on)
     uint8_t index = FIRST_PAD;
     const uint8_t* color = off_color;
     uint8_t dimness = 3;
+    uint8_t draw_using_highlights = flag_is_set(sequencer_get_active(&lp_sequencer)->flags, NOTE_HIGHLIGHT_ONLY);
 
     if (on)
     {
@@ -258,6 +261,18 @@ void layout_light_scale(Layout* l, uint8_t note_number, uint8_t on)
                 continue;
             }
 
+            if (draw_using_highlights && !layout_is_root_note(l, note_number))
+            {
+                if (lp_pad_highlights[y][x]) 
+                {
+                    color = white_note_color;
+                } 
+                else 
+                {
+                    color = black_note_color;
+                }
+            }
+            
             plot_pad_dim(coord_to_index(x, y), color, dimness);
 
             index++;
@@ -281,34 +296,50 @@ uint8_t layout_handle_transpose(Layout* l, uint8_t index, uint8_t value)
 
     if (index == LP_TRANSPOSE_UP)
     {
-        if (last_pressed == LP_TRANSPOSE_DOWN) {
-            layout_transpose(l, 0); // Reset to default
+        if (!modifier_held(LP_SHIFT)) {
+            if (last_pressed == LP_TRANSPOSE_DOWN) {
+                layout_transpose(l, 0); // Reset to default
+            } else {
+                layout_transpose(l, 1);
+            }
         } else {
-            layout_transpose(l, 1);
+
         }
     }
     else if (index == LP_TRANSPOSE_DOWN)
     {
-        if (last_pressed == LP_TRANSPOSE_UP) {
-            layout_transpose(l, 0); // Reset to default
+        if (!modifier_held(LP_SHIFT)) {
+            if (last_pressed == LP_TRANSPOSE_UP) {
+                layout_transpose(l, 0); // Reset to default
+            } else {
+                layout_transpose(l, -1);
+            }
         } else {
-            layout_transpose(l, -1);
+
         }
     }
     else if (index == LP_OCTAVE_UP)
     {
-        if (last_pressed == LP_OCTAVE_DOWN) {
-            layout_transpose_octave(l, 0); // Reset to default
+        if (!modifier_held(LP_SHIFT)) {
+            if (last_pressed == LP_OCTAVE_DOWN) {
+                layout_transpose_octave(l, 0); // Reset to default
+            } else {
+                layout_transpose_octave(l, 1);
+            }
         } else {
-            layout_transpose_octave(l, 1);
+
         }
     }
     else if (index == LP_OCTAVE_DOWN)
     {
-        if (last_pressed == LP_OCTAVE_UP) {
-            layout_transpose_octave(l, 0); // Reset to default
+        if (!modifier_held(LP_SHIFT)) {
+            if (last_pressed == LP_OCTAVE_UP) {
+                layout_transpose_octave(l, 0); // Reset to default
+            } else {
+                layout_transpose_octave(l, -1);
+            }
         } else {
-            layout_transpose_octave(l, -1);
+            
         }
     }
     else
@@ -389,11 +420,16 @@ void layout_draw_scale(Layout* l)
         index += ROW_GAP;
     }
 
+    layout_draw_transpose_octave_buttons(l);
+
+}
+
+void layout_draw_transpose_octave_buttons(Layout* l)
+{
     plot_pad(LP_OCTAVE_UP, note_octave_up_colors[l->octave]);
     plot_pad(LP_OCTAVE_DOWN, note_octave_down_colors[l->octave]);
     plot_pad(LP_TRANSPOSE_UP, note_transpose_up_colors[l->root_note]);
-    plot_pad(LP_TRANSPOSE_DOWN, note_transpose_down_colors[l->root_note]);
-
+    plot_pad(LP_TRANSPOSE_DOWN, note_transpose_down_colors[l->root_note]);    
 }
 
 void layout_draw_drums(Layout* l)

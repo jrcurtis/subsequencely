@@ -29,6 +29,9 @@ PadNotes lp_pad_notes;
 PadNotes lp_pad_highlights;
 Sequencer lp_sequencer;
 
+TextDisplayer lp_text_displayer;
+int8_t lp_quick_scale_current;
+
 // UI
 Slider lp_tempo_slider;
 Slider lp_swing_slider;
@@ -351,7 +354,7 @@ void notes_setup_become_active()
 
 void notes_setup_become_inactive()
 {
-    
+
 }
 
 void notes_mode_draw()
@@ -388,12 +391,21 @@ void notes_setup_draw()
                 CC_OFFSET_COLOR);
 }
 
-uint8_t notes_mode_handle_press(uint8_t index, uint8_t value)
+uint8_t notes_mode_handle_press(uint8_t index, uint8_t value, uint8_t shift_held, uint8_t note_held)
 {
     Sequence* s = sequencer_get_active(&lp_sequencer);
     Layout* l = &s->layout;
 
-    if (layout_handle_transpose(l, index, value))
+    if (note_held)
+    {
+        if (quick_scale_handle_prev_next(l, index, value, note_held, flag_is_set(s->flags, NOTE_HIGHLIGHT_ONLY))) 
+        {
+            sequence_kill_voices(s, 0);
+            layout_draw(l);
+            keyboard_update_indices(&lp_keyboard);
+        }
+    }
+    else if (layout_handle_transpose(l, index, value))
     {
         sequence_kill_voices(s, 0);
         layout_draw(l);
@@ -527,7 +539,7 @@ uint8_t notes_setup_handle_press(uint8_t index, uint8_t value)
     {
         keyboard_update_indices(&lp_keyboard);
     }
-    else if (keyboard_handle_press(&lp_keyboard, index, value, flag_is_set(s->flags, NOTE_HIGHLIGHT_ONLY))) 
+    else if (keyboard_handle_press(&lp_keyboard, index, value, 0, flag_is_set(s->flags, NOTE_HIGHLIGHT_ONLY))) 
     { 
         
     }
@@ -538,6 +550,70 @@ uint8_t notes_setup_handle_press(uint8_t index, uint8_t value)
 
     return 1;
 }
+
+
+void scales_setup_become_active() {
+
+}
+
+void scales_setup_become_inactive() {
+    text_display_stop(&lp_text_displayer);
+}
+
+void scales_setup_draw() {
+    Sequence* s = sequencer_get_active(&lp_sequencer);
+    //Layout* l = &s->layout;
+
+    quick_scale_draw();
+    keyboard_draw_y(&lp_keyboard, 0, 0);
+    keyboard_draw_y(&lp_keyboard, 1, 2);
+    checkbox_draw(s->flags, NOTE_HIGHLIGHT_ONLY, SCALE_HIGHLIGHT_ONLY_POS);
+    checkbox_draw_inv(s->flags, NOTE_HIGHLIGHT_ONLY, SCALE_HIGHLIGHT_ONLY_INV_POS);
+}
+
+uint8_t scales_setup_handle_press(uint8_t index, uint8_t value) {
+    Sequence* s = sequencer_get_active(&lp_sequencer);
+    Layout* l = &s->layout;
+
+    if (checkbox_handle_press(
+                 s->flags, NOTE_HIGHLIGHT_ONLY,
+                 index, value, SCALE_HIGHLIGHT_ONLY_POS))
+    {
+        
+    }
+    else if (checkbox_handle_press(
+                 s->flags, NOTE_HIGHLIGHT_ONLY,
+                 index, value, SCALE_HIGHLIGHT_ONLY_INV_POS))
+    {
+        
+    }
+    else if (quick_scale_handle_press(lp_keyboard.layout, index, value, flag_is_set(s->flags, NOTE_HIGHLIGHT_ONLY))) 
+    {
+        if (value > 60) {
+            set_state(LP_NOTES_MODE, 0, 0);
+            return 0;
+        }
+    }
+    else if (layout_handle_transpose(l, index, value))
+    {
+        keyboard_update_indices(&lp_keyboard);
+    }
+    else if (keyboard_handle_press(&lp_keyboard, index, value, 0, 0)) 
+    { 
+        
+    }
+    else if (keyboard_handle_press(&lp_keyboard, index, value, 2, 1)) 
+    { 
+        
+    }    
+    else
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
 
 void user_mode_become_active()
 {
@@ -596,7 +672,7 @@ uint8_t user_setup_handle_press(uint8_t index, uint8_t value)
  * State management
  ******************************************************************************/
 
-void set_state(LpState st, uint8_t setup)
+void set_state(LpState st, uint8_t setup, uint8_t shift_held)
 {
     if (lp_state == st && flag_is_set(lp_flags, LP_IS_SETUP) == setup)
     {
@@ -618,7 +694,11 @@ void set_state(LpState st, uint8_t setup)
     {
         if (flag_is_set(lp_flags, LP_IS_SETUP))
         {
-            notes_setup_become_inactive();
+            if (flag_is_set(lp_flags, LP_IS_SETUP2)) {
+                scales_setup_become_inactive();
+            } else {
+                notes_setup_become_inactive();
+            }
         }
         else
         {
@@ -673,9 +753,15 @@ void set_state(LpState st, uint8_t setup)
 
         if (setup)
         {
-            notes_setup_become_active();
-            plot_setup(on_color);
-            notes_setup_draw();
+            if (shift_held) {
+                scales_setup_become_active();
+                plot_setup(on_color);
+                scales_setup_draw();                                
+            } else {
+                notes_setup_become_active();
+                plot_setup(on_color);
+                notes_setup_draw();
+            }
         }
         else
         {
@@ -723,6 +809,7 @@ void set_state(LpState st, uint8_t setup)
 
     lp_state = st;
     lp_flags = assign_flag(lp_flags, LP_IS_SETUP, setup);
+    lp_flags = assign_flag(lp_flags, LP_IS_SETUP2, setup && shift_held);
 }
 
 

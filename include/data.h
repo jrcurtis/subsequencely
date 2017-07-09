@@ -18,7 +18,7 @@ typedef enum
     LP_NOTES_MODE,
     LP_SEQUENCER_MODE,
     LP_USER_MODE,
-    LP_NUM_MODES
+    LP_NUM_MODES,
 } LpState;
 
 /// Global program flags.
@@ -33,7 +33,8 @@ typedef enum
     LP_ARMED          = 1 << 6,
     LP_RCV_CLOCK      = 1 << 7,
     LP_RCV_CLOCK_PORT = 1 << 8,
-    LP_IS_ARP         = 1 << 9
+    LP_IS_ARP         = 1 << 9,
+    LP_IS_SETUP2      = 1 << 10
 } LpFlags;
 
 /// The number of notes needed for all 8 sequences. Two of these are used: one
@@ -76,6 +77,9 @@ extern Voices lp_voices;
 extern PadNotes lp_pad_notes;
 extern PadNotes lp_pad_highlights;
 extern Sequencer lp_sequencer;
+
+extern TextDisplayer lp_text_displayer;
+extern int8_t lp_quick_scale_current;
 
 // Setup UI elements
 extern Slider lp_tempo_slider;

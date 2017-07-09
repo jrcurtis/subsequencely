@@ -11,6 +11,7 @@ extern const uint8_t no_note_color[3];
 
 extern const uint8_t layout_octave_color[3];
 extern const uint8_t layout_transpose_color[3];
+extern const uint8_t scale_button_color[3];
 
 extern const uint8_t white_key_color[3];
 extern const uint8_t black_key_color[3];

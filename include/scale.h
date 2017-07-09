@@ -4,6 +4,7 @@
 
 #include "app.h"
 #include "util.h"
+#include "layout.h"
 
 /// Represents a musical scale as a subset of 12 chromatic notes.
 typedef struct
@@ -46,5 +47,14 @@ void scale_toggle_note(Scale* s, uint8_t note);
 
 /// Toggles the nth note's highlight
 void scale_toggle_highlight(Scale* s, uint8_t note);
+
+extern const uint16_t quick_scale_bitfields[32];
+extern const char* quick_scale_names[32];
+
+void quick_scale_draw();
+uint16_t quick_scale_convert_notes(uint16_t in);
+uint8_t quick_scale_handle_press(Layout* l, uint8_t index, uint8_t value, uint8_t is_highlight_mode);
+uint8_t quick_scale_handle_prev_next(Layout* l, uint8_t index, uint8_t value, uint8_t note_held, uint8_t is_highlight_mode);
+void quick_scale_apply(Layout* l,  uint8_t is_highlight_mode);
 
 #endif
