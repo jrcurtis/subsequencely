@@ -44,6 +44,9 @@ typedef struct
     /// rows. To tune in 4ths for a chromatic scale, this would be set to 5.
     int8_t row_offset;
 
+    /// How many spaces up/down to translate the view
+    int8_t offset_horizontal;
+    int8_t offset_vertical;
 } Layout;
 
 /// Initialize the layout data.

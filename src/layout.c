@@ -13,6 +13,8 @@ void layout_init(Layout* l)
     l->root_note = 0;
     l->octave = LAYOUT_DEFAULT_OCTAVE;
     l->row_offset = 5;
+    l->offset_horizontal = 0;
+    l->offset_vertical = 0;
 }
 
 /*******************************************************************************
@@ -88,29 +90,26 @@ void layout_assign_drums(Layout* l)
 
 void layout_assign_scale(Layout* l)
 {
-    uint8_t start_scale_deg = 0;
-    uint8_t octave = l->octave;
+    int8_t row_start_scale_deg = l->offset_horizontal + (l->row_offset * l->offset_vertical);
+    int8_t octave;
 
-    for (uint8_t y = 0; y < GRID_SIZE; y++)
+    for (int8_t y = 0; y < GRID_SIZE; y++)
     {
-        for (uint8_t x = 0; x < GRID_SIZE; x++)
+        for (int8_t x = 0; x < GRID_SIZE; x++)
         {
-            uint8_t scale_deg = start_scale_deg + x;
+            int8_t scale_deg = row_start_scale_deg + x;
             octave = l->octave + scale_deg / lp_scale.num_notes;
-
-            if (scale_deg >= lp_scale.num_notes)
-            {
-                scale_deg = scale_deg % lp_scale.num_notes;
+            if (scale_deg < 0) {
+                octave -= 1;
             }
-
-            uint8_t note_number = l->root_note + octave * NUM_NOTES;
-            note_number += lp_scale.offsets[scale_deg];
-
-            lp_pad_notes[y][x] = note_number;
+            scale_deg %= lp_scale.num_notes;
+            while (scale_deg < 0) {
+                scale_deg += lp_scale.num_notes;
+            }
+            lp_pad_notes[y][x] = l->root_note + (octave * NUM_NOTES) + lp_scale.offsets[scale_deg];
             lp_pad_highlights[y][x] = scale_contains_highlight(&lp_scale, lp_scale.offsets[scale_deg]);
         }
-
-        start_scale_deg += l->row_offset;
+        row_start_scale_deg += l->row_offset;
     }
 }
 
@@ -123,6 +122,24 @@ void layout_toggle_note(Layout* l, uint8_t note)
 void layout_toggle_highlight(Layout* l, uint8_t note_highlight)
 {
     scale_toggle_highlight(&lp_scale, note_highlight);
+    layout_assign_pads(l);
+}
+
+void layout_shift_view(Layout *l, int8_t delta_x, int8_t delta_y, int8_t reset) 
+{
+    if (reset) {
+        if (delta_x != 0) 
+        {
+            l->offset_horizontal = 0;
+        }
+        if (delta_y != 0)
+        {
+            l->offset_vertical = 0;
+        }
+    } else {
+        l->offset_horizontal = clamp(l->offset_horizontal + delta_x, -4, 4);
+        l->offset_vertical = clamp(l->offset_vertical + delta_y, -4, 4);
+    }
     layout_assign_pads(l);
 }
 
@@ -297,13 +314,15 @@ uint8_t layout_handle_transpose(Layout* l, uint8_t index, uint8_t value)
     if (index == LP_TRANSPOSE_UP)
     {
         if (!modifier_held(LP_SHIFT)) {
+            // Transposing note values in the next/previous musical key onto the same view
             if (last_pressed == LP_TRANSPOSE_DOWN) {
                 layout_transpose(l, 0); // Reset to default
             } else {
                 layout_transpose(l, 1);
             }
         } else {
-
+            // Shifting the "view" horizontally
+            layout_shift_view(l, 1, 0, last_pressed == LP_TRANSPOSE_DOWN);            
         }
     }
     else if (index == LP_TRANSPOSE_DOWN)
@@ -315,7 +334,7 @@ uint8_t layout_handle_transpose(Layout* l, uint8_t index, uint8_t value)
                 layout_transpose(l, -1);
             }
         } else {
-
+            layout_shift_view(l, -1, 0, last_pressed == LP_TRANSPOSE_UP);            
         }
     }
     else if (index == LP_OCTAVE_UP)
@@ -327,7 +346,7 @@ uint8_t layout_handle_transpose(Layout* l, uint8_t index, uint8_t value)
                 layout_transpose_octave(l, 1);
             }
         } else {
-
+            layout_shift_view(l, 0, 1, last_pressed == LP_OCTAVE_DOWN);            
         }
     }
     else if (index == LP_OCTAVE_DOWN)
@@ -339,7 +358,7 @@ uint8_t layout_handle_transpose(Layout* l, uint8_t index, uint8_t value)
                 layout_transpose_octave(l, -1);
             }
         } else {
-            
+            layout_shift_view(l, 0, -1, last_pressed == LP_OCTAVE_UP);            
         }
     }
     else
