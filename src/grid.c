@@ -23,7 +23,7 @@ void grid_update_cache(Sequencer* sr, int8_t translation)
     }
     else if (translation == -1)
     {
-        uint8_t scale_deg = (s->y + GRID_SIZE) % lp_scale.num_notes;
+        //uint8_t scale_deg = (s->y + GRID_SIZE) % lp_scale.num_notes;
         for (uint8_t i = GRID_SIZE; i > 0; i--)
         {
             note_numbers[i] = note_numbers[i - 1];
@@ -63,7 +63,7 @@ void grid_draw(Sequencer* sr)
     for (uint8_t x = 0; x < GRID_SIZE; x++)
     {
         uint8_t seq_x = grid_to_sequence_x(s, x);
-        Note* n;
+        Note* n = 0;
         uint8_t y;
 
         for (uint8_t n_i = 0; n_i < zoom; n_i++)

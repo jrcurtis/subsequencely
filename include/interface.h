@@ -52,6 +52,10 @@
 #define MULTICHANNEL_CHECKBOX_POS  (55)
 #define CONTROL_CHECKBOX_POS       (81)
 
+#define NOTE_HIGHLIGHT_ONLY_POS    (28)
+#define SCALE_HIGHLIGHT_ONLY_POS     (48)
+#define SCALE_HIGHLIGHT_ONLY_INV_POS (28)
+
 #define MOD_WHEEL_POS              (51)
 #define MOD_WHEEL_X                (0)
 #define MOD_WHEEL_Y                (4)

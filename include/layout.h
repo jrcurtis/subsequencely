@@ -5,10 +5,10 @@
 #include "app.h"
 #include "buttons.h"
 #include "colors.h"
-#include "keyboard.h"
-#include "scale.h"
 #include "voices.h"
 #include "util.h"
+
+#define LAYOUT_DEFAULT_OCTAVE 3
 
 /// The bits where row offset lives. Excludes the drum flag bit, so that
 /// the drums state doesn't get trashed when you use the row offset slider.
@@ -26,6 +26,9 @@ typedef enum
 /// calculating every time a pad is pressed.
 typedef int8_t PadNotes[GRID_SIZE][GRID_SIZE];
 
+/// Cache of which pads are highlighted for note mode
+typedef int8_t PadHighlights[GRID_SIZE];
+
 /// Represents a layout of a scale on a grid. Determines which note and octave
 /// to start from, and the distance in scale steps between rows of the grid.
 typedef struct
@@ -41,6 +44,9 @@ typedef struct
     /// rows. To tune in 4ths for a chromatic scale, this would be set to 5.
     int8_t row_offset;
 
+    /// How many spaces up/down to translate the view
+    int8_t offset_horizontal;
+    int8_t offset_vertical;
 } Layout;
 
 /// Initialize the layout data.
@@ -64,11 +70,14 @@ void layout_set_drums(Layout* l);
 
 /// Toggles the note in the scale, and updates the layout.
 void layout_toggle_note(Layout* l, uint8_t note);
+/// Toggles the note highlight
+void layout_toggle_highlight(Layout* l, uint8_t note_highlight);
 
 /// Draws the layout onto the grid.
 void layout_draw(Layout* l);
 void layout_draw_scale(Layout* l);
 void layout_draw_drums(Layout* l);
+void layout_draw_transpose_octave_buttons(Layout* l);
 
 /// Increases or decreases the root note by a half step.
 void layout_transpose(Layout* l, int8_t direction);

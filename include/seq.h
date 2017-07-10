@@ -69,8 +69,13 @@ void notes_setup_become_active();
 void notes_setup_become_inactive();
 void notes_mode_draw();
 void notes_setup_draw();
-uint8_t notes_mode_handle_press(uint8_t index, uint8_t value);
+uint8_t notes_mode_handle_press(uint8_t index, uint8_t value, uint8_t shift_held, uint8_t note_held);
 uint8_t notes_setup_handle_press(uint8_t index, uint8_t value);
+
+void scales_setup_become_active();
+void scales_setup_become_inactive();
+void scales_setup_draw();
+uint8_t scales_setup_handle_press(uint8_t index, uint8_t value);
 
 void user_mode_become_active();
 void user_mode_become_inactive();
@@ -86,6 +91,6 @@ uint8_t user_setup_handle_press(uint8_t index, uint8_t value);
  ******************************************************************************/
 
 /// Switch the mode or switch between normal and setup modes.
-void set_state(LpState st, uint8_t setup);
+void set_state(LpState st, uint8_t setup, uint8_t shift_held);
 
 #endif

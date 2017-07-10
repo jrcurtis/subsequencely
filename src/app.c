@@ -36,11 +36,13 @@
 
 #include "app.h"
 #include "seq.h"
+#include "colors.h"
 
 /*******************************************************************************
  * Event handlers
  ******************************************************************************/
-
+int8_t shift_held = 0;
+int8_t note_held = 0;
 void app_surface_event(uint8_t type, uint8_t index, uint8_t value)
 {
 #ifndef SEQ_DEBUG
@@ -51,37 +53,59 @@ void app_surface_event(uint8_t type, uint8_t index, uint8_t value)
     sequencer_play_draw(&lp_sequencer);
     arp_draw();
 
+    if (index == LP_SHIFT) {
+        if (value > 0) {
+            shift_held = 1;
+        } else { 
+            shift_held = 0;
+        }
+    }
+
+    if (index == LP_NOTE) {
+        if (value > 0) {
+            note_held = 1;
+        } else { 
+            note_held = 0;
+        }        
+    }
+
     if (index == LP_SESSION)
     {
         if (value > 0)
         {
-            set_state(LP_SESSION_MODE, 0);
+            set_state(LP_SESSION_MODE, 0, 0);
         }
     }
     else if (index == LP_NOTE)
     {
         if (value > 0)
         {
-            set_state(LP_NOTES_MODE, 0);
+            set_state(LP_NOTES_MODE, 0, 0);
+            plot_pad(LP_TRANSPOSE_UP, scale_button_color);
+            plot_pad(LP_TRANSPOSE_DOWN, scale_button_color);
+        }
+        else
+        {
+            layout_draw_transpose_octave_buttons(sequencer_get_layout(&lp_sequencer));
         }
     }
     else if (index == LP_DEVICE)
     {
         if (value > 0)
         {
-            set_state(LP_SEQUENCER_MODE, 0);
+            set_state(LP_SEQUENCER_MODE, 0, 0);
         }
     }
     else if (index == LP_USER)
     {
         if (value > 0)
         {
-            set_state(LP_USER_MODE, 0);
+            set_state(LP_USER_MODE, 0, 0);
         }
     }
     else if (type == TYPESETUP && value > 0)
     {
-        set_state(lp_state, !flag_is_set(lp_flags, LP_IS_SETUP));
+        set_state(lp_state, (shift_held && flag_is_set(lp_flags, LP_IS_SETUP)) || !flag_is_set(lp_flags, LP_IS_SETUP), shift_held);
     }
     else if (sequencer_handle_play(&lp_sequencer, index, value)) { }
     // Don't let tap tempo be used when tempo is controlled by clock.
@@ -97,7 +121,7 @@ void app_surface_event(uint8_t type, uint8_t index, uint8_t value)
         }
         else if (lp_state == LP_NOTES_MODE)
         {
-            notes_mode_handle_press(index, value);
+            notes_mode_handle_press(index, value, shift_held, note_held);
             notes_mode_draw();
         }
         else if (lp_state == LP_SEQUENCER_MODE)
@@ -120,8 +144,15 @@ void app_surface_event(uint8_t type, uint8_t index, uint8_t value)
         }
         else if (lp_state == LP_NOTES_MODE)
         {
-            notes_setup_handle_press(index, value);
-            notes_setup_draw();
+            if (flag_is_set(lp_flags, LP_IS_SETUP2)) {
+                if (scales_setup_handle_press(index, value)) 
+                {
+                    scales_setup_draw();
+                }
+            } else {
+                notes_setup_handle_press(index, value);
+                notes_setup_draw();
+            }
         }
         else if (lp_state == LP_SEQUENCER_MODE)
         {
@@ -244,6 +275,9 @@ void app_timer_event()
 {
 #ifndef SEQ_DEBUG
     sequencer_tick(&lp_sequencer, 0);
+    if (lp_text_displayer.active) {
+        text_display_tick(&lp_text_displayer);
+    }
     lp_tap_tempo_timer++;
 
     if (flag_is_set(lp_flags, LP_SQR_DIRTY))
@@ -282,6 +316,8 @@ void app_timer_event()
 void app_init()
 {
 #ifndef SEQ_DEBUG
+    text_display_init(&lp_text_displayer);
+
     slider_init(
         &lp_tempo_slider,
         TEMPO_RESOLUTION, 60 / TEMPO_MUL + 1,
@@ -313,10 +349,11 @@ void app_init()
 
     lp_mod_wheel = 0;
     lp_flags = 0;
+    lp_quick_scale_current = 1;
 
     deserialize_app();
 
-    set_state(LP_NOTES_MODE, 0);
+    set_state(LP_NOTES_MODE, 0, 0);
 #else
     for (uint8_t i = 0; i < 100; i++)
     {
