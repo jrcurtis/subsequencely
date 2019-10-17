@@ -279,7 +279,7 @@ void app_timer_event()
 }
 
 
-void app_init()
+void app_init(const u16 *adc_raw)
 {
 #ifndef SEQ_DEBUG
     slider_init(

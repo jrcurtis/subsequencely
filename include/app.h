@@ -71,6 +71,19 @@
 void hal_plot_led(uint8_t type, uint8_t index, uint8_t red, uint8_t green, uint8_t blue);
 
 /**
+ * Read the RGB value of an LED.  This function is safe to call from any
+ * of the app functions below, at any time. Result is undefined if an invalid address is passed
+ * for any of the red, green or blue components.
+ *
+ * @param type - TYPEPAD to address any pad or button, TYPESETUP to address the Setup LED
+ * @param index - The index of the button, as above
+ * @param red - address to read red colour value, in [0, MAXLED].
+ * @param green - address to read green colour value, in [0, MAXLED]
+ * @param blue - address to read blue colour value, in [0, MAXLED]
+ */
+void hal_read_led(u8 type, u8 index, u8 *red, u8 *green, u8 *blue);
+
+/**
  * Send a MIDI message to either USB port or to the DIN output.
  * 
  * @param port - which port to send the message to - can be USBSTANDALONE, USBMIDI or DINMIDI.
@@ -126,6 +139,26 @@ void hal_read_flash(uint32_t offset, uint8_t *data, uint32_t length);
  */
 void hal_write_flash(uint32_t offset,const uint8_t *data, uint32_t length);
 
+/**
+ * Retrieve the device ID bootloader option
+ *
+ * Users can set a unique ID from 1-16 in the bootloader. This is useful
+ * for USB apps, as it helps multi-Launchpad setups behave predictably.
+ *
+ * @result the zero-based device ID [0-15] assigned to this Launchpad Pro.
+ */
+u8 hal_read_device_id();
+
+/**
+ * Retrieve the "layout text" bootloader option
+ *
+ * This setting determines whether the factory firmware will scroll text on changing
+ * layouts. This may be useful as a preference for open firmware apps as well.
+ *
+ * @result 1 to scroll text on layout changes, 0 not to.
+ */
+u8 hal_read_layout_text();
+
 // ____________________________________________________________________________
 //
 // Callbacks from the hardware (implemented in your app.c)
@@ -133,8 +166,13 @@ void hal_write_flash(uint32_t offset,const uint8_t *data, uint32_t length);
 
 /**
  * Called on startup, this is a good place to do any initialisation.
+ *
+ * @param adc_buffer -  this is a pointer to the raw ADC frame buffer. The
+ *						data is 12 bit unsigned. Note the indexing is strange - 
+ *						translate ADC indices to LED/button indices using the
+ *						ADC_MAP table declared in app_defs.h.
  */
-void app_init();
+void app_init(const u16 *adc_buffer);
 
 /**
  *  1kHz (1ms) timer.  You can set LEDs and send MIDI out from this function,
