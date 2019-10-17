@@ -110,7 +110,7 @@
 
 #define PAD_COUNT 64
 
-static const u8 ADC_MAP[PAD_COUNT] =
+static const uint8_t ADC_MAP[PAD_COUNT] =
 {
 	11, 51, 12, 52, 13, 53, 14, 54,
 	15, 55, 16, 56, 17 ,57, 18, 58,

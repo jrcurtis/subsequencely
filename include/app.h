@@ -81,7 +81,7 @@ void hal_plot_led(uint8_t type, uint8_t index, uint8_t red, uint8_t green, uint8
  * @param green - address to read green colour value, in [0, MAXLED]
  * @param blue - address to read blue colour value, in [0, MAXLED]
  */
-void hal_read_led(u8 type, u8 index, u8 *red, u8 *green, u8 *blue);
+void hal_read_led(uint8_t type, uint8_t index, uint8_t *red, uint8_t *green, uint8_t *blue);
 
 /**
  * Send a MIDI message to either USB port or to the DIN output.
@@ -147,7 +147,7 @@ void hal_write_flash(uint32_t offset,const uint8_t *data, uint32_t length);
  *
  * @result the zero-based device ID [0-15] assigned to this Launchpad Pro.
  */
-u8 hal_read_device_id();
+uint8_t hal_read_device_id();
 
 /**
  * Retrieve the "layout text" bootloader option
@@ -157,7 +157,7 @@ u8 hal_read_device_id();
  *
  * @result 1 to scroll text on layout changes, 0 not to.
  */
-u8 hal_read_layout_text();
+uint8_t hal_read_layout_text();
 
 // ____________________________________________________________________________
 //
@@ -172,7 +172,7 @@ u8 hal_read_layout_text();
  *						translate ADC indices to LED/button indices using the
  *						ADC_MAP table declared in app_defs.h.
  */
-void app_init(const u16 *adc_buffer);
+void app_init(const uint16_t *adc_buffer);
 
 /**
  *  1kHz (1ms) timer.  You can set LEDs and send MIDI out from this function,
